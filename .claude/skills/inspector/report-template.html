@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<!--
+  UX / UI Audit — Report Template (v2, "register" design)
+
+  Copy this whole file and replace each placeholder comment below with rendered
+  HTML to produce audit-workspace/audit-report.html.
+
+  IMPORTANT: this doc-comment contains NO nested comment markers. Do not paste an
+  HTML example that itself contains comment delimiters in here — an inner close
+  marker would terminate this comment early and leak markup into the page. The
+  finding-block structure is documented in SKILL.md instead.
+
+  Placeholders (each is a single HTML comment, safe to string-replace):
+    PROJECT_NAME        e.g. "My App"
+    PRD_PATH            e.g. "docs/PRD.md"  (or "—" for a no-PRD heuristic audit)
+    APP_URL             e.g. "http://localhost:3000"
+    AUDIT_DATE          e.g. "Friday, 19 June 2026"
+    TOTAL_COUNT / HIGH_COUNT / MEDIUM_COUNT / LOW_COUNT      integers (criticality)
+    PRD_COUNT / UI_COUNT / UX_COUNT                          integers (issue type)
+    SUMMARY_PARAGRAPH   1-2 short paragraphs
+    TOP_ISSUES          <li> items, the priorities to fix first
+    FINDINGS            the accordion finding rows, ALREADY SORTED High -> Medium -> Low
+    FLOWS_TABLE_BODY    <tr> rows of tested flows
+    COVERAGE_TABLE_BODY <tr> rows for heuristic coverage
+
+  Two tags per finding (see SKILL.md for the finding-block markup):
+    1. Criticality — High / Medium / Low  (filled, labeled chip)
+    2. Issue type  — PRD / UI / UX         (outlined, labeled tag)
+       PRD = misalignment with the PRD · UI = visual bug / unconventional pattern
+       UX  = usability problem, including accessibility
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UX/UI Audit — <!-- PROJECT_NAME --></title>
+<style>
+  :root{
+    /* neutral document palette */
+    --bg:#f5f6f8; --surface:#ffffff; --ink:#111827; --muted:#5b6573; --faint:#7a8492;
+    --line:#e5e7eb; --rail:#f8f9fb;
+    /* criticality (colorblind-safe; ALWAYS paired with a text label) */
+    --high:#b42318; --medium:#b54708; --low:#475467;
+    /* issue type (secondary; distinct hues, labeled) */
+    --prd:#3730a3;  --prd-bg:#eef2ff;  --prd-bd:#c7d2fe;
+    --ui:#0e7490;   --ui-bg:#ecfeff;   --ui-bd:#a5f3fc;
+    --ux:#6d28d9;   --ux-bg:#f5f3ff;   --ux-bd:#ddd6fe;
+    /* spacing scale */
+    --sp-1:.25rem; --sp-2:.5rem; --sp-3:.75rem; --sp-4:1rem; --sp-5:1.5rem;
+    --sp-6:2rem; --sp-7:2.75rem; --radius:.7rem;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;}
+  .container{max-width:920px;margin:0 auto;padding:var(--sp-7) var(--sp-5) var(--sp-7);}
+  code{background:#eef1f5;border-radius:4px;padding:.05em .4em;font-size:.86em;}
+  a{color:var(--prd);}
+
+  /* ---------- header ---------- */
+  header.rep{margin-bottom:var(--sp-6);}
+  .rep__eyebrow{font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);}
+  h1{margin:var(--sp-2) 0 var(--sp-3);font-size:2rem;line-height:1.2;letter-spacing:-.01em;}
+  .rep__meta{color:var(--muted);font-size:.9rem;margin:0;}
+
+  /* ---------- summary band ---------- */
+  .summary{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+    padding:var(--sp-5) var(--sp-5);margin-bottom:var(--sp-5);}
+  .summary p{margin:0 0 var(--sp-4);color:#1d2939;}
+  .summary p:last-of-type{margin-bottom:0;}
+  .scoreboard{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--sp-3);margin-bottom:var(--sp-5);}
+  .score{background:var(--rail);border:1px solid var(--line);border-left:4px solid var(--c,var(--ink));
+    border-radius:.6rem;padding:var(--sp-3) var(--sp-4);}
+  .score__n{display:block;font-size:1.8rem;font-weight:800;line-height:1;color:var(--c,var(--ink));font-variant-numeric:tabular-nums;}
+  .score__k{display:block;font-size:.78rem;color:var(--muted);margin-top:var(--sp-1);}
+  .score--total{--c:var(--ink);}
+  .score--high{--c:var(--high);} .score--medium{--c:var(--medium);} .score--low{--c:var(--low);}
+  .priorities__h{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--faint);margin:0 0 var(--sp-2);}
+  .priorities{margin:0;padding-left:1.2rem;}
+  .priorities li{margin:var(--sp-1) 0;}
+
+  /* ---------- toolbar (filters) ---------- */
+  .toolbar{position:sticky;top:0;z-index:5;background:var(--bg);
+    padding:var(--sp-3) 0;margin-bottom:var(--sp-3);border-bottom:1px solid var(--line);}
+  .filtergroup{display:flex;flex-wrap:wrap;align-items:center;gap:var(--sp-2);margin-bottom:var(--sp-2);}
+  .filtergroup:last-child{margin-bottom:0;}
+  .filtergroup__lab{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;
+    color:var(--faint);width:3.2rem;flex-shrink:0;}
+  .chip{display:inline-flex;align-items:center;gap:var(--sp-2);font-size:.8rem;font-weight:600;
+    border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:.28rem .7rem;
+    cursor:pointer;color:var(--muted);}
+  .chip:hover{background:#eef1f5;}
+  .chip .cnt{font-size:.68rem;font-weight:700;background:#eef1f5;border-radius:999px;padding:.02rem .42rem;color:var(--faint);}
+  .chip.is-on{background:#0f172a;color:#fff;border-color:#0f172a;}
+  .chip.is-on .cnt{background:rgba(255,255,255,.22);color:#fff;}
+  .toolbar__spacer{flex:1;}
+  .linkbtn{font-size:.76rem;border:1px solid var(--line);background:var(--surface);border-radius:.45rem;
+    padding:.28rem .6rem;cursor:pointer;color:var(--muted);}
+  .linkbtn:hover{background:#eef1f5;}
+
+  /* ---------- shared tags ---------- */
+  .sev{display:inline-block;color:#fff;font-size:.68rem;font-weight:700;letter-spacing:.03em;
+    padding:.14rem .55rem;border-radius:999px;white-space:nowrap;}
+  .sev--high{background:var(--high);} .sev--medium{background:var(--medium);} .sev--low{background:var(--low);}
+  .type{display:inline-block;font-size:.64rem;font-weight:700;letter-spacing:.05em;
+    padding:.12rem .5rem;border-radius:999px;white-space:nowrap;border:1px solid var(--line);}
+  .type--PRD{color:var(--prd);background:var(--prd-bg);border-color:var(--prd-bd);}
+  .type--UI{color:var(--ui);background:var(--ui-bg);border-color:var(--ui-bd);}
+  .type--UX{color:var(--ux);background:var(--ux-bg);border-color:var(--ux-bd);}
+
+  /* ---------- findings register (accordion) ---------- */
+  .register{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;}
+  .finding{border-bottom:1px solid var(--line);}
+  .finding:last-child{border-bottom:0;}
+  .finding[hidden]{display:none;}
+  .finding__head{width:100%;display:flex;align-items:center;flex-wrap:wrap;gap:var(--sp-2);
+    background:none;border:0;border-left:4px solid var(--c);text-align:left;cursor:pointer;
+    font:inherit;color:inherit;padding:var(--sp-4) var(--sp-5);}
+  .finding--high{--c:var(--high);} .finding--medium{--c:var(--medium);} .finding--low{--c:var(--low);}
+  .finding__head:hover{background:var(--rail);}
+  .finding__head:focus-visible{outline:2px solid var(--prd);outline-offset:-2px;}
+  .finding__caret{color:var(--faint);font-size:.8rem;transition:transform .15s ease;flex-shrink:0;}
+  .finding.is-open .finding__caret{transform:rotate(90deg);}
+  .finding__title{flex:1;min-width:220px;margin:0;font-size:1.05rem;font-weight:600;line-height:1.35;}
+  .finding__body{display:none;padding:0 var(--sp-5) var(--sp-5) calc(var(--sp-5) + 1.2rem);}
+  .finding.is-open .finding__body{display:block;}
+  .finding__fix{margin:0 0 var(--sp-4);background:var(--rail);border:1px solid var(--line);
+    border-radius:.5rem;padding:var(--sp-3) var(--sp-4);font-size:.95rem;}
+  .finding__fixlab{font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;
+    color:var(--faint);display:block;margin-bottom:var(--sp-1);}
+  .finding__detail{margin:0;display:grid;grid-template-columns:9.5rem 1fr;gap:var(--sp-2) var(--sp-5);}
+  .finding__detail dt{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;
+    color:var(--faint);padding-top:.1rem;}
+  .finding__detail dd{margin:0;font-size:.92rem;color:#1d2939;}
+  .finding__directions{margin-top:var(--sp-4);font-size:.88rem;}
+  .finding__shot{margin-top:var(--sp-4);font-size:.8rem;border:1px dashed var(--line);background:var(--rail);
+    border-radius:.5rem;padding:var(--sp-3) var(--sp-4);cursor:pointer;color:var(--muted);display:block;width:100%;text-align:left;}
+  .finding__shot.is-loaded{border-style:solid;padding:0;background:none;display:grid;gap:var(--sp-2);}
+  .finding__shot img{display:block;max-width:100%;border:1px solid var(--line);border-radius:.5rem;}
+  .finding__shot figcaption{font-size:.74rem;color:var(--faint);padding:0 var(--sp-2) var(--sp-2);}
+  .empty{padding:var(--sp-5);color:var(--muted);font-style:italic;}
+
+  /* ---------- appendix tables ---------- */
+  .appendix{margin-top:var(--sp-6);}
+  .appendix>summary{cursor:pointer;font-size:1.05rem;font-weight:700;padding:var(--sp-3) 0;
+    list-style:none;display:flex;align-items:center;gap:var(--sp-2);}
+  .appendix>summary::-webkit-details-marker{display:none;}
+  .appendix>summary::before{content:"▸";color:var(--faint);font-size:.85rem;transition:transform .15s ease;}
+  .appendix[open]>summary::before{transform:rotate(90deg);}
+  table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--line);
+    border-radius:var(--radius);overflow:hidden;margin-top:var(--sp-2);}
+  th,td{text-align:left;padding:var(--sp-3) var(--sp-4);border-bottom:1px solid var(--line);font-size:.9rem;vertical-align:top;}
+  th{background:var(--rail);font-weight:700;font-size:.78rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);}
+  tr:last-child td{border-bottom:0;}
+
+  footer.rep{margin-top:var(--sp-6);padding-top:var(--sp-4);border-top:1px solid var(--line);
+    color:var(--faint);font-size:.82rem;}
+
+  /* ---------- responsive (no horizontal overflow) ---------- */
+  @media (max-width:640px){
+    .container{padding:var(--sp-5) var(--sp-4);}
+    h1{font-size:1.6rem;}
+    .scoreboard{grid-template-columns:repeat(2,1fr);}
+    .finding__detail{grid-template-columns:1fr;gap:0;}
+    .finding__detail dt{margin-top:var(--sp-3);}
+    .finding__body{padding-left:var(--sp-5);}
+    .filtergroup__lab{width:100%;}
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<header class="rep">
+  <div class="rep__eyebrow">UX / UI Audit</div>
+  <h1><!-- PROJECT_NAME --></h1>
+  <p class="rep__meta">Audited <code><!-- PRD_PATH --></code> against <code><!-- APP_URL --></code> · <!-- AUDIT_DATE --></p>
+</header>
+
+<section class="summary">
+  <div class="scoreboard">
+    <div class="score score--total"><span class="score__n"><!-- TOTAL_COUNT --></span><span class="score__k">findings total</span></div>
+    <div class="score score--high"><span class="score__n"><!-- HIGH_COUNT --></span><span class="score__k">High criticality</span></div>
+    <div class="score score--medium"><span class="score__n"><!-- MEDIUM_COUNT --></span><span class="score__k">Medium criticality</span></div>
+    <div class="score score--low"><span class="score__n"><!-- LOW_COUNT --></span><span class="score__k">Low criticality</span></div>
+  </div>
+  <!-- SUMMARY_PARAGRAPH -->
+  <p class="priorities__h">Fix first</p>
+  <ol class="priorities">
+    <!-- TOP_ISSUES -->
+  </ol>
+</section>
+
+<div class="toolbar" id="toolbar">
+  <div class="filtergroup" data-group="sev">
+    <span class="filtergroup__lab">Level</span>
+    <button class="chip is-on" data-sev="all">All <span class="cnt"><!-- TOTAL_COUNT --></span></button>
+    <button class="chip" data-sev="high">High <span class="cnt"><!-- HIGH_COUNT --></span></button>
+    <button class="chip" data-sev="medium">Medium <span class="cnt"><!-- MEDIUM_COUNT --></span></button>
+    <button class="chip" data-sev="low">Low <span class="cnt"><!-- LOW_COUNT --></span></button>
+  </div>
+  <div class="filtergroup" data-group="type">
+    <span class="filtergroup__lab">Type</span>
+    <button class="chip is-on" data-type="all">All</button>
+    <button class="chip" data-type="PRD">PRD <span class="cnt"><!-- PRD_COUNT --></span></button>
+    <button class="chip" data-type="UI">UI <span class="cnt"><!-- UI_COUNT --></span></button>
+    <button class="chip" data-type="UX">UX <span class="cnt"><!-- UX_COUNT --></span></button>
+    <span class="toolbar__spacer"></span>
+    <button class="linkbtn" id="expandAll">Expand all</button>
+    <button class="linkbtn" id="collapseAll">Collapse all</button>
+  </div>
+</div>
+
+<section class="register" id="register">
+  <!-- FINDINGS -->
+  <p class="empty" id="noMatch" hidden>No findings match the current filters.</p>
+</section>
+
+<details class="appendix">
+  <summary>Flows tested</summary>
+  <table>
+    <thead><tr><th>Flow</th><th>Completed end-to-end?</th><th>Notes</th></tr></thead>
+    <tbody>
+      <!-- FLOWS_TABLE_BODY -->
+    </tbody>
+  </table>
+</details>
+
+<details class="appendix">
+  <summary>Heuristic coverage</summary>
+  <table>
+    <thead><tr><th>Category</th><th>Checked</th><th>Issues found</th></tr></thead>
+    <tbody>
+      <!-- COVERAGE_TABLE_BODY -->
+    </tbody>
+  </table>
+</details>
+
+<footer class="rep">
+  Generated by the inspector skill. Self-contained — screenshots load on demand from embedded data;
+  all styles inline. Two tags per finding: criticality (High / Medium / Low) and issue type
+  (PRD = misalignment with the PRD · UI = visual / pattern bug · UX = usability incl. accessibility).
+</footer>
+
+</div>
+
+<script>
+(function(){
+  var register = document.getElementById('register');
+  if(!register) return;
+  var findings = [].slice.call(register.querySelectorAll('.finding'));
+  var noMatch = document.getElementById('noMatch');
+  var state = { sev:'all', type:'all' };
+
+  // --- accordion: toggle + click-to-load screenshots ---
+  findings.forEach(function(f){
+    var head = f.querySelector('.finding__head');
+    head.addEventListener('click', function(){
+      var open = f.classList.toggle('is-open');
+      head.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    f.querySelectorAll('.finding__shot').forEach(function(shot){
+      shot.addEventListener('click', function(e){
+        e.stopPropagation();
+        if(shot.classList.contains('is-loaded')) return;
+        var src = shot.getAttribute('data-src');
+        var cap = shot.getAttribute('data-cap') || '';
+        var img = new Image();
+        img.alt = cap;
+        img.src = src;
+        shot.textContent = '';
+        shot.appendChild(img);
+        if(cap){ var fc = document.createElement('figcaption'); fc.textContent = cap; shot.appendChild(fc); }
+        shot.classList.add('is-loaded');
+      });
+    });
+  });
+
+  // --- filters (criticality AND issue type) ---
+  function apply(){
+    var n = 0;
+    findings.forEach(function(f){
+      var okSev  = state.sev === 'all'  || f.dataset.sev  === state.sev;
+      var okType = state.type === 'all' || f.dataset.type === state.type;
+      var show = okSev && okType;
+      f.hidden = !show;
+      if(show) n++;
+    });
+    if(noMatch) noMatch.hidden = n > 0;
+  }
+  document.querySelectorAll('.filtergroup').forEach(function(group){
+    var key = group.dataset.group; // 'sev' | 'type'
+    group.querySelectorAll('.chip').forEach(function(chip){
+      chip.addEventListener('click', function(){
+        group.querySelectorAll('.chip').forEach(function(c){ c.classList.remove('is-on'); });
+        chip.classList.add('is-on');
+        state[key] = chip.dataset[key];
+        apply();
+      });
+    });
+  });
+
+  // --- expand / collapse all ---
+  var ex = document.getElementById('expandAll'), col = document.getElementById('collapseAll');
+  ex && ex.addEventListener('click', function(){
+    findings.forEach(function(f){ if(!f.hidden){ f.classList.add('is-open'); f.querySelector('.finding__head').setAttribute('aria-expanded','true'); } });
+  });
+  col && col.addEventListener('click', function(){
+    findings.forEach(function(f){ f.classList.remove('is-open'); f.querySelector('.finding__head').setAttribute('aria-expanded','false'); });
+  });
+
+  // --- open the first finding by default ---
+  if(findings[0]){
+    findings[0].classList.add('is-open');
+    findings[0].querySelector('.finding__head').setAttribute('aria-expanded','true');
+  }
+})();
+</script>
+</body>
+</html>

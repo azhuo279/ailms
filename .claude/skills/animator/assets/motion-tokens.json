@@ -1,0 +1,70 @@
+{
+  "$comment": "Motion design tokens synthesized from Material/Material 3, Fluent/Windows, Carbon, Apple HIG, WCAG, and web.dev RAIL. Durations in ms. Research-backed defaults — modulate for travel distance, surface size, and platform. See references/research-basis.md for attribution.",
+  "duration": {
+    "instant": {
+      "value": 100,
+      "use": "visible-response ceiling for acknowledgment"
+    },
+    "micro": { "value": 120, "use": "press / micro-motion (90-120)" },
+    "state": { "value": 120, "use": "hover, focus, selection (90-150)" },
+    "enter": {
+      "value": 250,
+      "use": "small enter: tooltip, toast, menu (150-250 web / 180-250 mobile)"
+    },
+    "exit": {
+      "value": 200,
+      "use": "small exit; keep shorter than enter (120-200)"
+    },
+    "contextual": {
+      "value": 250,
+      "use": "same-place transition, web/desktop (180-250)"
+    },
+    "contextualMobile": {
+      "value": 280,
+      "use": "same-place transition, mobile (220-300)"
+    },
+    "large": {
+      "value": 350,
+      "use": "large / full-screen transition (300-400)"
+    },
+    "expressive": { "value": 450, "use": "rare expressive moments (350-500)" }
+  },
+  "easing": {
+    "standard": {
+      "cubicBezier": [0.4, 0, 0.2, 1],
+      "use": "movement within the same context"
+    },
+    "decelerate": {
+      "cubicBezier": [0, 0, 0.2, 1],
+      "use": "entering elements and direct feedback"
+    },
+    "accelerate": { "cubicBezier": [0.4, 0, 1, 1], "use": "exiting elements" },
+    "sharp": {
+      "cubicBezier": [0.4, 0, 0.6, 1],
+      "use": "quick changes that may reverse"
+    },
+    "emphasizedIn": {
+      "cubicBezier": [0, 0, 0, 1],
+      "use": "strong, pronounced entrances"
+    },
+    "emphasizedOut": {
+      "cubicBezier": [1, 0, 1, 1],
+      "use": "strong, pronounced exits"
+    },
+    "linear": {
+      "cubicBezier": [0, 0, 1, 1],
+      "use": "ONLY constant-rate loops: spinners, rotation"
+    }
+  },
+  "choreography": {
+    "stagger": {
+      "value": 30,
+      "use": "short offset to lead the eye; cap total group time"
+    }
+  },
+  "reducedMotion": {
+    "$comment": "When the user requests reduced motion, collapse durations toward 0 and replace spatial motion (slide/scale/parallax/depth) with opacity cross-fades or instant state changes plus a color/highlight cue. Preserve meaning; never just delete it.",
+    "durationOverrideMs": 1,
+    "staggerOverrideMs": 0
+  }
+}

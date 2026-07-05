@@ -1,0 +1,322 @@
+<!--
+  Inventor — Design Directions Report Template
+
+  This file is a skeleton with placeholder comments. When generating
+  inventor-workspace/<target-slug>-directions.html, copy this whole file and
+  replace each placeholder region with rendered HTML.
+
+  Two style layers live here, KEEP THEM SEPARATE:
+    1. REPORT CHROME (.container, .doc-*, .variant-card, .comment, etc.)
+       — neutral document styling. Leave it mostly as-is.
+    2. THE MOCKUPS (inside each .mockup) — REAL UI ported from the codebase,
+       styled with the project's DESIGN TOKENS copied into :root below.
+       This is where variants must look/behave like real components.
+
+  Placeholders (each appears as an HTML comment):
+    <!-- TARGET_NAME -->         e.g. "RankBar (ranked list)"
+    <!-- TARGET_SCOPE -->        component | subpage/section | page | flow
+    <!-- TARGET_ROUTE -->        e.g. "/some-route"
+    <!-- TARGET_SOURCE -->       e.g. "path/to/rank-bar.tsx"
+    <!-- REPORT_DATE -->         e.g. "June 13, 2026"
+    <!-- FEEDBACK_SOURCE_PATH --> relative path to the feedback file (href + text)
+    <!-- FEEDBACK_QUOTE -->      the note/recommendation, verbatim
+    <!-- FEEDBACK_META -->       e.g. "Design annotation · captured 2026-06-11" or "Inspector finding · UI · high"
+    <!-- PROBLEM_STATEMENT -->   1 paragraph restating the underlying design problem
+    <!-- TOKENS_USED -->         copy the USED subset of tokens from the project's token source into :root (see below)
+    <!-- VARIANT_A_TITLE -->     short variant name
+    <!-- VARIANT_A_ANGLE -->     "Conservative · in-place" (or your label)
+    <!-- VARIANT_A_MOCKUP -->    REAL ported HTML mockup (interactive where implied)
+    <!-- VARIANT_A_ADDRESSED -->     how the feedback was addressed (1–3 sentences)
+    <!-- VARIANT_A_ADVANTAGES -->    <li> bullets — what this direction wins on (short phrases)
+    <!-- VARIANT_A_DISADVANTAGES --> <li> bullets — what it costs (short phrases; ≥1 required)
+    <!-- VARIANT_A_REUSES -->        (optional) real components/tokens reused
+    ...repeat _B and _C for the other two variants...
+
+  Per-variant CSS goes in the <style> block scoped under #variant-a / -b / -c
+  so the three mockups don't leak styles into each other. Tiny inline vanilla
+  JS for interactivity goes in the <script> at the bottom, scoped per section.
+  NO external assets, NO CDNs — the file must open offline.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Design Directions — <!-- TARGET_NAME --></title>
+<style>
+  /* ============================================================
+     LAYER 1 — DESIGN TOKENS (ported from the project's token source)
+     Copy ONLY the subset the mockups use. Reference via var(--…).
+     Keep names aligned with the token source so the file stays auditable.
+     Honor any role-reserved ramp the project defines (e.g. a palette for AI
+     surfaces); everything else → neutral.
+     ============================================================ */
+  :root {
+    /* <!-- TOKENS_USED --> */
+
+    /* ---- report chrome palette (neutral, NOT design tokens) ---- */
+    --doc-bg: #fafaf9;
+    --doc-surface: #ffffff;
+    --doc-text: #1c1917;
+    --doc-muted: #57534e;
+    --doc-border: #e7e5e4;
+    --doc-accent: #1b8354;     /* swap for the project's primary-600 to tie chrome to the brand */
+    --angle-a: #2563eb;        /* conservative */
+    --angle-b: #d97706;        /* restructure */
+    --angle-c: #9333ea;        /* reconceive */
+  }
+
+  /* ============================================================
+     LAYER 2 — REPORT CHROME
+     ============================================================ */
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--doc-bg);
+    color: var(--doc-text);
+    line-height: 1.55;
+  }
+  .container { max-width: 1040px; margin: 0 auto; padding: 2rem 1.25rem 5rem; }
+
+  header.doc-header { border-bottom: 1px solid var(--doc-border); padding-bottom: 1.5rem; margin-bottom: 1.75rem; }
+  header.doc-header .eyebrow { font-size: .72rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--doc-accent); }
+  header.doc-header h1 { margin: .35rem 0 .5rem; font-size: 1.8rem; }
+  header.doc-header .meta { color: var(--doc-muted); font-size: .9rem; }
+  header.doc-header .meta code { background: #f5f5f4; border-radius: 4px; padding: .05rem .35rem; }
+  .scope-pill { display: inline-block; font-size: .7rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
+    padding: .15rem .55rem; border-radius: 999px; background: #f5f5f4; color: var(--doc-muted); border: 1px solid var(--doc-border); }
+
+  h2.doc-section { margin-top: 2.5rem; font-size: 1.3rem; }
+
+  .feedback {
+    background: var(--doc-surface); border: 1px solid var(--doc-border);
+    border-left: 4px solid var(--doc-accent); border-radius: 8px; padding: 1.1rem 1.35rem; margin-top: 1rem;
+  }
+  .feedback .fb-meta { font-size: .78rem; color: var(--doc-muted); margin-bottom: .5rem; }
+  .feedback blockquote { margin: 0; font-size: 1.05rem; font-style: italic; }
+  .feedback .fb-link { margin-top: .75rem; font-size: .85rem; }
+  .feedback .fb-link a { color: var(--doc-accent); }
+
+  .problem { background: var(--doc-surface); border: 1px solid var(--doc-border); border-radius: 8px; padding: 1.1rem 1.35rem; margin-top: 1rem; }
+  .problem p { margin: 0; }
+
+  .variant {
+    background: var(--doc-surface); border: 1px solid var(--doc-border); border-radius: 10px;
+    margin-top: 1.5rem; overflow: hidden;
+  }
+  .variant__head { display: flex; align-items: center; gap: .75rem; padding: 1rem 1.35rem; border-bottom: 1px solid var(--doc-border); }
+  .variant__num { width: 1.85rem; height: 1.85rem; flex-shrink: 0; border-radius: 50%; display: grid; place-items: center;
+    font-weight: 700; font-size: .9rem; color: #fff; }
+  .variant--a .variant__num { background: var(--angle-a); }
+  .variant--b .variant__num { background: var(--angle-b); }
+  .variant--c .variant__num { background: var(--angle-c); }
+  .variant__titles { flex: 1; }
+  .variant__title { margin: 0; font-size: 1.1rem; }
+  .variant__angle { font-size: .76rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
+  .variant--a .variant__angle { color: var(--angle-a); }
+  .variant--b .variant__angle { color: var(--angle-b); }
+  .variant--c .variant__angle { color: var(--angle-c); }
+
+  /* The frame the live mockup sits in. The mockup itself uses design tokens. */
+  .mockup {
+    padding: 1.75rem; background:
+      linear-gradient(45deg, #f4f4f3 25%, transparent 25%, transparent 75%, #f4f4f3 75%) 0 0 / 16px 16px,
+      var(--doc-bg);
+    display: flex; justify-content: center;
+  }
+  .mockup__frame {
+    width: 100%; max-width: 760px; background: #ffffff;
+    border-radius: var(--radius-card, 1rem); box-shadow: var(--shadow-sm, 0 1px 3px rgba(16,24,40,.12));
+    font-family: var(--font-sans, system-ui, sans-serif);
+  }
+  .mockup__hint { text-align: center; font-size: .76rem; color: var(--doc-muted); margin-top: .75rem; }
+
+  .comment { padding: 1.1rem 1.35rem 1.35rem; border-top: 1px solid var(--doc-border); }
+  .comment dl { margin: 0; display: grid; gap: .15rem; }
+  .comment dt { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--doc-muted); margin-top: .7rem; }
+  .comment dt:first-child { margin-top: 0; }
+  .comment dd { margin: 0; }
+  .comment .reuses code { background: #f5f5f4; border-radius: 4px; padding: .05rem .35rem; font-size: .82rem; }
+
+  /* Tradeoffs — two-column Advantages / Disadvantages bullet lists (compact). */
+  .tradeoffs { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-top: .9rem; }
+  @media (max-width: 560px) { .tradeoffs { grid-template-columns: 1fr; } }
+  .tradeoffs__col { border: 1px solid var(--doc-border); border-radius: 8px; padding: .65rem .8rem; background: #fcfcfb; }
+  .tradeoffs__col--pro { border-left: 3px solid #16a34a; }
+  .tradeoffs__col--con { border-left: 3px solid #dc2626; }
+  .tradeoffs__label { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; margin-bottom: .35rem; }
+  .tradeoffs__col--pro .tradeoffs__label { color: #15803d; }
+  .tradeoffs__col--con .tradeoffs__label { color: #b91c1c; }
+  .tradeoffs ul { margin: 0; padding-left: 1.05rem; }
+  .tradeoffs li { font-size: .85rem; line-height: 1.4; margin: .15rem 0; }
+
+  footer.doc-footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--doc-border); color: var(--doc-muted); font-size: .85rem; }
+
+  /* ============================================================
+     LAYER 2b — PER-VARIANT MOCKUP CSS (scoped, token-driven)
+     Add the real ported component CSS here, prefixed by #variant-a /
+     #variant-b / #variant-c so the three mockups stay independent.
+     Use var(--…) tokens copied into :root above — never raw hex when a
+     token exists, never inline px (map to a token).
+     ============================================================ */
+  /* <!-- VARIANT_A_STYLES --> */
+  /* <!-- VARIANT_B_STYLES --> */
+  /* <!-- VARIANT_C_STYLES --> */
+</style>
+</head>
+<body>
+<div class="container">
+
+<header class="doc-header">
+  <div class="eyebrow">Design Directions</div>
+  <h1><!-- TARGET_NAME --> <span class="scope-pill"><!-- TARGET_SCOPE --></span></h1>
+  <div class="meta">
+    Three directions for <code><!-- TARGET_SOURCE --></code> on route <code><!-- TARGET_ROUTE --></code> · <!-- REPORT_DATE -->.
+    Generated by the <strong>inventor</strong> skill — ideation only; pick a direction, then run the composer to build it.
+  </div>
+</header>
+
+<h2 class="doc-section">Linked feedback</h2>
+<section class="feedback">
+  <div class="fb-meta"><!-- FEEDBACK_META --></div>
+  <blockquote>“<!-- FEEDBACK_QUOTE -->”</blockquote>
+  <div class="fb-link">Source: <a href="<!-- FEEDBACK_SOURCE_PATH -->"><!-- FEEDBACK_SOURCE_PATH --></a></div>
+</section>
+
+<h2 class="doc-section">The underlying problem</h2>
+<section class="problem">
+  <p><!-- PROBLEM_STATEMENT --></p>
+</section>
+
+<h2 class="doc-section">Three directions</h2>
+
+<!-- ============ VARIANT A ============ -->
+<section class="variant variant--a" id="variant-a">
+  <div class="variant__head">
+    <span class="variant__num">A</span>
+    <div class="variant__titles">
+      <h3 class="variant__title"><!-- VARIANT_A_TITLE --></h3>
+      <span class="variant__angle"><!-- VARIANT_A_ANGLE --></span>
+    </div>
+  </div>
+  <div class="mockup">
+    <div class="mockup__frame">
+      <!-- VARIANT_A_MOCKUP -->
+    </div>
+  </div>
+  <div class="comment">
+    <dl>
+      <dt>How the feedback was addressed</dt>
+      <dd><!-- VARIANT_A_ADDRESSED --></dd>
+    </dl>
+    <div class="tradeoffs">
+      <div class="tradeoffs__col tradeoffs__col--pro">
+        <div class="tradeoffs__label">Advantages</div>
+        <ul><!-- VARIANT_A_ADVANTAGES --></ul>
+      </div>
+      <div class="tradeoffs__col tradeoffs__col--con">
+        <div class="tradeoffs__label">Disadvantages</div>
+        <ul><!-- VARIANT_A_DISADVANTAGES --></ul>
+      </div>
+    </div>
+    <p class="reuses" style="margin:.7rem 0 0; font-size:.82rem; color:var(--doc-muted);">
+      Reuses: <!-- VARIANT_A_REUSES -->
+    </p>
+  </div>
+</section>
+
+<!-- ============ VARIANT B ============ -->
+<section class="variant variant--b" id="variant-b">
+  <div class="variant__head">
+    <span class="variant__num">B</span>
+    <div class="variant__titles">
+      <h3 class="variant__title"><!-- VARIANT_B_TITLE --></h3>
+      <span class="variant__angle"><!-- VARIANT_B_ANGLE --></span>
+    </div>
+  </div>
+  <div class="mockup">
+    <div class="mockup__frame">
+      <!-- VARIANT_B_MOCKUP -->
+    </div>
+  </div>
+  <div class="comment">
+    <dl>
+      <dt>How the feedback was addressed</dt>
+      <dd><!-- VARIANT_B_ADDRESSED --></dd>
+    </dl>
+    <div class="tradeoffs">
+      <div class="tradeoffs__col tradeoffs__col--pro">
+        <div class="tradeoffs__label">Advantages</div>
+        <ul><!-- VARIANT_B_ADVANTAGES --></ul>
+      </div>
+      <div class="tradeoffs__col tradeoffs__col--con">
+        <div class="tradeoffs__label">Disadvantages</div>
+        <ul><!-- VARIANT_B_DISADVANTAGES --></ul>
+      </div>
+    </div>
+    <p class="reuses" style="margin:.7rem 0 0; font-size:.82rem; color:var(--doc-muted);">
+      Reuses: <!-- VARIANT_B_REUSES -->
+    </p>
+  </div>
+</section>
+
+<!-- ============ VARIANT C ============ -->
+<section class="variant variant--c" id="variant-c">
+  <div class="variant__head">
+    <span class="variant__num">C</span>
+    <div class="variant__titles">
+      <h3 class="variant__title"><!-- VARIANT_C_TITLE --></h3>
+      <span class="variant__angle"><!-- VARIANT_C_ANGLE --></span>
+    </div>
+  </div>
+  <div class="mockup">
+    <div class="mockup__frame">
+      <!-- VARIANT_C_MOCKUP -->
+    </div>
+  </div>
+  <div class="comment">
+    <dl>
+      <dt>How the feedback was addressed</dt>
+      <dd><!-- VARIANT_C_ADDRESSED --></dd>
+    </dl>
+    <div class="tradeoffs">
+      <div class="tradeoffs__col tradeoffs__col--pro">
+        <div class="tradeoffs__label">Advantages</div>
+        <ul><!-- VARIANT_C_ADVANTAGES --></ul>
+      </div>
+      <div class="tradeoffs__col tradeoffs__col--con">
+        <div class="tradeoffs__label">Disadvantages</div>
+        <ul><!-- VARIANT_C_DISADVANTAGES --></ul>
+      </div>
+    </div>
+    <p class="reuses" style="margin:.7rem 0 0; font-size:.82rem; color:var(--doc-muted);">
+      Reuses: <!-- VARIANT_C_REUSES -->
+    </p>
+  </div>
+</section>
+
+<footer class="doc-footer">
+  Generated by the inventor skill. These are <strong>sample directions</strong>, not
+  implementations — each mockup is a self-contained port of the real component library and
+  design tokens. To build one, hand the chosen direction to the composer skill.
+</footer>
+
+</div>
+
+<script>
+  /* Per-variant interactivity. Scope every query to its section element so the
+     three mockups stay independent. Vanilla JS only — no frameworks, no CDNs.
+     Example pattern (delete if a variant needs no JS):
+
+     (function(){
+       const root = document.getElementById('variant-b');
+       if (!root) return;
+       const btn = root.querySelector('[data-toggle]');
+       btn && btn.addEventListener('click', () => root.classList.toggle('is-open'));
+     })();
+  */
+  /* <!-- VARIANT_SCRIPTS --> */
+</script>
+</body>
+</html>

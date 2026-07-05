@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AI Agent Avatar — 3 Directions</title>
+<style>
+  :root {
+    /* ai ramp — hue 190, reserved for AI reasoning/override surfaces (from src/app/globals.css) */
+    --color-ai-50: oklch(0.97 0.013 190);
+    --color-ai-100: oklch(0.93 0.013 190);
+    --color-ai-200: oklch(0.87 0.028 190);
+    --color-ai-300: oklch(0.79 0.05 190);
+    --color-ai-400: oklch(0.71 0.083 190);
+    --color-ai-500: oklch(0.63 0.11 190);
+    --color-ai-600: oklch(0.53 0.11 190);
+    --color-ai-700: oklch(0.44 0.104 190);
+    --color-ai-800: oklch(0.35 0.104 190);
+    --color-ai-900: oklch(0.26 0.088 190);
+
+    --color-neutral-50: oklch(0.98 0.006 258);
+    --color-neutral-100: oklch(0.95 0.006 258);
+    --color-neutral-200: oklch(0.91 0.008 258);
+    --color-neutral-300: oklch(0.87 0.008 258);
+    --color-neutral-500: oklch(0.68 0.012 258);
+    --color-neutral-700: oklch(0.44 0.012 258);
+    --color-neutral-900: oklch(0.22 0.014 258);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: var(--color-neutral-100);
+    color: var(--color-neutral-900);
+    padding: 48px 32px 96px;
+  }
+
+  h1 {
+    font-size: 22px;
+    margin: 0 0 4px;
+  }
+  .subtitle {
+    color: var(--color-neutral-700);
+    font-size: 14px;
+    margin: 0 0 40px;
+  }
+
+  .direction {
+    background: var(--color-neutral-50);
+    border: 1px solid var(--color-neutral-300);
+    border-radius: 20px;
+    padding: 32px;
+    margin-bottom: 40px;
+  }
+
+  .direction-header {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 4px;
+  }
+  .direction-header .tag {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-ai-700);
+    background: var(--color-ai-100);
+    border: 1px solid var(--color-ai-300);
+    padding: 3px 8px;
+    border-radius: 999px;
+  }
+  .direction-header h2 {
+    font-size: 17px;
+    margin: 0;
+  }
+  .direction-desc {
+    font-size: 13px;
+    color: var(--color-neutral-700);
+    margin: 0 0 28px;
+    max-width: 640px;
+  }
+  .direction-desc b { color: var(--color-neutral-900); }
+
+  .stage-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 28px;
+    flex-wrap: wrap;
+  }
+
+  .stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+  }
+  .stage-canvas {
+    width: 220px;
+    height: 220px;
+    border-radius: 16px;
+    background:
+      radial-gradient(circle at 50% 35%, var(--color-ai-50), var(--color-neutral-100) 75%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: visible;
+  }
+  .stage-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-neutral-700);
+  }
+  .stage-sub {
+    font-size: 10.5px;
+    color: var(--color-neutral-500);
+    margin-top: -10px;
+    text-align: center;
+    max-width: 160px;
+  }
+
+  .arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    color: var(--color-ai-600);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    padding-bottom: 32px;
+  }
+  .arrow svg { display: block; }
+
+  /* ---------- shared cube-face parts ---------- */
+  .eye {
+    fill: var(--color-neutral-900);
+  }
+  .smile {
+    stroke: var(--color-neutral-900);
+    fill: none;
+    stroke-linecap: round;
+  }
+
+  /* =====================================================================
+     DIRECTION 1 — "Soft Blob Cube" : rounded superellipse, single flat tint,
+     soft drop shadow, minimal facets. Friendly, toy-like.
+  ===================================================================== */
+  .d1-body {
+    fill: var(--color-ai-200);
+    stroke: var(--color-ai-400);
+    stroke-width: 3;
+  }
+  .d1-face-panel {
+    fill: var(--color-ai-100);
+  }
+  .d1-appendage {
+    fill: var(--color-ai-200);
+    stroke: var(--color-ai-400);
+    stroke-width: 2.5;
+  }
+  .d1-edge-highlight {
+    stroke: var(--color-ai-50);
+    stroke-width: 3;
+    fill: none;
+    opacity: 0.9;
+  }
+
+  /* =====================================================================
+     DIRECTION 2 — "Faceted Isometric" : true 3-face isometric cube read,
+     top/left/right facet shading via layered tone steps. More "3D model"-like.
+  ===================================================================== */
+  .d2-top    { fill: var(--color-ai-100); }
+  .d2-left   { fill: var(--color-ai-300); }
+  .d2-right  { fill: var(--color-ai-200); }
+  .d2-front  { fill: var(--color-ai-200); }
+  .d2-appendage-top   { fill: var(--color-ai-100); }
+  .d2-appendage-left  { fill: var(--color-ai-300); }
+  .d2-appendage-right { fill: var(--color-ai-200); }
+  .d2-appendage-front  { fill: var(--color-ai-200); }
+
+  /* =====================================================================
+     DIRECTION 3 — "Glass Gradient Cube" : gradient-filled rounded cube with
+     glossy highlight, appendages as glowing orbs-in-cubes. Premium/glassy.
+  ===================================================================== */
+  .d3-outline { stroke: var(--color-ai-500); stroke-width: 2; fill: none; }
+
+  footer {
+    text-align: center;
+    font-size: 12px;
+    color: var(--color-neutral-500);
+    margin-top: 24px;
+  }
+</style>
+</head>
+<body>
+
+<h1>AI Agent Avatar — Design Directions</h1>
+<p class="subtitle">Flat 2D exploration ahead of the react-three-fiber build. Three directions × active / dormant / transition. All fills use the reserved <code>--color-ai-*</code> ramp only.</p>
+
+<!-- ============================================================= -->
+<!-- DIRECTION 1 -->
+<!-- ============================================================= -->
+<section class="direction">
+  <div class="direction-header">
+    <span class="tag">Direction 1</span>
+    <h2>Soft Blob Cube</h2>
+  </div>
+  <p class="direction-desc">
+    Toy-like and minimal. A single flat pastel tint per shape (<b>ai-200</b> body, <b>ai-100</b> face panel), thick
+    rounded outline, no facet shading. Reads friendly and simple at small sizes; the face sits on a subtly inset
+    panel rather than directly on the body.
+  </p>
+  <div class="stage-row">
+
+    <div class="stage">
+      <div class="stage-canvas">
+        <svg width="180" height="180" viewBox="0 0 180 180">
+          <!-- appendage left -->
+          <rect class="d1-appendage" x="18" y="112" width="34" height="34" rx="9" transform="rotate(-8 35 129)"/>
+          <!-- body -->
+          <rect class="d1-body" x="46" y="34" width="100" height="100" rx="26"/>
+          <path class="d1-edge-highlight" d="M 58 40 L 130 40" />
+          <!-- face panel -->
+          <rect class="d1-face-panel" x="62" y="66" width="68" height="46" rx="16"/>
+          <!-- eyes -->
+          <ellipse class="eye" cx="82" cy="86" rx="4.5" ry="9"/>
+          <ellipse class="eye" cx="110" cy="86" rx="4.5" ry="9"/>
+          <!-- smile -->
+          <path class="smile" d="M 82 100 Q 96 110 110 100" stroke-width="4"/>
+          <!-- appendage right -->
+          <rect class="d1-appendage" x="130" y="112" width="34" height="34" rx="9" transform="rotate(8 147 129)"/>
+        </svg>
+      </div>
+      <div class="stage-label">Active</div>
+      <div class="stage-sub">Face forward, both appendages flank the body</div>
+    </div>
+
+    <div class="arrow">
+      <svg width="34" height="18" viewBox="0 0 34 18"><path d="M0 9 H28 M22 3 L30 9 L22 15" stroke="var(--color-ai-600)" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      spins
+    </div>
+
+    <div class="stage">
+      <div class="stage-canvas">
+        <svg width="180" height="180" viewBox="0 0 180 180">
+          <!-- appendage, single, tucked to the side -->
+          <rect class="d1-appendage" x="132" y="108" width="30" height="30" rx="8" transform="rotate(10 147 123)"/>
+          <!-- body rotated to show a corner: drawn as narrow diamond-ish rounded shape -->
+          <path class="d1-body" d="
+            M 96 34
+            Q 106 34 112 44
+            L 138 92
+            Q 142 100 138 108
+            L 112 156
+            Q 106 166 96 166
+            Q 92 166 90 160
+            L 88 40
+            Q 88 34 96 34 Z"/>
+          <path class="d1-edge-highlight" d="M 96 40 L 92 158" opacity="0.5"/>
+        </svg>
+      </div>
+      <div class="stage-label">Dormant</div>
+      <div class="stage-sub">Corner-on, face hidden, only one appendage visible</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============================================================= -->
+<!-- DIRECTION 2 -->
+<!-- ============================================================= -->
+<section class="direction">
+  <div class="direction-header">
+    <span class="tag">Direction 2</span>
+    <h2>Faceted Isometric</h2>
+  </div>
+  <p class="direction-desc">
+    A faceted cube read where light does the work — no drawn outlines anywhere; edges emerge purely from tone
+    contrast between facets (<b>ai-100 top / ai-300 left / ai-200 front</b>). In the <b>active</b> state the
+    cube faces the viewer straight on: the front facet fills most of the frame with the face on it, and only a
+    thin top sliver and a sliver of the left facet peek out to keep the sense of volume. Corners are rounded,
+    but more subtly than directions 1 and 3.
+  </p>
+  <div class="stage-row">
+
+    <div class="stage">
+      <div class="stage-canvas">
+        <svg width="190" height="190" viewBox="0 0 190 190">
+          <!-- left appendage (small rounded iso cube, no outline) -->
+          <g transform="translate(18,120)">
+            <path class="d2-appendage-top" d="M 5 6 L 16 0 Q 18 -1 20 0 L 29 5 Q 31 6 29 7.5 L 18 13.5 Q 16 14.5 14 13.5 L 5 8.5 Q 3 7 5 6 Z"/>
+            <path class="d2-appendage-left" d="M 3 8 L 14 14 Q 16 15 16 17 L 16 28 Q 16 30 14 29 L 3 23 Q 1 22 1 20 L 1 11 Q 1 9 3 8 Z"/>
+            <path class="d2-appendage-front" d="M 16 14 L 27 8 Q 29 7 29 9 L 29 20 Q 29 22 27 23 L 16 29 Q 14 30 14 28 L 14 17 Q 14 15 16 14 Z"/>
+          </g>
+
+          <!-- body: front-facing cube, rounded, no outline, edges from tone only -->
+          <g transform="translate(46,26)">
+            <!-- thin top sliver -->
+            <path class="d2-top" d="
+              M 16 8
+              Q 20 0 30 0
+              L 68 0
+              Q 78 0 82 8
+              L 74 16
+              L 24 16
+              Z"/>
+            <!-- thin left sliver -->
+            <path class="d2-left" d="
+              M 16 8
+              L 24 16
+              L 24 96
+              L 16 104
+              Q 10 100 10 92
+              L 10 20
+              Q 10 12 16 8 Z"/>
+            <!-- front facet: dominant, face lives here -->
+            <rect class="d2-front" x="24" y="14" width="58" height="92" rx="18"/>
+
+            <!-- face -->
+            <ellipse class="eye" cx="42" cy="50" rx="4.5" ry="10"/>
+            <ellipse class="eye" cx="64" cy="50" rx="4.5" ry="10"/>
+            <path class="smile" d="M 40 68 Q 53 78 66 68" stroke-width="4"/>
+          </g>
+
+          <!-- right appendage -->
+          <g transform="translate(148,118)">
+            <path class="d2-appendage-top" d="M 5 6 L 16 0 Q 18 -1 20 0 L 29 5 Q 31 6 29 7.5 L 18 13.5 Q 16 14.5 14 13.5 L 5 8.5 Q 3 7 5 6 Z"/>
+            <path class="d2-appendage-left" d="M 3 8 L 14 14 Q 16 15 16 17 L 16 28 Q 16 30 14 29 L 3 23 Q 1 22 1 20 L 1 11 Q 1 9 3 8 Z"/>
+            <path class="d2-appendage-front" d="M 16 14 L 27 8 Q 29 7 29 9 L 29 20 Q 29 22 27 23 L 16 29 Q 14 30 14 28 L 14 17 Q 14 15 16 14 Z"/>
+          </g>
+        </svg>
+      </div>
+      <div class="stage-label">Active</div>
+      <div class="stage-sub">Front-facing — face reads straight on, edges shown only by facet tone</div>
+    </div>
+
+    <div class="arrow">
+      <svg width="34" height="18" viewBox="0 0 34 18"><path d="M0 9 H28 M22 3 L30 9 L22 15" stroke="var(--color-ai-600)" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      spins
+    </div>
+
+    <div class="stage">
+      <div class="stage-canvas">
+        <svg width="190" height="190" viewBox="0 0 190 190">
+          <!-- cube rotated ~35°: only top + left facet visible, corner leads, no front facet = no face -->
+          <g transform="translate(58,26)">
+            <path class="d2-top" d="
+              M 20 10
+              Q 26 2 34 4
+              L 70 16
+              Q 76 18 72 24
+              L 40 34
+              Q 34 36 28 32
+              Z"/>
+            <path class="d2-left" d="
+              M 28 32
+              Q 34 36 40 34
+              L 40 96
+              Q 40 104 34 108
+              L 22 100
+              Q 16 96 16 88
+              L 16 22
+              Q 16 14 20 10
+              Z"/>
+            <!-- faint edge tone where the leading corner is, from lighting only -->
+            <path d="M 40 34 L 40 96" stroke="var(--color-ai-400)" stroke-width="1" opacity="0.4" fill="none"/>
+          </g>
+          <!-- single appendage peeking from behind the leading corner -->
+          <g transform="translate(30,120)">
+            <path class="d2-appendage-top" d="M 5 6 L 16 0 Q 18 -1 20 0 L 29 5 Q 31 6 29 7.5 L 18 13.5 Q 16 14.5 14 13.5 L 5 8.5 Q 3 7 5 6 Z"/>
+            <path class="d2-appendage-left" d="M 3 8 L 14 14 Q 16 15 16 17 L 16 28 Q 16 30 14 29 L 3 23 Q 1 22 1 20 L 1 11 Q 1 9 3 8 Z"/>
+          </g>
+        </svg>
+      </div>
+      <div class="stage-label">Dormant</div>
+      <div class="stage-sub">Corner leads the view — only top + left facet visible, face and 2nd appendage hidden behind</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============================================================= -->
+<!-- DIRECTION 3 -->
+<!-- ============================================================= -->
+<section class="direction">
+  <div class="direction-header">
+    <span class="tag">Direction 3</span>
+    <h2>Glass Gradient Cube</h2>
+  </div>
+  <p class="direction-desc">
+    Premium and glowy. A soft diagonal gradient across <b>ai-100 → ai-400</b> gives volume without hard facet
+    lines, plus a glossy highlight streak in the top-left. Appendages read as small glass orbs-in-cubes that
+    pick up an inner glow, hinting they are "energy" extensions of the body rather than solid limbs.
+  </p>
+  <div class="stage-row">
+
+    <div class="stage">
+      <div class="stage-canvas">
+        <svg width="190" height="190" viewBox="0 0 190 190">
+          <defs>
+            <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="var(--color-ai-100)"/>
+              <stop offset="100%" stop-color="var(--color-ai-400)"/>
+            </linearGradient>
+            <linearGradient id="appGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="var(--color-ai-100)"/>
+              <stop offset="100%" stop-color="var(--color-ai-500)"/>
+            </linearGradient>
+            <radialGradient id="glow" cx="30%" cy="25%" r="70%">
+              <stop offset="0%" stop-color="white" stop-opacity="0.65"/>
+              <stop offset="60%" stop-color="white" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+
+          <rect x="20" y="114" width="32" height="32" rx="9" fill="url(#appGrad)" class="d3-outline" transform="rotate(-8 36 130)"/>
+
+          <rect x="46" y="32" width="100" height="100" rx="28" fill="url(#bodyGrad)" class="d3-outline"/>
+          <rect x="46" y="32" width="100" height="100" rx="28" fill="url(#glow)"/>
+
+          <ellipse class="eye" cx="82" cy="82" rx="4.5" ry="9"/>
+          <ellipse class="eye" cx="110" cy="82" rx="4.5" ry="9"/>
+          <path class="smile" d="M 80 98 Q 96 108 112 98" stroke-width="4"/>
+
+          <rect x="134" y="114" width="32" height="32" rx="9" fill="url(#appGrad)" class="d3-outline" transform="rotate(8 150 130)"/>
+        </svg>
+      </div>
+      <div class="stage-label">Active</div>
+      <div class="stage-sub">Gradient + gloss highlight, glowing appendage orbs on both sides</div>
+    </div>
+
+    <div class="arrow">
+      <svg width="34" height="18" viewBox="0 0 34 18"><path d="M0 9 H28 M22 3 L30 9 L22 15" stroke="var(--color-ai-600)" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      spins
+    </div>
+
+    <div class="stage">
+      <div class="stage-canvas">
+        <svg width="190" height="190" viewBox="0 0 190 190">
+          <defs>
+            <linearGradient id="bodyGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="var(--color-ai-100)"/>
+              <stop offset="100%" stop-color="var(--color-ai-400)"/>
+            </linearGradient>
+            <linearGradient id="appGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="var(--color-ai-100)"/>
+              <stop offset="100%" stop-color="var(--color-ai-500)"/>
+            </linearGradient>
+          </defs>
+          <!-- narrow corner-on silhouette, dimmer, no face, faint core glow to suggest "asleep" -->
+          <path d="
+            M 96 34
+            Q 106 34 112 44
+            L 136 90
+            Q 140 98 136 106
+            L 112 154
+            Q 106 164 96 164
+            Q 92 164 90 158
+            L 88 40
+            Q 88 34 96 34 Z"
+            fill="url(#bodyGrad2)" class="d3-outline" opacity="0.85"/>
+          <ellipse cx="98" cy="99" rx="10" ry="34" fill="var(--color-ai-50)" opacity="0.25"/>
+
+          <rect x="132" y="110" width="28" height="28" rx="8" fill="url(#appGrad2)" class="d3-outline" opacity="0.85" transform="rotate(10 146 124)"/>
+        </svg>
+      </div>
+      <div class="stage-label">Dormant</div>
+      <div class="stage-sub">Dimmer, corner-on silhouette with a faint inner core glow, one orb visible</div>
+    </div>
+
+  </div>
+</section>
+
+<footer>Static SVG mockups &middot; ai-* token ramp only &middot; next step is picking one direction to model in react-three-fiber</footer>
+
+</body>
+</html>

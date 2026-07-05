@@ -1,0 +1,51 @@
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# testing
+/coverage
+/test-results
+/playwright-report
+/playwright/.cache
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# storybook
+/storybook-static
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# local env files
+.env*.local
+.env
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# starling (dev-only annotation tool — auto-generated route + local workspace)
+src/app/api/starling/
+starling/audit-workspace/
+
+# skill-generated scratch output (ideation, audits) — regenerated on demand
+/inventor-workspace/
+/audit-workspace/
+
+# playwright MCP session artifacts (screenshots, console logs, page snapshots)
+/.playwright-mcp/
+
+# obsidian vault local state (per-user, not project content)
+docs/.obsidian/

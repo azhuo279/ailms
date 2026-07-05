@@ -1,0 +1,414 @@
+@import "tailwindcss";
+
+/*
+ * Tailwind CSS v4 theme — the single source of truth for design tokens.
+ * There is NO tailwind.config.js. Add new tokens HERE, not in components.
+ *
+ * Full spec: /DESIGN.md ("Structured Depth"). Figma file (canonical):
+ * https://www.figma.com/design/TLm314jvknL38gEyMCoB3u/XD-Practical---AiLMS
+ *
+ * Prefer semantic tokens (bg-surface, text-fg-primary, bg-btn-primary) in
+ * components. Primitives (--color-neutral-*, --color-primary-*, etc.) exist
+ * only to back semantic tokens — do not reference a primitive step directly
+ * from a component.
+ *
+ * Four reserved color roles, never substituted for one another:
+ *   neutral   → base/surface/fg/border
+ *   primary   → buttons, links, active nav, focus rings (blue-dominant)
+ *   ai        → reserved exclusively for AI reasoning/override surfaces (teal)
+ *   severity  → reserved exclusively for true alert/exception states (red-orange)
+ *
+ * Spacing, radius, and shadow use Tailwind's stock utility scale directly —
+ * no custom overrides. Elevation is expressed via shadow-* weight increases
+ * on a white raised surface, never a darker fill.
+ */
+
+@theme {
+  /* ============================= Primitives ============================= */
+
+  /* neutral — hue 258, cool gray (canvas / surface / text / border) */
+  --color-neutral-50: oklch(0.98 0.006 258);
+  --color-neutral-100: oklch(0.95 0.006 258);
+  --color-neutral-200: oklch(0.94 0.008 258);
+  --color-neutral-300: oklch(0.87 0.008 258);
+  --color-neutral-400: oklch(0.78 0.012 258);
+  --color-neutral-500: oklch(0.68 0.012 258);
+  --color-neutral-600: oklch(0.56 0.012 258);
+  --color-neutral-700: oklch(0.44 0.012 258);
+  --color-neutral-800: oklch(0.33 0.014 258);
+  --color-neutral-900: oklch(0.22 0.014 258);
+  --color-neutral-950: oklch(0.15 0.014 258);
+
+  /* primary — hue 250, blue-dominant (interactive) */
+  --color-primary-50: oklch(0.97 0.016 250);
+  --color-primary-100: oklch(0.94 0.016 250);
+  --color-primary-200: oklch(0.87 0.033 250);
+  --color-primary-300: oklch(0.78 0.059 250);
+  --color-primary-400: oklch(0.68 0.098 250);
+  --color-primary-500: oklch(0.58 0.13 250);
+  --color-primary-600: oklch(0.49 0.13 250);
+  --color-primary-700: oklch(0.41 0.123 250);
+  --color-primary-800: oklch(0.33 0.123 250);
+  --color-primary-900: oklch(0.25 0.104 250);
+  --color-primary-950: oklch(0.18 0.104 250);
+
+  /* ai — hue 190, reserved teal (AI reasoning/override surfaces only) */
+  --color-ai-50: oklch(0.97 0.013 190);
+  --color-ai-100: oklch(0.93 0.013 190);
+  --color-ai-200: oklch(0.87 0.028 190);
+  --color-ai-300: oklch(0.79 0.05 190);
+  --color-ai-400: oklch(0.71 0.083 190);
+  --color-ai-500: oklch(0.63 0.11 190);
+  --color-ai-600: oklch(0.53 0.11 190);
+  --color-ai-700: oklch(0.44 0.104 190);
+  --color-ai-800: oklch(0.35 0.104 190);
+  --color-ai-900: oklch(0.26 0.088 190);
+  --color-ai-950: oklch(0.19 0.088 190);
+
+  /* severity — hue 38, reserved red-orange (true alerts/exceptions only) */
+  --color-severity-50: oklch(0.97 0.02 38);
+  --color-severity-100: oklch(0.93 0.02 38);
+  --color-severity-200: oklch(0.87 0.043 38);
+  --color-severity-300: oklch(0.79 0.077 38);
+  --color-severity-400: oklch(0.7 0.128 38);
+  --color-severity-500: oklch(0.6 0.17 38);
+  --color-severity-600: oklch(0.53 0.17 38);
+  --color-severity-700: oklch(0.44 0.162 38);
+  --color-severity-800: oklch(0.35 0.162 38);
+  --color-severity-900: oklch(0.27 0.136 38);
+  --color-severity-950: oklch(0.2 0.136 38);
+
+  /* success — hue 145, green (positive/delivered status only) */
+  --color-success-50: oklch(0.97 0.02 145);
+  --color-success-100: oklch(0.93 0.02 145);
+  --color-success-200: oklch(0.87 0.045 145);
+  --color-success-300: oklch(0.79 0.08 145);
+  --color-success-400: oklch(0.7 0.12 145);
+  --color-success-500: oklch(0.6 0.145 145);
+  --color-success-600: oklch(0.53 0.145 145);
+  --color-success-700: oklch(0.44 0.135 145);
+  --color-success-800: oklch(0.35 0.135 145);
+  --color-success-900: oklch(0.27 0.11 145);
+  --color-success-950: oklch(0.2 0.11 145);
+
+  /* warning — hue 85, amber-gold (caution/pending-risk states only) */
+  --color-warning-50: oklch(0.97 0.025 85);
+  --color-warning-100: oklch(0.93 0.025 85);
+  --color-warning-200: oklch(0.87 0.055 85);
+  --color-warning-300: oklch(0.79 0.1 85);
+  --color-warning-400: oklch(0.7 0.145 85);
+  --color-warning-500: oklch(0.6 0.175 85);
+  --color-warning-600: oklch(0.53 0.175 85);
+  --color-warning-700: oklch(0.44 0.165 85);
+  --color-warning-800: oklch(0.35 0.165 85);
+  --color-warning-900: oklch(0.27 0.135 85);
+  --color-warning-950: oklch(0.2 0.135 85);
+
+  /* ============================= Semantic ============================= */
+
+  /* Surfaces */
+  --color-surface: var(--color-neutral-200);
+  --color-surface-raised: var(--color-neutral-50);
+  --color-surface-sunken: var(--color-neutral-300);
+  --color-surface-overlay: var(--color-neutral-50);
+
+  /* Foreground / text */
+  --color-fg-primary: var(--color-neutral-900);
+  --color-fg-secondary: var(--color-neutral-700);
+  --color-fg-muted: var(--color-neutral-500);
+  --color-fg-on-primary: var(--color-neutral-50);
+
+  /* Borders */
+  --color-border-subtle: var(--color-neutral-300);
+  --color-border-strong: var(--color-neutral-400);
+
+  /* Buttons / links / focus / nav (primary role) */
+  --color-btn-primary: var(--color-primary-700);
+  --color-btn-primary-hover: var(--color-primary-800);
+  --color-btn-primary-fg: var(--color-neutral-50);
+  --color-link: var(--color-primary-700);
+  --color-link-hover: var(--color-primary-800);
+  --color-focus-ring: var(--color-primary-500);
+  --color-nav-active: var(--color-primary-700);
+
+  /*
+   * Phase 3 addition — selection-state chrome (e.g. a Data Table batch-
+   * actions toolbar shown when rows are selected). Distinct from
+   * `--color-option-hover` (a neutral row hover), this is a primary-tinted
+   * surface that reads as "N selected" emphasis.
+   */
+  --color-selection-surface: var(--color-primary-50);
+
+  /* AI surfaces (reserved) */
+  --color-ai-surface: var(--color-ai-50);
+  --color-ai-border: var(--color-ai-500);
+  --color-ai-fg: var(--color-ai-700);
+  --color-ai-emphasis: var(--color-ai-600);
+
+  /* Severity surfaces (reserved) */
+  --color-severity-surface: var(--color-severity-50);
+  --color-severity-border: var(--color-severity-600);
+  --color-severity-fg: var(--color-severity-700);
+  --color-severity-emphasis: var(--color-severity-600);
+
+  /* Success surfaces (reserved) */
+  --color-success-surface: var(--color-success-50);
+  --color-success-border: var(--color-success-600);
+  --color-success-fg: var(--color-success-700);
+  --color-success-emphasis: var(--color-success-600);
+
+  /* Warning surfaces (reserved) */
+  --color-warning-surface: var(--color-warning-50);
+  --color-warning-border: var(--color-warning-600);
+  --color-warning-fg: var(--color-warning-700);
+  --color-warning-emphasis: var(--color-warning-600);
+
+  /*
+   * Phase 4 addition — "info" semantic set, for neutral informational
+   * feedback (Message Bar / Toast) that is not success/warning/danger and
+   * not a true shipment-severity exception. DESIGN.md's stoplight set
+   * (success/warning/severity) has no informational member, and `ai`/
+   * `severity` are role-reserved per CLAUDE.md, so this aliases the
+   * `primary` ramp (the project's existing non-reserved interactive role)
+   * instead of inventing a new 11-step primitive ramp for a single variant.
+   */
+  --color-info-surface: var(--color-primary-50);
+  --color-info-border: var(--color-primary-600);
+  --color-info-fg: var(--color-primary-700);
+  --color-info-emphasis: var(--color-primary-600);
+
+  /* Logistics status palette (informational, distinct from severity) */
+  --color-status-intransit: var(--color-primary-500);
+  --color-status-delivered: var(--color-success-500);
+  --color-status-delayed: var(--color-severity-500);
+  --color-status-pending: var(--color-neutral-500);
+
+  /*
+   * Phase 3 addition — soft-fill surfaces for the status ramp, so Badge/Tag
+   * can render a status chip (bg + fg pair) without reaching for an
+   * opacity-modifier utility on a solid token. Mirrors the existing
+   * success/warning/danger "-surface" pattern one step lighter than the
+   * `-500` accent above.
+   */
+  --color-status-intransit-surface: var(--color-primary-100);
+  --color-status-delivered-surface: var(--color-success-100);
+  --color-status-delayed-surface: var(--color-severity-100);
+  --color-status-pending-surface: var(--color-neutral-200);
+
+  /*
+   * Phase 3 addition — categorical data-viz sequence for the Chart component.
+   * FLAGGED GAP: DESIGN.md defines no categorical/data-viz sequence, and its
+   * own 6 primitive ramps can't supply one — `ai` and `severity` are
+   * role-reserved (never decorative/chart use per CLAUDE.md), leaving only
+   * `neutral`/`primary`/`success`/`warning` (4 hues, and the latter two are
+   * themselves status-reserved). This 8-hue sequence is the `/dataviz`
+   * skill's validated brand-neutral default (see its `references/palette.md`),
+   * NOT derived from DESIGN.md primitives — flagging per this phase's
+   * instructions rather than silently inventing colors. Re-validated against
+   * this project's `--color-surface-raised` (#f6f9fd): passes lightness,
+   * chroma, and CVD-separation checks; 3 slots (chart-2/3/7) land below 3:1
+   * contrast on that surface, which is legal only with the relief this
+   * component ships (direct labels / legend / table-view escape hatch) —
+   * see chart.tsx.
+   */
+  --color-chart-1: oklch(0.575 0.163 255.5); /* blue    #2a78d6 */
+  --color-chart-2: oklch(0.669 0.141 162.1); /* aqua    #1baf7a */
+  --color-chart-3: oklch(0.764 0.161 75.1);  /* yellow  #eda100 */
+  --color-chart-4: oklch(0.529 0.18 142.5);  /* green   #008300 */
+  --color-chart-5: oklch(0.433 0.167 283.6); /* violet  #4a3aa7 */
+  --color-chart-6: oklch(0.623 0.191 24.9);  /* red     #e34948 */
+  --color-chart-7: oklch(0.716 0.141 357.4); /* magenta #e87ba4 */
+  --color-chart-8: oklch(0.671 0.175 40.6);  /* orange  #eb6834 */
+
+  /* Disabled state (cross-component — buttons, inputs, controls) */
+  --color-fg-disabled: var(--color-neutral-400);
+  --color-surface-disabled: var(--color-neutral-200);
+  --color-border-disabled: var(--color-neutral-300);
+
+  /* Secondary button (non-primary action affordance) */
+  --color-btn-secondary: var(--color-neutral-50);
+  --color-btn-secondary-hover: var(--color-neutral-100);
+  --color-btn-secondary-fg: var(--color-primary-700);
+
+  /* Selectable option surfaces (Select / Combobox / listbox rows) */
+  --color-option-hover: var(--color-neutral-100);
+
+  /* Checked control fill (Checkbox / Radio / Switch-on) */
+  --color-checked: var(--color-primary-700);
+
+  /*
+   * Form validation "danger" set — deliberately distinct from `severity-*`.
+   * `severity` (DESIGN.md) is reserved exclusively for true shipment-level
+   * alerts/exceptions (delays, failures, blocking exceptions). Routine form
+   * validation (a required field left blank) is not that role, so it gets
+   * its own semantic name aliasing the same primitive ramp for visual
+   * consistency without borrowing the reserved role.
+   */
+  --color-danger-surface: var(--color-severity-50);
+  --color-danger-border: var(--color-severity-600);
+  --color-danger-fg: var(--color-severity-700);
+
+  /* Fonts — single family, no mono (bound to next/font var in layout.tsx) */
+  --font-sans: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
+
+  /*
+   * Type scale — 14 styles, each a --text-{name} (font-size) paired with a
+   * --text-{name}--line-height companion (Tailwind v4's paired-property
+   * convention), so `text-heading-l` applies both together. Weight is not
+   * part of this pairing — pair with `font-semibold` etc. per the table below.
+   *
+   *   token          weight        use
+   *   display-xl     700 (bold)    workspace titles
+   *   display-l      700 (bold)    major pages
+   *   heading-xl     600 (semibold) section headers
+   *   heading-l      600 (semibold) card titles
+   *   heading-m      600 (semibold) nested sections
+   *   title          600 (semibold) panels, dialogs
+   *   body-l         400 (normal)  AI summaries
+   *   body-m         400 (normal)  standard paragraphs
+   *   body-s         400 (normal)  table cells
+   *   label-l        500 (medium)  form labels
+   *   label-m        500 (medium)  buttons, tabs
+   *   label-s        500 (medium)  chips, status
+   *   caption        400 (normal)  metadata
+   *   footnote       400 (normal)  legal, secondary metadata
+   */
+  --text-display-xl: 2.5rem;
+  --text-display-xl--line-height: 2.875rem;
+  --text-display-l: 2rem;
+  --text-display-l--line-height: 2.3125rem;
+  --text-heading-xl: 1.5rem;
+  --text-heading-xl--line-height: 1.875rem;
+  --text-heading-l: 1.25rem;
+  --text-heading-l--line-height: 1.625rem;
+  --text-heading-m: 1.125rem;
+  --text-heading-m--line-height: 1.4375rem;
+  --text-title: 1rem;
+  --text-title--line-height: 1.375rem;
+  --text-body-l: 1rem;
+  --text-body-l--line-height: 1.5rem;
+  --text-body-m: 0.875rem;
+  --text-body-m--line-height: 1.3125rem;
+  --text-body-s: 0.8125rem;
+  --text-body-s--line-height: 1.1875rem;
+  --text-label-l: 0.875rem;
+  --text-label-l--line-height: 1.125rem;
+  --text-label-m: 0.8125rem;
+  --text-label-m--line-height: 1.0625rem;
+  --text-label-s: 0.75rem;
+  --text-label-s--line-height: 1rem;
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1rem;
+  --text-footnote: 0.6875rem;
+  --text-footnote--line-height: 0.9375rem;
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+  }
+
+  body {
+    background-color: var(--color-surface);
+    color: var(--color-fg-primary);
+    font-family: var(--font-sans);
+  }
+}
+
+/*
+ * Phase 4 addition — indeterminate Progress Indicator sweep. Tailwind v4
+ * ships no built-in equivalent to `animate-pulse`/`animate-spin` for a
+ * sliding bar, so this keyframe is added directly (referenced via the
+ * arbitrary `animate-[progress-indeterminate_...]` utility in
+ * progress-indicator.tsx) rather than left as an inline style.
+ */
+@keyframes progress-indeterminate {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(300%);
+  }
+}
+
+/*
+ * EmptyState illustrative entrance (Direction B). Fade+scale for the two
+ * layered rings, fade+lift for the glyph/text/actions. Durations/delays are
+ * refined from the inventor mockup via the animator skill — the mockup's
+ * ~920ms end-to-end stagger was too slow for a content-area empty state a
+ * dispatcher may see repeatedly (e.g. after every filter change); capped to
+ * ~390ms total using decelerate easing for the illustration and standard
+ * ease-out for text/actions. Skipped entirely for the error variant (flattest
+ * treatment per the severity-scaling research finding) and under
+ * `prefers-reduced-motion` (every animation utility in empty-state.tsx is
+ * gated with Tailwind's `motion-safe:` variant, so elements render straight
+ * to their end state with no animation when reduced motion is requested).
+ */
+@keyframes empty-state-ring-in {
+  from {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes empty-state-glyph-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes empty-state-rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes empty-state-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/*
+ * StatTileComparisonBar confidence halo pulse (inventor Direction C, refined via the
+ * animator skill). Ambient "still live" signal on the AI-predicted marker only — not a
+ * loading spinner, so it stays low-amplitude and slow (2.2s) to read as peripheral rather
+ * than attention-grabbing, comparable to a recording/live-badge pulse cadence. ease-in-out
+ * (not linear) because this loop has a shape to read at its midpoint, not a constant-rate
+ * spin. Gated by Tailwind's `motion-safe:` variant in stat-tile.tsx (not a bare `animate-`
+ * utility): under `prefers-reduced-motion: reduce` the element simply never receives the
+ * animation and renders at its static base-CSS state (baseline opacity/scale, not
+ * mid-pulse), matching the empty-state-* keyframes' reduced-motion convention above.
+ *
+ * 0%/100% opacity is 0.15 to match the static halo's base Tailwind class (`opacity-15`) in
+ * stat-tile.tsx exactly — the reduced-motion resting frame and the animated cycle's resting
+ * frame must render identically, so both sides use this same stock Tailwind scale step.
+ */
+@keyframes cbar-pulse {
+  0%,
+  100% {
+    opacity: 0.15;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 0.3;
+    transform: translate(-50%, -50%) scale(1.18);
+  }
+}

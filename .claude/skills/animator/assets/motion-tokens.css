@@ -1,0 +1,74 @@
+/* Motion design tokens
+ * Durations and easing curves synthesized from Material/Material 3, Fluent/Windows,
+ * Carbon, Apple HIG, WCAG, and web.dev RAIL (see references/research-basis.md).
+ * These are research-backed DEFAULTS — modulate for travel distance, surface size,
+ * and platform. Pair every motion with the reduced-motion block at the bottom.
+ */
+
+:root {
+  /* ---- Durations (by interaction class) ---- */
+  --motion-duration-instant: 100ms; /* visible response ceiling for acknowledgment */
+  --motion-duration-micro: 120ms; /* press / micro-motion (90–120ms) */
+  --motion-duration-state: 120ms; /* hover, focus, selection (90–150ms) */
+  --motion-duration-enter: 250ms; /* small enter: tooltip, toast, menu */
+  --motion-duration-exit: 200ms; /* small exit (keep shorter than enter) */
+  --motion-duration-contextual: 250ms; /* same-place transition (200–250 web) */
+  --motion-duration-contextual-mobile: 280ms; /* 220–300 on mobile */
+  --motion-duration-large: 350ms; /* large / full-screen transition (300–400ms) */
+  --motion-duration-expressive: 450ms; /* rare expressive moments (350–500ms) */
+
+  /* ---- Easing curves ---- */
+  --motion-ease-standard: cubic-bezier(0.4, 0, 0.2, 1); /* in-place movement */
+  --motion-ease-decelerate: cubic-bezier(
+    0,
+    0,
+    0.2,
+    1
+  ); /* entering / feedback */
+  --motion-ease-accelerate: cubic-bezier(0.4, 0, 1, 1); /* exiting */
+  --motion-ease-sharp: cubic-bezier(0.4, 0, 0.6, 1); /* quick, may reverse */
+  --motion-ease-emphasized-in: cubic-bezier(0, 0, 0, 1); /* strong entrance */
+  --motion-ease-emphasized-out: cubic-bezier(1, 0, 1, 1); /* strong exit */
+  --motion-ease-linear: linear; /* ONLY for constant-rate loops: spinners, rotation */
+
+  /* ---- Choreography ---- */
+  --motion-stagger: 30ms; /* short offset to lead the eye; cap total group time */
+}
+
+/* Example usage — animate compositor-friendly properties (transform, opacity) only:
+   *
+   *   .toast            { transition: transform var(--motion-duration-enter) var(--motion-ease-decelerate),
+   *                                   opacity   var(--motion-duration-enter) var(--motion-ease-decelerate); }
+   *   .toast--leaving   { transition-duration: var(--motion-duration-exit);
+   *                       transition-timing-function: var(--motion-ease-accelerate); }
+   */
+
+/* ---- Reduced motion ----
+   * Honor the user's request. Collapse durations so motion is effectively instant, but keep
+   * meaning: prefer opacity cross-fades / instant state + color or highlight cues over slides,
+   * scales, parallax, and depth. Override per-component where a non-spatial replacement is needed.
+   */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-duration-instant: 1ms;
+    --motion-duration-micro: 1ms;
+    --motion-duration-state: 1ms;
+    --motion-duration-enter: 1ms;
+    --motion-duration-exit: 1ms;
+    --motion-duration-contextual: 1ms;
+    --motion-duration-contextual-mobile: 1ms;
+    --motion-duration-large: 1ms;
+    --motion-duration-expressive: 1ms;
+    --motion-stagger: 0ms;
+  }
+  /* Belt-and-suspenders: neutralize transitions/animations not driven by the tokens above.
+     * Keep this narrow in real projects so essential, meaning-bearing motion can opt back in. */
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

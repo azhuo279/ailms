@@ -1,0 +1,13 @@
+{
+  "codeConnect": {
+    "include": ["src/components/**/*.figma.tsx"],
+    "label": "React",
+    "language": "typescript",
+    "importPaths": {
+      "src/components/*": "@/components/*"
+    },
+    "paths": {
+      "@/components/*": ["src/components/*"]
+    }
+  }
+}
