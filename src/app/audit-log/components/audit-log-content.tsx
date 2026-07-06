@@ -9,7 +9,10 @@ import { MessageBar } from "@/components/ui/message-bar";
 import { EmptyState } from "@/components/ui/empty-state";
 import { DataTable } from "@/components/ui/data-table";
 import { Pagination } from "@/components/ui/pagination";
-import { useAuditLog } from "@/app/audit-log/hooks/use-audit-log";
+import {
+  useAuditLog,
+  useMergedAuditEvents,
+} from "@/app/audit-log/hooks/use-audit-log";
 import {
   EMPTY_FILTERS,
   EVENT_TYPE_CONFIG,
@@ -50,18 +53,23 @@ export function AuditLogContent() {
   // clear the filter without it snapping back).
   const [deepLinkApplied, setDeepLinkApplied] = useState(false);
 
+  // Fetched log merged with the session overlay (a priority change made this
+  // session on /workspace appears here until refresh). The React Query fetch
+  // stays the base; session events are layered on top and flow through the same
+  // filter/cluster pipeline as fetched events (see useMergedAuditEvents).
+  const allEvents = useMergedAuditEvents(data?.events ?? []);
+
   useEffect(() => {
     if (deepLinkApplied || !deepLinkedException || !data) return;
-    // Only pre-apply if the exception actually appears in the log.
-    const exists = data.events.some((e) => e.exceptionId === deepLinkedException);
+    // Only pre-apply if the exception actually appears in the log — including a
+    // session event, so a just-changed exception's deep link still lands scoped.
+    const exists = allEvents.some((e) => e.exceptionId === deepLinkedException);
     if (exists) {
       setFilters((prev) => ({ ...prev, exceptionIds: [deepLinkedException] }));
       setExpandedIds(new Set([deepLinkedException]));
     }
     setDeepLinkApplied(true);
-  }, [deepLinkedException, data, deepLinkApplied]);
-
-  const allEvents = data?.events ?? [];
+  }, [deepLinkedException, data, deepLinkApplied, allEvents]);
 
   const filteredEvents = useMemo(
     () => filterEvents(allEvents, filters),
@@ -172,22 +180,13 @@ export function AuditLogContent() {
         <AuditFilterRail
           filters={filters}
           onChange={updateFilters}
+          onClearAll={clearAll}
           exceptionOptions={exceptionOptions}
           userOptions={userOptions}
         />
 
-        {/* Main region — applied-filter chips + clustered log. */}
+        {/* Main region — clustered log (applied-filter chips now live in the rail). */}
         <div className="flex min-w-0 flex-1 flex-col gap-3 overflow-y-auto">
-          {filtered ? (
-            <AppliedFilterChips
-              filters={filters}
-              exceptionOptions={exceptionOptions}
-              userOptions={userOptions}
-              onChange={updateFilters}
-              onClearAll={clearAll}
-            />
-          ) : null}
-
           {/* Clustered log on the shared DataTable — one row per exception
               cluster, expanding to its ordered event rows. Clustering,
               newest-first ordering, and the AI-vs-human row treatment survive
@@ -196,6 +195,7 @@ export function AuditLogContent() {
             columns={auditClusterColumns}
             rows={pagedClusters}
             getRowId={(cluster) => cluster.exceptionId}
+            minRows={CLUSTERS_PER_PAGE}
             expandedIds={expandedIds}
             onExpandedIdsChange={setExpandedIds}
             renderExpandedRow={(cluster) => (
@@ -251,10 +251,11 @@ export function AuditLogContent() {
 }
 
 /**
- * Applied-filter chips above the table — one removable Tag per active facet
- * value, plus a Clear all. Removing a chip narrows the filter set back down.
+ * Applied-filter chips — one removable Tag per active facet value, plus a
+ * Clear all. Removing a chip narrows the filter set back down. Rendered inside
+ * the expanded filter rail (AuditFilterRail), under the Filters header.
  */
-function AppliedFilterChips({
+export function AppliedFilterChips({
   filters,
   exceptionOptions,
   userOptions,

@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { Download } from "lucide-react";
 import { useUserPersona } from "@/hooks/shared/use-user-persona";
 import { Tabs, TabPanel } from "@/components/ui/tabs";
+import { Menu, MenuItem } from "@/components/ui/menu";
 import { MessageBar } from "@/components/ui/message-bar";
 import { Button } from "@/components/ui/button";
 import { usePerformanceFeed } from "../hooks/use-performance-feed";
@@ -55,9 +57,34 @@ export function PerformanceContent() {
     ...(isDirector ? [{ value: "adoption", label: "AI Adoption" }] : []),
   ];
 
+  // Export is a director-only capability, surfaced on the tablist row for
+  // directors on BOTH tabs. It sits on the tablist row (right-aligned) via the
+  // Tabs `actions` slot. Non-directors never see it, matching the AI Adoption
+  // tab being director-only.
+  const exportMenu =
+    isDirector ? (
+      <Menu
+        align="end"
+        trigger={
+          <Button variant="secondary" size="md" leadingIcon={<Download />}>
+            Export
+          </Button>
+        }
+      >
+        <MenuItem onSelect={() => undefined}>Export as PNG</MenuItem>
+        <MenuItem onSelect={() => undefined}>Export as PDF</MenuItem>
+        <MenuItem onSelect={() => undefined}>Export as CSV</MenuItem>
+      </Menu>
+    ) : null;
+
   return (
     <div className="flex flex-col gap-4">
-      <Tabs items={tabItems} value={activeTab} onChange={setTab}>
+      <Tabs
+        items={tabItems}
+        value={activeTab}
+        onChange={setTab}
+        actions={exportMenu}
+      >
         <TabPanel value="zone">
           <ZonePerformanceTab feed={feed} />
         </TabPanel>

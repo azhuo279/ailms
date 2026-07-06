@@ -13,6 +13,7 @@ import {
   ShieldCheck,
   PanelLeftClose,
   PanelLeftOpen,
+  Boxes,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSidebarStore } from "@/hooks/shared/use-sidebar-store";
@@ -89,7 +90,7 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        "flex h-dvh pt-3 shrink-0 flex-col transition-[width] duration-200 ease-out motion-reduce:transition-none",
+        "flex h-dvh pt-4 shrink-0 flex-col transition-[width] duration-200 ease-out motion-reduce:transition-none",
         collapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH,
       )}
     >
@@ -102,15 +103,16 @@ export function Sidebar() {
         {!collapsed ? (
           <NextLink
             href="/"
-            className="flex min-w-0 flex-1 items-center gap-2 rounded-md px-2 py-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+            className="flex min-w-0 flex-1 items-center gap-3 rounded-md px-2 py-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
           >
             <span
               aria-hidden
-              className="flex size-8 shrink-0 items-center justify-center rounded-md bg-nav-active text-label-l font-bold text-fg-on-primary"
+              className="flex size-8 p-1.5 shrink-0 items-center justify-center rounded-md bg-nav-active text-label-l font-bold text-fg-on-primary"
             >
-              A
+              <Boxes />
             </span>
-            <span className="min-w-0 truncate text-title font-bold tracking-tight text-fg-primary">
+
+            <span className="min-w-0 truncate text-heading-m font-bold tracking-tight text-brand-primary">
               AiLMS
             </span>
           </NextLink>
@@ -129,16 +131,18 @@ export function Sidebar() {
 
       <nav
         className={cn(
-          "flex flex-1 flex-col overflow-y-auto px-4 py-6",
+          "flex flex-1 flex-col overflow-y-auto px-4 py-8",
           // Expanded keeps generous section spacing; collapsed uses a tighter,
           // uniform gap since dividers (not labels) separate the icon groups.
-          collapsed ? "gap-1" : "gap-8",
+          collapsed ? "gap-1 py-14" : "gap-8 py-8",
         )}
       >
         {(() => {
           // A single decorative NextLink for one nav item, shared by both
           // layouts so the item chrome stays identical.
-          const renderItem = (item: (typeof NAV_SECTIONS)[number]["items"][number]) => {
+          const renderItem = (
+            item: (typeof NAV_SECTIONS)[number]["items"][number],
+          ) => {
             const isActive = pathname === item.href;
             const Icon = item.icon;
 
@@ -272,17 +276,11 @@ export function Sidebar() {
                 {isDirector ? "Acting as Director" : "Switch to Director"}
               </MenuItem>
               <MenuSeparator />
-              <MenuItem
-                icon={<Settings />}
-                onSelect={() => router.push("/settings")}
-              >
+              <MenuItem icon={<Settings />} onSelect={() => {}}>
                 Settings
               </MenuItem>
               <MenuSeparator />
-              <MenuItem
-                icon={<LogOut />}
-                onSelect={() => router.push("/sign-out")}
-              >
+              <MenuItem icon={<LogOut />} onSelect={() => {}}>
                 Sign out
               </MenuItem>
             </Menu>

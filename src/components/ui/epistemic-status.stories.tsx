@@ -67,10 +67,14 @@ export const ImpactProjection: Story = {
   render: () => (
     <ImpactProjectionPanel
       className="w-[28rem]"
+      metrics={[
+        { value: "3", label: "Orders at risk" },
+        { value: "2", label: "Gold customers" },
+        { value: "4h", label: "Breach window" },
+      ]}
       headline={
         <>
-          If not resolved within the <b>4-hour breach window</b>, <b>3 orders</b> tied to{" "}
-          <b>2 Gold-tier customers</b> are projected to miss SLA.
+          If not resolved in the window, these orders are <b>projected to miss SLA</b>.
         </>
       }
       confidenceLabel="Medium confidence · 68%"
@@ -92,10 +96,14 @@ export const ImpactProjectionCompact: Story = {
     <ImpactProjectionPanel
       compact
       className="w-[28rem]"
+      metrics={[
+        { value: "3", label: "Orders at risk" },
+        { value: "2", label: "Gold customers" },
+        { value: "4h", label: "Breach window" },
+      ]}
       headline={
         <>
-          If not resolved within the <b>4-hour breach window</b>, <b>3 orders</b> tied to{" "}
-          <b>2 Gold-tier customers</b> are projected to miss SLA.
+          If not resolved in the window, these orders are <b>projected to miss SLA</b>.
         </>
       }
       confidenceLabel="Medium confidence · 68%"

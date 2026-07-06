@@ -49,9 +49,12 @@ import {
   getResolutionEta,
   getRoutingKind,
   isLegalHold,
+  MODIFICATION_REASONS,
   type RecommendedAction,
   type RoutingKind,
+  type TimelineStep,
 } from "@/app/workspace/lib/exception-detail";
+import { PRIORITY_TIER_ORDER } from "@/app/workspace/components/workspace-filter-bar";
 import type {
   ExceptionRecord,
   ExceptionQueue,
@@ -59,9 +62,10 @@ import type {
   SourceHealth,
   Warehouse,
 } from "@/app/workspace/lib/exception-types";
+import { ExceptionMapPanel } from "./exception-map-panel";
 import { DelegateModal } from "./delegate-modal";
 import { EscalateModal } from "./escalate-modal";
-import { EditableTierControl } from "./editable-tier-control";
+import { EditableTierControl, type TierChange } from "./editable-tier-control";
 import { DelegationStatusPanel } from "./delegation-status-panel";
 import { EscalationStatusPanel } from "./escalation-status-panel";
 
@@ -83,6 +87,25 @@ import { EscalationStatusPanel } from "./escalation-status-panel";
  */
 
 const REVEAL = "motion-safe:animate-[empty-state-rise-in_200ms_ease-out_both]";
+
+/** Tier label from the shared order source, e.g. "T2 High". */
+function tierLabel(tier: PriorityTier): string {
+  return PRIORITY_TIER_ORDER.find((t) => t.id === tier)?.label ?? tier;
+}
+
+/**
+ * Clock label for a session-appended Progress step, matching the base
+ * stepper's short "HH:MM TZ" convention (buildTimeline). Uses the browser's
+ * short zone name so the appended step reads consistently beside the seeded ones.
+ */
+function formatStepTime(): string {
+  return new Intl.DateTimeFormat("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZoneName: "short",
+  }).format(new Date());
+}
 
 /**
  * Minimal **bold** renderer for mock copy. The detail derivations pre-bold key
@@ -129,6 +152,13 @@ export interface ExceptionDetailViewProps {
    * and clears the selection so the tab shows the routed result.
    */
   onRouted?: (id: string, queue: ExceptionQueue) => void;
+  /**
+   * Called when the ZOM confirms a priority-tier change from the header control.
+   * The container lifts the tier into the shared feed (re-sort + FLIP), and
+   * writes a session audit event. The detail view keeps the change locally too
+   * so the header badge and the Progress stepper's appended step update at once.
+   */
+  onTierChange?: (id: string, change: TierChange) => void;
   className?: string;
 }
 
@@ -138,6 +168,7 @@ export function ExceptionDetailView({
   sourceHealth,
   onBack,
   onRouted,
+  onTierChange,
   className,
 }: ExceptionDetailViewProps) {
   const [nowMs] = useState(() => Date.now());
@@ -157,6 +188,14 @@ export function ExceptionDetailView({
   // Recommended action is the primary (default) tab (item 6).
   const [activeTab, setActiveTab] = useState("action");
 
+  // Session-local "extra" Progress steps appended when the ZOM changes this
+  // exception's priority (Starling: a tier change adds a new stepper step). Keyed
+  // by exception id so switching records never carries another record's steps.
+  // No backend — a real build would read these from the audit trail.
+  const [extraStepsById, setExtraStepsById] = useState<
+    Record<string, TimelineStep[]>
+  >({});
+
   const summary = useMemo(() => buildAiSummary(exception), [exception]);
   const actions = useMemo(
     () => buildRecommendedActions(exception),
@@ -166,7 +205,22 @@ export function ExceptionDetailView({
     () => buildEvidence(exception, sourceHealth),
     [exception, sourceHealth],
   );
-  const timeline = useMemo(() => buildTimeline(), []);
+  // Base lifecycle stepper (static) with this exception's session-appended steps
+  // (e.g. a confirmed priority change) spliced in just BEFORE the trailing
+  // upcoming "Resolution" step, so the appended done steps read as recent
+  // activity in triage rather than after the queue's final pending step.
+  const extraSteps = extraStepsById[exception.id] ?? [];
+  const timeline = useMemo<TimelineStep[]>(() => {
+    const base = buildTimeline();
+    if (extraSteps.length === 0) return base;
+    const lastUpcoming = base.findIndex((s) => s.state === "upcoming");
+    if (lastUpcoming === -1) return [...base, ...extraSteps];
+    return [
+      ...base.slice(0, lastUpcoming),
+      ...extraSteps,
+      ...base.slice(lastUpcoming),
+    ];
+  }, [extraSteps]);
   const sourceStatusMap = useMemo(
     () => buildSourceStatusMap(sourceHealth),
     [sourceHealth],
@@ -294,6 +348,33 @@ export function ExceptionDetailView({
     onRouted?.(exception.id, targetQueue);
   };
 
+  // A confirmed priority change from the header control (Starling). Three
+  // effects, all session-local:
+  //  1. sync the local header badge immediately (it also re-syncs from the prop
+  //     once the container lifts the override, this avoids a one-frame lag),
+  //  2. append a "done" step to THIS exception's Progress stepper,
+  //  3. lift the change to the container (feed re-sort + FLIP + audit event).
+  const handleHeaderTierChange = (change: TierChange) => {
+    const toLabel = tierLabel(change.tier);
+    const reasonLabel =
+      MODIFICATION_REASONS.find((r) => r.id === change.reasonId)?.label ??
+      "Other";
+    setTier(change.tier);
+    setExtraStepsById((prev) => {
+      const step: TimelineStep = {
+        id: `tl-tier-${Date.now()}`,
+        label: `Priority changed to ${toLabel}, ${reasonLabel}`,
+        time: formatStepTime(),
+        state: "done",
+      };
+      return {
+        ...prev,
+        [exception.id]: [...(prev[exception.id] ?? []), step],
+      };
+    });
+    onTierChange?.(exception.id, change);
+  };
+
   return (
     <section
       aria-label={`Exception detail, ${exception.headline}`}
@@ -330,11 +411,7 @@ export function ExceptionDetailView({
               composes it as the trigger face. */}
           <EditableTierControl
             tier={tier}
-            onTierChange={(change) => {
-              // Mock commit — a real build posts { tier, reasonId, note } to the
-              // priority service. Here we lift the confirmed tier locally.
-              setTier(change.tier);
-            }}
+            onTierChange={handleHeaderTierChange}
           />
           <span className="min-w-0 truncate text-title font-semibold text-fg-primary">
             {exception.headline}
@@ -363,7 +440,9 @@ export function ExceptionDetailView({
           <DetailTabs
             activeTab={activeTab}
             onTabChange={setActiveTab}
-            exceptionId={exception.id}
+            exception={exception}
+            warehouseMap={warehouseMap}
+            copilotOpen={copilotOpen}
             evidence={evidence}
             timeline={timeline}
             actionBlock={
@@ -1021,19 +1100,29 @@ function RecommendationItem({
 function DetailTabs({
   activeTab,
   onTabChange,
-  exceptionId,
+  exception,
+  warehouseMap,
+  copilotOpen,
   evidence,
   timeline,
   actionBlock,
 }: {
   activeTab: string;
   onTabChange: (v: string) => void;
-  /** Exception id, used to deep-link the "Progress" tab to the Audit Log. */
-  exceptionId: string;
+  /** The selected exception, source of the deep-link id + the map snapshot pin. */
+  exception: ExceptionRecord;
+  /** Warehouse registry — resolves the exception's marker coordinates. */
+  warehouseMap: Map<string, Warehouse>;
+  /**
+   * When the Copilot panel is open the detail column is narrow, so the Progress
+   * tab's stepper-beside-map two-column layout collapses to a single column.
+   */
+  copilotOpen: boolean;
   evidence: ReturnType<typeof buildEvidence>;
   timeline: ReturnType<typeof buildTimeline>;
   actionBlock: ReactNode;
 }) {
+  const exceptionId = exception.id;
   return (
     <div>
       <Tabs
@@ -1106,6 +1195,17 @@ function DetailTabs({
         ) : null}
 
         {activeTab === "timeline" ? (
+          <div
+            className={cn(
+              "grid gap-4",
+              // Stepper beside a static map snapshot (Starling: the inset map
+              // moved here). Collapses to a single column when the Copilot panel
+              // narrows this column so neither the stepper nor the map is crushed.
+              copilotOpen
+                ? "grid-cols-1"
+                : "grid-cols-[minmax(0,1fr)_minmax(0,16rem)]",
+            )}
+          >
           <div>
           <ol className="flex flex-col pl-1">
             {timeline.map((step, i) => {
@@ -1177,6 +1277,19 @@ function DetailTabs({
             </Link>
           </div>
           </div>
+
+          {/* Static map snapshot (Starling: the inset map moved here). A locked,
+              non-interactive locator of THIS exception's marker at its current
+              position, reusing ExceptionMapPanel's `inset` static mode (no pan,
+              zoom, cluster interaction, or hover popover). An explicit sized
+              wrapper is required so MapLibre never measures a 0x0 container. When
+              the warehouse has no coordinates the marker cannot plot, so a calm
+              note stands in rather than an empty map. */}
+          <ExceptionProgressMap
+            exception={exception}
+            warehouseMap={warehouseMap}
+          />
+          </div>
         ) : null}
 
         {activeTab === "notes" ? (
@@ -1187,6 +1300,66 @@ function DetailTabs({
           />
         ) : null}
       </div>
+    </div>
+  );
+}
+
+/**
+ * ExceptionProgressMap — the static map snapshot embedded in the Progress tab
+ * (Starling: the small inset map that used to sit above the detail view moved
+ * here). It reuses `ExceptionMapPanel` in its existing `inset` static mode,
+ * which already disables every gesture (pan/zoom/rotate/cluster interaction, no
+ * hover popover, no nav control) and narrows the plotted set to the selected
+ * exception's single site — exactly a locked snapshot of the current marker.
+ *
+ * Passing only this one exception (with its own id as `selectedId`) keeps the
+ * snapshot scoped to its marker. The wrapper is explicitly sized (h-56) because
+ * MapLibre measures a 0x0 container inside auto-height flow and would paint a
+ * blank canvas otherwise (the panel's own ResizeObserver then keeps it in sync).
+ *
+ * When the warehouse has no coordinates the marker cannot plot, so a calm note
+ * stands in rather than an empty map — mirroring the feed's off-map affordance.
+ * Route-local, single-use (Step 11a): NOT elevated.
+ */
+function ExceptionProgressMap({
+  exception,
+  warehouseMap,
+}: {
+  exception: ExceptionRecord;
+  warehouseMap: Map<string, Warehouse>;
+}) {
+  const warehouse = getWarehouse(exception, warehouseMap);
+  const plottable = Boolean(warehouse && warehouse.coordinates);
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <p className="text-caption font-medium uppercase tracking-wide text-fg-muted">
+        Current position
+      </p>
+      {plottable ? (
+        // Explicit height so MapLibre gets a definite box (blank-map guard).
+        <div className="h-56 min-h-0">
+          <ExceptionMapPanel
+            exceptions={[exception]}
+            warehouseMap={warehouseMap}
+            selectedId={exception.id}
+            onSelect={() => {
+              /* static snapshot — selection is a no-op here */
+            }}
+            inset
+          />
+        </div>
+      ) : (
+        <div className="flex h-56 items-center justify-center rounded-lg border border-border-subtle bg-surface-sunken p-4 text-center">
+          <p className="text-body-s text-fg-muted">
+            No mappable origin for{" "}
+            <span className="font-medium text-fg-secondary">
+              {warehouse?.name ?? "this exception"}
+            </span>
+            . The lifecycle stepper on the left holds its full progress.
+          </p>
+        </div>
+      )}
     </div>
   );
 }

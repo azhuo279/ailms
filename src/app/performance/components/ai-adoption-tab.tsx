@@ -1,14 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Download, AlertTriangle } from "lucide-react";
+import { useMemo } from "react";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Menu, MenuItem } from "@/components/ui/menu";
-import { Tabs } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
-import { StatTile } from "@/components/ui/stat-tile";
 import { Tag } from "@/components/ui/tag";
+import { Tooltip } from "@/components/ui/tooltip";
 import { Chart, CHART_SERIES_COLORS } from "@/components/ui/chart";
 import { AdoptionLeaderboard } from "./adoption-leaderboard";
 import type { PerformanceFeed } from "../lib/performance-types";
@@ -21,21 +17,43 @@ const ADOPTION_SERIES = [
   { key: "rejected", label: "Rejected", color: CHART_SERIES_COLORS[2] },
 ];
 
+/**
+ * Severity for a model gap, derived from its correction share. A higher
+ * corrected% means the model is wrong more often on that type, so it reads as a
+ * worse gap. Starling: stop using the success/green fill and map to the
+ * semantic error/warning/neutral ramps instead (never the reserved chart or
+ * ai/severity ramps). The `danger` semantic ramp is the design system's own
+ * error role. Thresholds: high >= 30%, moderate >= 15%, else low.
+ */
+type GapSeverity = "high" | "moderate" | "low";
+
+function gapSeverity(correctedPct: number): GapSeverity {
+  if (correctedPct >= 30) return "high";
+  if (correctedPct >= 15) return "moderate";
+  return "low";
+}
+
+// Correction-bar fill per severity. High = danger (error) ramp, moderate =
+// warning ramp, low = a neutral fill — no success color anywhere.
+const GAP_BAR_FILL: Record<GapSeverity, string> = {
+  high: "bg-danger-border",
+  moderate: "bg-warning-emphasis",
+  low: "bg-fg-muted",
+};
+
 export interface AiAdoptionTabProps {
   feed: PerformanceFeed;
 }
 
 /**
- * Tab 2 — AI Adoption (inventor Direction C, director-only). Read-only,
- * page-level Export control (PNG / PDF / CSV via a portalled Menu). A trend-lead
- * stacked chart of AI outputs accepted / modified / rejected over time (three
- * distinct states) with a Trend / Model gaps segment control; the model-gaps
- * view isolates low-confidence / frequently-corrected categories. Closes with
- * the per-ZOM leaderboard.
+ * Tab 2 — AI Adoption (inventor Direction C, director-only). Read-only, with a
+ * page-level Export control (PNG / PDF / CSV via a portalled Menu). One Card, two
+ * columns: LEFT (1/3) stacks the outcome-mix stacked-bar chart and the model-gaps
+ * breakdown; RIGHT (2/3) holds the per-ZOM leaderboard on the paginated DataTable. The
+ * Trend / Model gaps segment toggle was removed per Starling feedback so both
+ * views read together. Export lives on the page tablist row, not in this tab.
  */
 export function AiAdoptionTab({ feed }: AiAdoptionTabProps) {
-  const [subView, setSubView] = useState("trend");
-  const [gapsFilter, setGapsFilter] = useState<"all" | "lowConfidence">("all");
   const { adoption } = feed;
 
   const chartData = useMemo(
@@ -49,76 +67,85 @@ export function AiAdoptionTab({ feed }: AiAdoptionTabProps) {
     [adoption.trend],
   );
 
-  const gapRows = useMemo(
-    () =>
-      gapsFilter === "lowConfidence"
-        ? adoption.modelGaps.filter((g) => g.isLowConfidence)
-        : adoption.modelGaps,
-    [adoption.modelGaps, gapsFilter],
-  );
+  const gapRows = adoption.modelGaps;
 
   return (
-    <div className="flex flex-col gap-4">
-      {/* Section header: title, segment control, and the read-only Export menu. */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <h2 className="text-title font-semibold text-fg-primary">
-            AI outcome mix over time
-          </h2>
-          <Tabs
-            items={[
-              { value: "trend", label: "Trend" },
-              { value: "model", label: "Model gaps" },
-            ]}
-            value={subView}
-            onChange={setSubView}
-            variant="pill"
-            size="sm"
-          />
-        </div>
-        <Menu
-          align="end"
-          trigger={
-            <Button variant="secondary" size="md" leadingIcon={<Download />}>
-              Export
-            </Button>
-          }
-        >
-          <MenuItem onSelect={() => undefined}>Export as PNG</MenuItem>
-          <MenuItem onSelect={() => undefined}>Export as PDF</MenuItem>
-          <MenuItem onSelect={() => undefined}>Export as CSV</MenuItem>
-        </Menu>
-      </div>
+    <div className="flex flex-col gap-4 h-full">
+      {/* Card fills the remaining page height (Starling). flex-1 lets it grow in
+          the h-full flex column; contentClassName="h-full" makes the Card's inner
+          padding div stretch so the grid's h-full resolves against real height. */}
+      <Card className="flex-1" contentClassName="h-full">
+        <div className="grid grid-cols-1 gap-5 h-full lg:grid-cols-3">
+          {/* LEFT (1/3): stacked outcome-mix chart then model gaps. */}
+          <div className="flex flex-col gap-4 lg:col-span-1">
+            <h3 className="text-heading-m font-semibold text-fg-primary px-2">
+              Outcome mix over time
+            </h3>
+            <Chart
+              type="bar"
+              data={chartData}
+              series={ADOPTION_SERIES}
+              xKey="period"
+              stacked
+              height={220}
+            />
 
-      {subView === "trend" ? (
-        <>
-          <Chart
-            type="bar"
-            data={chartData}
-            series={ADOPTION_SERIES}
-            xKey="period"
-          />
+            <section
+              aria-label="Model gaps"
+              className="flex flex-col gap-3 px-2"
+            >
+              <h3 className="text-heading-m font-semibold text-fg-primary">
+                Model gaps
+              </h3>
 
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <StatTile
-              label="Accepted"
-              value={`${adoption.summary.acceptedPct}%`}
-              trend={{ direction: "up", isFavorable: true, narrative: adoption.summary.acceptedTrend }}
-            />
-            <StatTile
-              label="Modified"
-              value={`${adoption.summary.modifiedPct}%`}
-              trend={{ direction: "flat", narrative: adoption.summary.modifiedTrend }}
-            />
-            <StatTile
-              label="Rejected"
-              value={`${adoption.summary.rejectedPct}%`}
-              trend={{ direction: "down", isFavorable: true, narrative: adoption.summary.rejectedTrend }}
-            />
+              <ul className="flex flex-col gap-3">
+                {gapRows.map((gap) => {
+                  const severity = gapSeverity(gap.correctedPct);
+                  return (
+                    <li key={gap.type} className="flex flex-col gap-1">
+                      <div className="flex items-center justify-between text-body-s">
+                        <span className="flex items-center gap-2 text-fg-primary">
+                          {gap.type}
+                          {gap.isLowConfidence ? (
+                            <Tooltip content="The model is frequently corrected on this exception type, so its recommendations here are less reliable.">
+                              <span tabIndex={0} className="inline-flex cursor-default outline-none focus-visible:ring-2 focus-visible:ring-focus-ring rounded-full">
+                                <Tag tone="warning" size="sm">
+                                  Low confidence
+                                </Tag>
+                              </span>
+                            </Tooltip>
+                          ) : null}
+                        </span>
+                        <span className="tabular-nums text-fg-secondary">
+                          {gap.correctedPct}% corrected
+                        </span>
+                      </div>
+                      <div
+                        className="h-2 overflow-hidden rounded-full bg-surface-sunken"
+                        role="img"
+                        aria-label={`${gap.type}: ${gap.correctedPct} percent corrected`}
+                      >
+                        {/* Fill colored by severity (derived from corrected%):
+                            high -> danger, moderate -> warning, low -> neutral.
+                            No success/green fill (Starling). */}
+                        <div
+                          className={cn("h-full rounded-full", GAP_BAR_FILL[severity])}
+                          style={{ width: `${gap.correctedPct}%` }}
+                        />
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
           </div>
 
-          <section aria-label="Per-manager leaderboard">
-            <div className="mb-2 flex items-baseline justify-between gap-3">
+          {/* RIGHT (2/3): per-ZOM leaderboard on the paginated DataTable. */}
+          <section
+            aria-label="Per-manager leaderboard"
+            className="flex flex-col gap-2 lg:col-span-2"
+          >
+            <div className="flex items-baseline justify-between gap-3">
               <h3 className="text-title font-semibold text-fg-primary">
                 Per-ZOM leaderboard
               </h3>
@@ -126,72 +153,13 @@ export function AiAdoptionTab({ feed }: AiAdoptionTabProps) {
                 {adoption.managerCount} managers. Ranked by acceptance rate.
               </span>
             </div>
-            <AdoptionLeaderboard entries={adoption.leaderboard} />
+            <AdoptionLeaderboard
+              entries={adoption.leaderboard}
+              className="flex-1"
+            />
           </section>
-        </>
-      ) : (
-        <section aria-label="Model gaps">
-          <Card>
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div className="flex min-w-0 flex-col gap-0.5">
-                <h3 className="text-heading-m font-semibold text-fg-primary">
-                  Where the model is being corrected
-                </h3>
-                <p className="text-body-s text-fg-muted">
-                  Highest combined modify + reject share by exception type. A high
-                  correction rate is a model gap to review, not a favorable read.
-                </p>
-              </div>
-              <Tag
-                tone={gapsFilter === "lowConfidence" ? "warning" : "neutral"}
-                size="md"
-                onClick={() =>
-                  setGapsFilter((f) => (f === "all" ? "lowConfidence" : "all"))
-                }
-                isSelected={gapsFilter === "lowConfidence"}
-                leadingIcon={<AlertTriangle />}
-              >
-                Low confidence only
-              </Tag>
-            </div>
-
-            <ul className="mt-4 flex flex-col gap-3">
-              {gapRows.map((gap) => (
-                <li key={gap.type} className="flex flex-col gap-1">
-                  <div className="flex items-center justify-between text-body-s">
-                    <span className="flex items-center gap-2 text-fg-primary">
-                      {gap.type}
-                      {gap.isLowConfidence ? (
-                        <Tag tone="warning" size="sm">
-                          Low confidence
-                        </Tag>
-                      ) : null}
-                    </span>
-                    <span className="tabular-nums text-fg-secondary">
-                      {gap.correctedPct}% corrected
-                    </span>
-                  </div>
-                  <div
-                    className="h-2 overflow-hidden rounded-full bg-surface-sunken"
-                    role="img"
-                    aria-label={`${gap.type}: ${gap.correctedPct} percent corrected`}
-                  >
-                    <div
-                      className={cn("h-full rounded-full")}
-                      style={{
-                        width: `${gap.correctedPct}%`,
-                        // Modify/reject correction bar reads on chart-2 (the
-                        // "modified" series color) — stays inside the chart ramp.
-                        backgroundColor: CHART_SERIES_COLORS[1],
-                      }}
-                    />
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </Card>
-        </section>
-      )}
+        </div>
+      </Card>
     </div>
   );
 }

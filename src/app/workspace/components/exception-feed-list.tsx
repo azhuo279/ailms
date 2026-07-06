@@ -79,6 +79,16 @@ export interface ExceptionFeedListProps {
   /** Active sort mode (single source of truth lives in the parent). */
   sortMode: SortMode;
   onSortChange: (mode: SortMode) => void;
+  /**
+   * Ids the parent just edited directly (e.g. a priority-tier change from the
+   * detail view). Unlike simulated background drift, a direct action must land
+   * immediately, NOT queue behind the "N updates" banner — so these ids snap the
+   * committed baseline forward at once and get the one-shot FLIP entrance. The
+   * feed calls `onForceApplied` with the ids once it has committed them so the
+   * parent can clear them (the entrance fires only once).
+   */
+  forceApplyIds?: Set<string>;
+  onForceApplied?: (ids: string[]) => void;
   /** True while the feed's own data is (re)loading — renders row skeletons. */
   isLoading?: boolean;
   /** True when the feed couldn't refresh and is showing a stale snapshot. */
@@ -124,6 +134,8 @@ export function ExceptionFeedList({
   warehouseMap,
   sortMode,
   onSortChange,
+  forceApplyIds,
+  onForceApplied,
   isLoading = false,
   isStale = false,
   className,
@@ -190,6 +202,25 @@ export function ExceptionFeedList({
     setJustApplied(changedIds);
     window.setTimeout(() => setJustApplied(new Set()), 700);
   };
+
+  // Direct user edits (e.g. a priority-tier change) must land AT ONCE, not queue
+  // behind the background-update banner. When the parent flags ids in
+  // `forceApplyIds`, snap the committed baseline forward immediately, give those
+  // cards the one-shot FLIP entrance, and tell the parent it can clear them.
+  const onForceAppliedRef = useRef(onForceApplied);
+  onForceAppliedRef.current = onForceApplied;
+  useEffect(() => {
+    if (!forceApplyIds || forceApplyIds.size === 0) return;
+    const ids = [...forceApplyIds];
+    setCommitted(exceptions);
+    setJustApplied((prev) => {
+      const next = new Set(prev);
+      for (const id of ids) next.add(id);
+      return next;
+    });
+    window.setTimeout(() => setJustApplied(new Set()), 700);
+    onForceAppliedRef.current?.(ids);
+  }, [forceApplyIds, exceptions]);
 
   // Scroll the map-highlighted card into view when it is off-screen. Native
   // scrollIntoView; smooth under motion-safe, instant when the OS asks for
@@ -407,6 +438,7 @@ export function ExceptionFeedList({
                         nowMs={nowMs}
                         sourceStatusMap={sourceStatusMap}
                         warehouseMap={warehouseMap}
+                        showPriorityUpdatePing={justApplied.has(exception.id)}
                       />
                     </motion.li>
                   ))}

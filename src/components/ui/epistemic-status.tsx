@@ -135,13 +135,32 @@ export interface ImpactProjectionEvidenceItem {
   content: ReactNode;
 }
 
+export interface ImpactProjectionMetric {
+  /** Big at-a-glance value, e.g. "3", "2", "4h". Heading-l weight. */
+  value: ReactNode;
+  /** Small uppercase supporting label, e.g. "Orders at risk". */
+  label: string;
+}
+
 export interface ImpactProjectionPanelProps {
   /**
    * Headline sentence, e.g. "If not resolved within the **4-hour breach
    * window**, **3 orders** tied to **2 Gold-tier customers** are projected
    * to miss SLA." Pass as ReactNode with key phrases already bolded.
+   *
+   * When `metrics` is provided (Direction A), the load-bearing numbers move
+   * into the at-a-glance metric row and this becomes a short supporting
+   * caption below it — so pass the shortened caption form there. When
+   * `metrics` is omitted, this renders as the panel's description as before.
    */
   headline: ReactNode;
+  /**
+   * Optional at-a-glance metric row (Direction A). Intended 2 to 4 metrics,
+   * each a big value + small uppercase label, rendered as a grid directly
+   * under the title so "how bad" lands in one glance. When omitted, the panel
+   * falls back to the headline-as-description layout (backward compatible).
+   */
+  metrics?: ImpactProjectionMetric[];
   /** e.g. "Medium confidence · 68%" */
   confidenceLabel: string;
   /** Plain-text risk count label beside the confidence badge, e.g. "3 orders at risk". */
@@ -156,10 +175,11 @@ export interface ImpactProjectionPanelProps {
   disclaimer?: ReactNode;
   /**
    * Opt-in dense variant (Starling item 3). Default (`false`) is the roomier
-   * reasoning surface: `heading-l` headline, `body-s` supporting copy, and the
-   * standard Card slot spacing + footer divider. `true` dials the panel down one
-   * rung across the board (smaller type, tighter spacing, no footer border) so
-   * it stays scannable at chat width — this is the density the copilot chat uses.
+   * reasoning surface: `heading-l` metric values, `body-s` supporting copy, and
+   * the standard Card slot spacing + footer divider. `true` dials the panel down
+   * one rung across the board (smaller type, tighter spacing, no footer border)
+   * so it stays scannable at chat width — this is the density the copilot chat
+   * uses. The metric row scales with it: `heading-m` values and tighter gaps.
    */
   compact?: boolean;
   className?: string;
@@ -175,6 +195,7 @@ export interface ImpactProjectionPanelProps {
  */
 export function ImpactProjectionPanel({
   headline,
+  metrics,
   confidenceLabel,
   riskCountLabel,
   reasoningTitle = "Why this projection",
@@ -184,6 +205,17 @@ export function ImpactProjectionPanel({
   compact = false,
   className,
 }: ImpactProjectionPanelProps) {
+  // Direction A ("Metric-first header + calmed body"): when structured metrics
+  // are passed, the load-bearing numbers are lifted OUT of the sentence into an
+  // at-a-glance metric row read directly under the title, so "how bad" lands in
+  // one glance. The prose then reads as a short supporting caption. When metrics
+  // are omitted, the panel falls back to the headline-as-description layout
+  // (backward compatible for existing callers such as the customs-hold story and
+  // the copilot fallback). Column count tracks the metric count, capped at 3 to
+  // match the mockup's 3-up grid.
+  const hasMetrics = Boolean(metrics && metrics.length > 0);
+  const metricColumns = Math.min(metrics?.length ?? 0, 3);
+
   return (
     // AI glass surface (DESIGN.md §5): a full containerized AI reasoning panel,
     // so it wears the `.ai-card` frosted-glass material rather than the standard
@@ -193,12 +225,12 @@ export function ImpactProjectionPanel({
     // treatment, so it is deliberately not used as the root here. CardHeader/
     // CardBody/CardFooter remain for the internal layout.
     // Density (Starling item 3) is opt-in via `compact`. Default is the roomier
-    // reasoning surface (heading-l headline, body-s copy, standard Card slot
-    // spacing + footer divider). `compact` dials the panel down one rung across
-    // the board — smaller type and tighter spacing, no footer border — so it
-    // stays scannable at chat width, WITHOUT losing hierarchy (the headline
-    // still out-ranks the evidence and the disclaimer). All differences ride on
-    // className overrides rather than new component variants.
+    // reasoning surface (heading-l metric values, body-s copy, standard Card slot
+    // spacing + a full-width divider before the reasoning band). `compact` dials
+    // the panel down one rung across the board — smaller type and tighter spacing,
+    // no footer border — so it stays scannable at chat width, WITHOUT losing
+    // hierarchy (the metrics still out-rank the evidence and the disclaimer). All
+    // differences ride on className overrides rather than new component variants.
     <div
       className={cn(
         "ai-card relative w-full text-left",
@@ -207,9 +239,7 @@ export function ImpactProjectionPanel({
       )}
     >
       <CardHeader
-        className={
-          compact ? "gap-2 [&_p]:text-footnote" : "gap-3"
-        }
+        className={compact ? "gap-2 [&_p]:text-footnote" : "gap-3"}
         // Starling: the projection title should wrap to two lines and read a
         // rung smaller than a standard card title, not truncate. `line-clamp-2
         // whitespace-normal` defeats CardHeader's base `truncate` (which is
@@ -218,10 +248,64 @@ export function ImpactProjectionPanel({
         titleClassName="line-clamp-2 whitespace-normal text-heading-m"
         media={<Sparkles className="size-4" aria-hidden="true" />}
         title="Downstream impact if unresolved"
-        description={headline}
+        // Direction A: when metrics carry the numbers, the caption drops below
+        // the metric row (rendered in CardBody), so it is NOT the header
+        // description. In the fallback, the headline stays the description.
+        description={hasMetrics ? undefined : headline}
       />
       <CardBody className={compact ? "mt-2" : "mt-3"}>
-        <div className="flex flex-wrap items-center gap-1.5">
+        {hasMetrics ? (
+          <>
+            {/* At-a-glance metric row — the load-bearing numbers promoted to the
+                top of the body, big value over a small uppercase label. Columns
+                track the metric count (capped at 3 per the mockup). */}
+            <dl
+              className={cn(
+                "grid",
+                compact ? "gap-2" : "gap-3",
+                metricColumns === 1 && "grid-cols-1",
+                metricColumns === 2 && "grid-cols-2",
+                metricColumns >= 3 && "grid-cols-3",
+              )}
+            >
+              {metrics!.map((metric, index) => (
+                <div
+                  key={`${metric.label}-${index}`}
+                  className="flex flex-col gap-0.5"
+                >
+                  <dd
+                    className={cn(
+                      "font-semibold text-fg-primary",
+                      compact ? "text-heading-m" : "text-heading-l",
+                    )}
+                  >
+                    {metric.value}
+                  </dd>
+                  <dt className="text-footnote uppercase tracking-wide text-fg-muted">
+                    {metric.label}
+                  </dt>
+                </div>
+              ))}
+            </dl>
+            {/* Demoted headline — a short supporting caption below the metrics.
+                Secondary color, key phrase bolded via the passed ReactNode. */}
+            <p
+              className={cn(
+                "text-fg-secondary [&_b]:font-semibold [&_b]:text-fg-primary [&_strong]:font-semibold [&_strong]:text-fg-primary",
+                compact ? "mt-2 text-footnote" : "mt-3.5 text-body-s",
+              )}
+            >
+              {headline}
+            </p>
+          </>
+        ) : null}
+
+        <div
+          className={cn(
+            "flex flex-wrap items-center gap-1.5",
+            hasMetrics && (compact ? "mt-2" : "mt-3.5"),
+          )}
+        >
           <span
             className={cn(
               "inline-flex shrink-0 items-center gap-1 rounded-full bg-ai-surface px-2 font-semibold text-ai-fg",
@@ -244,10 +328,22 @@ export function ImpactProjectionPanel({
           </span>
         </div>
 
+        {/* Direction A: a full-width divider separates the header band from the
+            reasoning band for breathing room. Only shown in the metric layout;
+            the fallback keeps its original tighter rhythm. */}
+        {hasMetrics ? (
+          <hr
+            className={cn(
+              "h-px border-0 bg-border-subtle",
+              compact ? "my-2" : "my-4",
+            )}
+          />
+        ) : null}
+
         {/* Starling: the reasoning is shown inline, always visible, not hidden
             behind an accordion. The title becomes a small inline label above the
             evidence list. */}
-        <div className={compact ? "mt-2" : "mt-3"}>
+        <div className={hasMetrics ? undefined : compact ? "mt-2" : "mt-3"}>
           <p className="text-label-s font-semibold text-fg-secondary">
             {reasoningTitle}
           </p>

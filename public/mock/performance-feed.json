@@ -478,17 +478,7 @@
         "acceptedPct": 83,
         "modifiedPct": 12,
         "rejectedPct": 5,
-        "trajectory": "rising",
-        "tier": "superuser",
-        "isSelf": false,
-        "isTopAdopter": true,
-        "weeklyBuckets": [
-          { "heightPercent": 68, "label": "Wk 1" },
-          { "heightPercent": 72, "label": "Wk 2" },
-          { "heightPercent": 78, "label": "Wk 3" },
-          { "heightPercent": 80, "label": "Wk 4" },
-          { "heightPercent": 88, "label": "Wk 5" }
-        ]
+        "isTopAdopter": true
       },
       {
         "rank": 2,
@@ -497,131 +487,52 @@
         "acceptedPct": 80,
         "modifiedPct": 14,
         "rejectedPct": 6,
-        "trajectory": "rising",
-        "tier": "superuser",
-        "isSelf": false,
-        "isTopAdopter": true,
-        "weeklyBuckets": [
-          { "heightPercent": 64, "label": "Wk 1" },
-          { "heightPercent": 70, "label": "Wk 2" },
-          { "heightPercent": 74, "label": "Wk 3" },
-          { "heightPercent": 78, "label": "Wk 4" },
-          { "heightPercent": 82, "label": "Wk 5" }
-        ]
+        "isTopAdopter": true
       },
       {
         "rank": 3,
-        "name": "R. Alvarez (you)",
-        "volume": 982,
-        "acceptedPct": 78,
-        "modifiedPct": 15,
-        "rejectedPct": 7,
-        "trajectory": "rising",
-        "tier": "superuser",
-        "isSelf": true,
-        "isTopAdopter": false,
-        "weeklyBuckets": [
-          { "heightPercent": 60, "label": "Wk 1" },
-          { "heightPercent": 66, "label": "Wk 2" },
-          { "heightPercent": 70, "label": "Wk 3" },
-          { "heightPercent": 74, "label": "Wk 4" },
-          { "heightPercent": 78, "label": "Wk 5" }
-        ]
-      },
-      {
-        "rank": 4,
         "name": "P. Nakamura",
         "volume": 874,
         "acceptedPct": 76,
         "modifiedPct": 16,
         "rejectedPct": 8,
-        "trajectory": "steady",
-        "tier": "superuser",
-        "isSelf": false,
-        "isTopAdopter": false,
-        "weeklyBuckets": [
-          { "heightPercent": 72, "label": "Wk 1" },
-          { "heightPercent": 74, "label": "Wk 2" },
-          { "heightPercent": 73, "label": "Wk 3" },
-          { "heightPercent": 76, "label": "Wk 4" },
-          { "heightPercent": 76, "label": "Wk 5" }
-        ]
+        "isTopAdopter": false
       },
       {
-        "rank": 5,
+        "rank": 4,
         "name": "S. Adeyemi",
         "volume": 812,
         "acceptedPct": 74,
         "modifiedPct": 17,
         "rejectedPct": 9,
-        "trajectory": "steady",
-        "tier": "superuser",
-        "isSelf": false,
-        "isTopAdopter": false,
-        "weeklyBuckets": [
-          { "heightPercent": 70, "label": "Wk 1" },
-          { "heightPercent": 72, "label": "Wk 2" },
-          { "heightPercent": 71, "label": "Wk 3" },
-          { "heightPercent": 73, "label": "Wk 4" },
-          { "heightPercent": 74, "label": "Wk 5" }
-        ]
+        "isTopAdopter": false
       },
       {
-        "rank": 6,
+        "rank": 5,
         "name": "M. Kowalski",
         "volume": 601,
         "acceptedPct": 67,
         "modifiedPct": 18,
         "rejectedPct": 15,
-        "trajectory": "falling",
-        "tier": "trailing",
-        "isSelf": false,
-        "isTopAdopter": false,
-        "weeklyBuckets": [
-          { "heightPercent": 74, "label": "Wk 1" },
-          { "heightPercent": 72, "label": "Wk 2" },
-          { "heightPercent": 70, "label": "Wk 3" },
-          { "heightPercent": 68, "label": "Wk 4" },
-          { "heightPercent": 67, "label": "Wk 5" }
-        ]
+        "isTopAdopter": false
       },
       {
-        "rank": 7,
+        "rank": 6,
         "name": "D. Novak",
         "volume": 412,
         "acceptedPct": 61,
         "modifiedPct": 17,
         "rejectedPct": 22,
-        "trajectory": "falling",
-        "tier": "trailing",
-        "isSelf": false,
-        "isTopAdopter": false,
-        "weeklyBuckets": [
-          { "heightPercent": 70, "label": "Wk 1" },
-          { "heightPercent": 68, "label": "Wk 2" },
-          { "heightPercent": 65, "label": "Wk 3" },
-          { "heightPercent": 63, "label": "Wk 4" },
-          { "heightPercent": 61, "label": "Wk 5" }
-        ]
+        "isTopAdopter": false
       },
       {
-        "rank": 8,
+        "rank": 7,
         "name": "J. Okafor",
         "volume": 388,
         "acceptedPct": 58,
         "modifiedPct": 16,
         "rejectedPct": 26,
-        "trajectory": "falling",
-        "tier": "trailing",
-        "isSelf": false,
-        "isTopAdopter": false,
-        "weeklyBuckets": [
-          { "heightPercent": 68, "label": "Wk 1" },
-          { "heightPercent": 65, "label": "Wk 2" },
-          { "heightPercent": 62, "label": "Wk 3" },
-          { "heightPercent": 60, "label": "Wk 4" },
-          { "heightPercent": 58, "label": "Wk 5" }
-        ]
+        "isTopAdopter": false
       }
     ]
   }

@@ -76,6 +76,7 @@ export function renderBlock(block: Block, ctx: RenderBlockContext) {
         return (
           <ImpactProjectionPanel
             compact
+            metrics={block.metrics}
             headline={block.headline}
             confidenceLabel={block.confidenceLabel}
             riskCountLabel={block.riskCountLabel}

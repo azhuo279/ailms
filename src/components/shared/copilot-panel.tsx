@@ -145,14 +145,14 @@ export function CopilotPanel({
         // panel width so main reflows. overflow-hidden clips the inner
         // fixed-width content as the region collapses.
         "flex max-h-full my-4 mr-4 shrink-0 flex-col overflow-hidden transition-[width] duration-[240ms] ease-[cubic-bezier(0,0,0.2,1)] motion-reduce:transition-none",
-        open ? "w-96" : "w-0",
+        open ? "w-100" : "w-0",
         className,
       )}
     >
       {/* Inner fixed-width frosted-glass card. `ai-card` supplies the
           semi-transparent fill + backdrop-blur + ai-border hairline; the docked
           overrides square off its default radius so it sits flush. */}
-      <div className="ai-card flex h-full w-96 flex-col rounded-none">
+      <div className="ai-card flex h-full w-100 flex-col rounded-none">
         {/* Header — title left, iconOnly close right. */}
         <header className="flex shrink-0 items-center justify-between gap-3 px-4 py-3">
           <h2 className="text-heading-m font-semibold text-ai-fg">Kase</h2>
@@ -212,46 +212,49 @@ export function CopilotPanel({
           {/* Suggested-prompt chips — change per step to the natural next ask;
               suppressed while a reply is streaming (the hook empties them) and
               once the scripted exchange is exhausted. */}
-          <SuggestedPrompts prompts={suggestions} onSelect={(prompt) => send(prompt)} />
+          <SuggestedPrompts
+            prompts={suggestions}
+            onSelect={(prompt) => send(prompt)}
+          />
 
           <div className="relative flex items-center gap-2">
-          {/* Avatar SLOT — an empty reserved box, not a mounted avatar. The
+            {/* Avatar SLOT — an empty reserved box, not a mounted avatar. The
               shell's single persistent AiAvatar (one WebGL canvas, never
               remounted) absolutely positions and TRANSLATES itself onto this
               box when the panel opens, morphing dormant → active as it arrives.
               Keeping it a slot (rather than a second mounted <Canvas>) is what
               satisfies the one-canvas rule while still reading [avatar] [field]
               [send]. size-20 matches the center slot's active footprint. */}
-          <div
-            ref={avatarSlotRef}
-            className="size-20 shrink-0 absolute -left-5 -top-3 -translate-y-1/2"
-            aria-hidden
-          />
-          <TextField
-            ref={composerRef}
-            label="Message Copilot"
-            labelClassName="sr-only"
-            placeholder="Message Copilot"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                send();
-              }
-            }}
-            containerClassName="flex-1"
-            inputContainerClassName=" rounded-xl bg-ai-card border-ai-card-border has-[input:hover]:border-ai-border/60 has-[input:focus-visible]:border-ai-border has-[input:focus-visible]:ring-ai-border/40 backdrop-blur-sm"
-          />
-          <Button
-            iconOnly
-            variant="primary"
-            size="md"
-            icon={<ArrowUp />}
-            aria-label="Send message"
-            disabled={input.trim().length === 0}
-            onClick={() => send()}
-          />
+            <div
+              ref={avatarSlotRef}
+              className="size-20 shrink-0 absolute -left-5 -top-3 -translate-y-1/2"
+              aria-hidden
+            />
+            <TextField
+              ref={composerRef}
+              label="Message Copilot"
+              labelClassName="sr-only"
+              placeholder="Message Copilot"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  send();
+                }
+              }}
+              containerClassName="flex-1"
+              inputContainerClassName=" rounded-xl bg-ai-card border-ai-card-border has-[input:hover]:border-ai-border/60 has-[input:focus-visible]:border-ai-border has-[input:focus-visible]:ring-ai-border/40 backdrop-blur-sm"
+            />
+            <Button
+              iconOnly
+              variant="primary"
+              size="md"
+              icon={<ArrowUp />}
+              aria-label="Send message"
+              disabled={input.trim().length === 0}
+              onClick={() => send()}
+            />
           </div>
         </footer>
       </div>

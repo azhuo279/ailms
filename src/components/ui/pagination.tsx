@@ -1,4 +1,9 @@
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+} from "lucide-react";
 import { Button } from "./button";
 import { Select } from "./select";
 import { cn } from "@/lib/utils";
@@ -66,7 +71,10 @@ export function Pagination({
   const canNext = currentPage < totalPages;
 
   const rangeStart = pageSize ? (currentPage - 1) * pageSize + 1 : undefined;
-  const rangeEnd = pageSize && totalItems ? Math.min(currentPage * pageSize, totalItems) : undefined;
+  const rangeEnd =
+    pageSize && totalItems
+      ? Math.min(currentPage * pageSize, totalItems)
+      : undefined;
 
   const isCentered = align === "center";
 
@@ -84,7 +92,7 @@ export function Pagination({
         className,
       )}
     >
-      <div className="flex items-center gap-3 text-body-s text-fg-muted">
+      <div className="flex items-center pl-2 gap-3 text-body-s text-fg-muted">
         {totalItems != null && pageSize != null ? (
           <span>
             {rangeStart}–{rangeEnd} of {totalItems}
@@ -97,7 +105,10 @@ export function Pagination({
               className="[&_label]:sr-only [&_p]:sr-only"
               value={String(pageSize)}
               onChange={(value) => onPageSizeChange(Number(value))}
-              options={pageSizeOptions.map((size) => ({ label: `${size} / page`, value: String(size) }))}
+              options={pageSizeOptions.map((size) => ({
+                label: `${size} / page`,
+                value: String(size),
+              }))}
             />
           </div>
         ) : null}
@@ -127,7 +138,10 @@ export function Pagination({
 
         {pageItems.map((item, index) =>
           item === "ellipsis" ? (
-            <span key={`ellipsis-${index}`} className="flex h-8 w-8 items-center justify-center text-fg-muted">
+            <span
+              key={`ellipsis-${index}`}
+              className="flex h-8 w-8 items-center justify-center text-fg-muted"
+            >
               …
             </span>
           ) : (

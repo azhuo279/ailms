@@ -55,7 +55,7 @@ export const auditClusterColumns: DataTableColumn<AuditCluster>[] = [
   },
   {
     id: "tier",
-    header: "Highest tier",
+    header: "Highest priority",
     // Cap to the badge's intrinsic width so the tier cell does not stretch to
     // fill leftover width, keeping the badge tight against the identity column
     // (Starling).
@@ -127,13 +127,17 @@ export function AuditClusterEventRows({
 }
 
 /**
- * A single event row within a cluster. Columns: timestamp (date over time to
- * the second) · actor identity · typed event tag + truncated action content.
- * The per-event tier column was removed — the highest tier is shown once on the
- * cluster row, so repeating it per event is redundant. AI-authored rows carry a
- * subtle `ai-surface` tint and a left accent stripe (FR-41) — NOT the frosted
- * `.ai-card` glass, which is reserved for containerized AI cards (DESIGN.md).
- * The whole row opens the detail drawer.
+ * A single event row within a cluster. Its grid is aligned to the parent
+ * cluster columns so each child column sits under its parent counterpart
+ * (Starling): the actor identity aligns under "Shipment / Exception", the
+ * event tag + action content spans the "Highest priority" + "Latest activity"
+ * columns, and the timestamp aligns right under "Last updated". The child has
+ * no expand chevron, so a left inset stands in for the parent chevron cell's
+ * footprint. The per-event tier column was removed — the highest tier is shown
+ * once on the cluster row, so repeating it per event is redundant. AI-authored
+ * rows carry a subtle `ai-surface` tint and a left accent stripe (FR-41) — NOT
+ * the frosted `.ai-card` glass, which is reserved for containerized AI cards
+ * (DESIGN.md). The whole row opens the detail drawer.
  */
 function AuditEventRow({
   event,
@@ -153,10 +157,20 @@ function AuditEventRow({
       onClick={onSelect}
       aria-pressed={active}
       className={cn(
-        // Actor column is fixed-width (not 1fr) so the identity cell stays tight
-        // to its content instead of stretching across the row; the action-content
-        // column takes all the remaining width (Starling).
-        "grid w-full grid-cols-[8.5rem_13rem_minmax(0,1fr)] items-center gap-3 border-l-2 px-4 py-2.5 text-left transition-colors",
+        // Grid columns mirror the parent cluster columns so each child column
+        // lines up under its parent (Starling): col 1 = actor identity under
+        // "Shipment / Exception" (w-56 = 14rem); col 2 = event tag + content
+        // spanning "Highest priority" (w-44) + "Latest activity" (w-96) as a
+        // flexible middle span; col 3 = timestamp under "Last updated"
+        // (w-40 = 10rem), right-aligned. gap-8 (2rem) reproduces the parent's
+        // inter-column padding (each parent cell has px-4, so adjacent cells
+        // are separated by 2rem). pl-20 (5rem) stands in for the missing expand
+        // chevron: 4rem chevron-cell footprint (w-8 + px-4 both sides) + 1rem
+        // for the "Shipment / Exception" cell's own left px-4, so the actor's
+        // left edge lands exactly under the parent identity content. pr-4 (1rem)
+        // matches the "Last updated" cell's right px-4 so the timestamp's right
+        // edge aligns with the parent's.
+        "grid w-full grid-cols-[14rem_minmax(0,1fr)_10rem] items-center gap-8 border-l-2 py-2.5 pl-20 pr-4 text-left transition-colors",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-inset",
         // AI-vs-human row treatment (FR-41): subtle teal tint + teal left
         // accent for AI; neutral transparent edge for humans.
@@ -166,22 +180,25 @@ function AuditEventRow({
         active && (isAi ? "bg-ai-surface" : "bg-option-hover"),
       )}
     >
-      {/* Timestamp — date over precise time (to the second, with tz). DM Sans,
-          no mono (DESIGN.md §4): caption/body-s in the shared family. */}
-      <span className="flex flex-col leading-tight">
-        <span className="text-body-s text-fg-secondary">{date}</span>
-        <span className="text-caption text-fg-muted">{time}</span>
-      </span>
-
-      {/* Actor identity + label. */}
+      {/* Actor identity + label — aligned under the parent "Shipment /
+          Exception" column. */}
       <AuditActorIdentity actor={event.actor} />
 
-      {/* Event type tag + truncated action content. */}
+      {/* Event type tag + truncated action content — spans the parent
+          "Highest priority" + "Latest activity" columns. */}
       <span className="flex min-w-0 flex-col gap-1">
         <AuditEventTag type={event.type} className="self-start" />
         <span className="min-w-0 truncate text-body-s text-fg-secondary">
           <RichText text={event.content} />
         </span>
+      </span>
+
+      {/* Timestamp — date over precise time (to the second, with tz). DM Sans,
+          no mono (DESIGN.md §4): caption/body-s in the shared family.
+          Right-aligned under the parent "Last updated" column. */}
+      <span className="flex flex-col items-end text-right leading-tight">
+        <span className="text-body-s text-fg-secondary">{date}</span>
+        <span className="text-caption text-fg-muted">{time}</span>
       </span>
     </button>
   );

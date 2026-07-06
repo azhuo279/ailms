@@ -242,6 +242,12 @@ export interface ExceptionCardProps {
   sourceStatusMap: Map<SourceSystem, SourceEpistemicStatus>;
   /** Warehouse registry — the source of this row's location + site name. */
   warehouseMap: Map<string, Warehouse>;
+  /**
+   * True only for a card just revealed by the most recent "View updates" apply.
+   * Gates the pulsing AI priority dot so it fires only on those freshly-applied
+   * rows for the one-shot window, never on steady-state / initial-load cards.
+   */
+  showPriorityUpdatePing?: boolean;
   className?: string;
 }
 
@@ -268,6 +274,7 @@ export function ExceptionCard({
   nowMs,
   sourceStatusMap,
   warehouseMap,
+  showPriorityUpdatePing = false,
   className,
 }: ExceptionCardProps) {
   const freshness = formatRelativeTime(exception.lastUpdatedAt, nowMs);
@@ -317,7 +324,7 @@ export function ExceptionCard({
         {/* Line 1 — headline, optionally prefixed by a pulsing AI dot signalling
             an AI-updated priority. */}
         <span className="flex items-center gap-2">
-          {exception.scoreRecentlyUpdated ? (
+          {showPriorityUpdatePing ? (
             <span className="relative inline-flex size-2 shrink-0">
               <span
                 aria-hidden="true"

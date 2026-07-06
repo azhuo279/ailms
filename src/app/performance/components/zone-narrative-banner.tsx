@@ -4,7 +4,6 @@ import { useState } from "react";
 import { Layers, Sparkles, ThumbsUp, ThumbsDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { EpistemicTag } from "@/components/ui/epistemic-status";
 import { renderBoldMarkdown } from "../lib/performance-format";
 
 export interface ZoneNarrativeBannerProps {
@@ -24,8 +23,9 @@ export interface ZoneNarrativeBannerProps {
  * AI-authored zone narrative band for the Zone Performance tab. Compact by
  * design: surfaces only the single top/latest insight, self-contained, with no
  * multi-insight breakdown. Wears the reserved `.ai-card` glass material and is
- * explicitly AI-labeled via `EpistemicTag tone="ai"`. Helpful / Not helpful is
- * a local acknowledgment control (no backend yet).
+ * AI-signaled by its teal Sparkles heading and glass surface (the redundant
+ * "AI summary" tag was removed per Starling). Helpful / Not helpful is a local
+ * acknowledgment control (no backend yet).
  *
  * Structured so a future "View all insights" drawer trigger can slot into the
  * header actions row without reworking the body — that drawer is handled by a
@@ -48,7 +48,6 @@ export function ZoneNarrativeBanner({
           <h2 className="text-label-l font-semibold text-ai-fg">
             Which warehouse needs attention
           </h2>
-          <EpistemicTag tone="ai" label="AI summary" className="ml-1" />
         </div>
 
         {/* Header actions row — the "View all insights" drawer trigger joins

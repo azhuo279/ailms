@@ -31,6 +31,12 @@ export interface TabsProps {
   variant?: TabsVariant;
   /** Panels keyed by tab value, rendered below the tablist. Omit to control panels externally. */
   children?: ReactNode;
+  /**
+   * Optional right-aligned slot rendered inside the tablist row (e.g. an Export
+   * menu). Purely additive, so existing callers omit it and are unaffected; the
+   * underline border still spans the full row width.
+   */
+  actions?: ReactNode;
   className?: string;
 }
 
@@ -61,19 +67,25 @@ export function Tabs({
   size = "md",
   variant = "underline",
   children,
+  actions,
   className,
 }: TabsProps) {
   const baseId = useId();
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
-  const enabledValues = items.filter((item) => !item.disabled).map((item) => item.value);
+  const enabledValues = items
+    .filter((item) => !item.disabled)
+    .map((item) => item.value);
 
   const focusTab = (targetValue: string) => {
     tabRefs.current[targetValue]?.focus();
     onChange(targetValue);
   };
 
-  const handleKeyDown = (e: KeyboardEvent<HTMLButtonElement>, currentValue: string) => {
+  const handleKeyDown = (
+    e: KeyboardEvent<HTMLButtonElement>,
+    currentValue: string,
+  ) => {
     const currentIndex = enabledValues.indexOf(currentValue);
     if (currentIndex === -1) return;
 
@@ -83,7 +95,10 @@ export function Tabs({
       focusTab(next);
     } else if (e.key === "ArrowLeft") {
       e.preventDefault();
-      const prev = enabledValues[(currentIndex - 1 + enabledValues.length) % enabledValues.length];
+      const prev =
+        enabledValues[
+          (currentIndex - 1 + enabledValues.length) % enabledValues.length
+        ];
       focusTab(prev);
     } else if (e.key === "Home") {
       e.preventDefault();
@@ -100,7 +115,9 @@ export function Tabs({
         role="tablist"
         className={cn(
           "flex items-center",
-          variant === "underline" ? "gap-1 border-b border-border-subtle" : "gap-1 rounded-md bg-surface-sunken p-1",
+          variant === "underline"
+            ? "gap-1 border-b border-border-subtle"
+            : " rounded-md bg-surface-sunken p-1",
         )}
       >
         {items.map((item) => {
@@ -148,11 +165,18 @@ export function Tabs({
                         ? "bg-surface-raised text-fg-primary shadow-sm"
                         : "text-fg-secondary hover:text-fg-primary",
                     ),
-                item.disabled && "cursor-not-allowed text-fg-disabled hover:text-fg-disabled",
+                item.disabled &&
+                  "cursor-not-allowed text-fg-disabled hover:text-fg-disabled",
               )}
             >
               {item.icon ? (
-                <span className={cn("inline-flex shrink-0", SIZE_ICON_CLASSES[size])} aria-hidden="true">
+                <span
+                  className={cn(
+                    "inline-flex shrink-0",
+                    SIZE_ICON_CLASSES[size],
+                  )}
+                  aria-hidden="true"
+                >
                   {item.icon}
                 </span>
               ) : null}
@@ -175,6 +199,9 @@ export function Tabs({
             </button>
           );
         })}
+        {actions ? (
+          <div className="ml-auto flex items-center">{actions}</div>
+        ) : null}
       </div>
       {children
         ? Children.map(children, (child) => {

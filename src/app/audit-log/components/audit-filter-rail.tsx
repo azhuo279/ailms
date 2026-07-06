@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Filter, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { Filter, Expand, Shrink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -15,25 +15,41 @@ import {
   type AuditFilters,
 } from "@/app/audit-log/lib/audit-log-format";
 import type { AuditActor } from "@/app/audit-log/lib/audit-log-types";
+import { AppliedFilterChips } from "./audit-log-content";
 
 const FILTER_LABEL_CLASS = "text-label-s font-medium text-fg-muted";
+
+/**
+ * User-facing priority signals for each tier code. Mirrors the labels in
+ * PriorityTierBadge's TIER_CONFIG (not exported there); the badge stays the
+ * single source of the visual chip, this map only labels the filter checklist.
+ * The underlying filter value stays the tier code so filterEvents keeps working.
+ */
+const TIER_PRIORITY_LABEL: Record<string, string> = {
+  T1: "Critical",
+  T2: "High",
+  T3: "Medium",
+  T4: "Low",
+};
 
 /**
  * Persistent left filter rail (Direction A) — always-visible faceted filters
  * for the audit log (FR-42). Actor-type toggle, action-type checklist with
  * select-all + search, tier, date range, exception id, and user multi-select.
  * The rail collapses to a narrow vertical strip (filter glyph + active-facet
- * count) to give the table more width; applied filters also surface as
- * removable chips above the table (rendered by the page).
+ * count) to give the table more width; when expanded, applied filters surface
+ * as removable chips under the Filters header (AppliedFilterChips).
  */
 export function AuditFilterRail({
   filters,
   onChange,
+  onClearAll,
   exceptionOptions,
   userOptions,
 }: {
   filters: AuditFilters;
   onChange: (next: Partial<AuditFilters>) => void;
+  onClearAll: () => void;
   exceptionOptions: { value: string; label: string }[];
   userOptions: AuditActor[];
 }) {
@@ -119,7 +135,7 @@ export function AuditFilterRail({
           iconOnly
           variant="ghost"
           size="sm"
-          icon={<PanelLeftOpen />}
+          icon={<Expand />}
           aria-label="Expand filters"
           aria-expanded={false}
           onClick={() => setCollapsed(false)}
@@ -154,21 +170,32 @@ export function AuditFilterRail({
           iconOnly
           variant="ghost"
           size="sm"
-          icon={<PanelLeftClose />}
+          icon={<Shrink />}
           aria-label="Collapse filters"
           aria-expanded
           onClick={() => setCollapsed(true)}
         />
       </div>
 
+      {/* Applied-filter chips — the active facet values as removable Tags plus
+          Clear all, surfaced here under the header (returns null when no filter
+          is active, so the rail collapses back to its facet controls). */}
+      <AppliedFilterChips
+        filters={filters}
+        exceptionOptions={exceptionOptions}
+        userOptions={userOptions}
+        onChange={onChange}
+        onClearAll={onClearAll}
+      />
+
       {/* Author facet — AI / Human as a checkbox list (FR-41), matching the
-          Tier and Action-type facets in this rail. Both or neither checked
+          Priority and Action-type facets in this rail. Both or neither checked
           reads as "all". */}
       <fieldset className="flex flex-col gap-2">
         <legend className={FILTER_LABEL_CLASS}>Author</legend>
         {/* pl-1.5 offsets the sm Checkbox's -m-1.5 hit-area bleed so the box
             resolves inside the rail padding instead of clipping past its edge. */}
-        <div className="flex w-full flex-col gap-2 pl-1.5">
+        <div className="flex w-full flex-col gap-3 pl-2 pt-2">
           <Checkbox
             size="sm"
             className="min-w-0 gap-3"
@@ -205,7 +232,7 @@ export function AuditFilterRail({
           onChange={(e) => setTypeQuery(e.target.value)}
           onClear={() => setTypeQuery("")}
         />
-        <div className="flex w-full flex-col gap-2 pt-0.5 pl-1.5">
+        <div className="flex w-full flex-col gap-3 pt-1 pl-2">
           {/* Explicit select-all row carries the indeterminate state. */}
           {typeQuery.trim() === "" ? (
             <Checkbox
@@ -233,10 +260,12 @@ export function AuditFilterRail({
         </div>
       </div>
 
-      {/* Tier checklist. */}
+      {/* Priority checklist — labels show the user-facing priority signal
+          (Critical / High / Medium / Low); the filter value stays the tier
+          code so filterEvents matches on e.tier unchanged. */}
       <div className="flex flex-col gap-2">
-        <span className={FILTER_LABEL_CLASS}>Tier</span>
-        <div className="flex flex-col gap-2 pl-1.5">
+        <span className={FILTER_LABEL_CLASS}>Priority</span>
+        <div className="flex flex-col gap-3 pl-2 pt-1">
           {TIER_ORDER.map((tier) => (
             <Checkbox
               key={tier}
@@ -244,7 +273,7 @@ export function AuditFilterRail({
               className="w-full min-w-0 gap-3"
               checked={filters.tiers.includes(tier)}
               onChange={() => toggleTier(tier)}
-              label={tier}
+              label={TIER_PRIORITY_LABEL[tier]}
             />
           ))}
         </div>

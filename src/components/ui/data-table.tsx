@@ -45,10 +45,32 @@ export interface DataTableProps<T> {
   // Layout
   density?: "default" | "compact";
   stickyHeader?: boolean;
+  /**
+   * Table sizing algorithm. "auto" (default) sizes columns to their content
+   * (`min-w-max`), so a column's width can shift as its cell contents change
+   * across sorts/pages. "fixed" switches to `table-fixed`, where column widths
+   * are locked by the header row and never re-flow when the body data changes
+   * (Starling: keep widths constant across sorting and pagination). Pair with
+   * `widthClassName` on each column to distribute the fixed widths; columns
+   * without one share the remaining space equally.
+   */
+  layout?: "auto" | "fixed";
+  /**
+   * Pads the body with empty, non-interactive filler rows when the current row
+   * count is below this number, keeping the table body height (and therefore
+   * the position of anything below it, e.g. Pagination) constant across pages.
+   * Set this to the page size on a paginated table so the last, partial page
+   * does not shrink the table. Filler rows are aria-hidden and never rendered
+   * during loading or the empty state. Omit for today's behavior.
+   */
+  minRows?: number;
   className?: string;
 }
 
-const ALIGN_CLASSES: Record<NonNullable<DataTableColumn<unknown>["align"]>, string> = {
+const ALIGN_CLASSES: Record<
+  NonNullable<DataTableColumn<unknown>["align"]>,
+  string
+> = {
   start: "text-left",
   center: "text-center",
   end: "text-right",
@@ -79,6 +101,8 @@ export function DataTable<T>({
   onRowClick,
   density = "default",
   stickyHeader = false,
+  layout = "auto",
+  minRows,
   className,
 }: DataTableProps<T>) {
   const hasSelection = Boolean(selectedIds && onSelectedIdsChange);
@@ -86,8 +110,12 @@ export function DataTable<T>({
   const cellPadding = density === "compact" ? "px-3 py-2" : "px-4 py-3";
 
   const allIds = rows.map(getRowId);
-  const allSelected = hasSelection && allIds.length > 0 && allIds.every((id) => selectedIds!.has(id));
-  const someSelected = hasSelection && !allSelected && allIds.some((id) => selectedIds!.has(id));
+  const allSelected =
+    hasSelection &&
+    allIds.length > 0 &&
+    allIds.every((id) => selectedIds!.has(id));
+  const someSelected =
+    hasSelection && !allSelected && allIds.some((id) => selectedIds!.has(id));
 
   const toggleAll = () => {
     if (!onSelectedIdsChange) return;
@@ -112,11 +140,20 @@ export function DataTable<T>({
 
   const handleSort = (columnId: string) => {
     if (!onSortChange) return;
-    const nextDirection: SortDirection = sortColumnId === columnId && sortDirection === "asc" ? "desc" : "asc";
+    const nextDirection: SortDirection =
+      sortColumnId === columnId && sortDirection === "asc" ? "desc" : "asc";
     onSortChange(columnId, nextDirection);
   };
 
-  const columnCount = columns.length + (hasSelection ? 1 : 0) + (hasExpansion ? 1 : 0);
+  const columnCount =
+    columns.length + (hasSelection ? 1 : 0) + (hasExpansion ? 1 : 0);
+
+  // Number of empty filler rows to append so the body never shrinks below
+  // `minRows` on a partial page. Only pads real, non-empty, non-loading data.
+  const fillerRowCount =
+    minRows != null && !isLoading && rows.length > 0 && rows.length < minRows
+      ? minRows - rows.length
+      : 0;
 
   // Frozen identity cluster (expand chevron + selection checkbox). The
   // "Selective Frozen-Column Hairline" treatment — a low-contrast vertical
@@ -130,16 +167,36 @@ export function DataTable<T>({
   const frozenCellClassName = cn(frozenClusterBase, "bg-surface-raised");
 
   return (
-    <div className={cn("overflow-auto rounded-lg border border-border-subtle", className)}>
-      {/* w-full fills the container when columns fit; min-w-max lets intrinsic
-          column widths win when they need more room than the container, so the
-          overflow-auto wrapper scrolls horizontally instead of squishing cells.
-          No scrollbar appears when everything already fits. */}
-      <table className="w-full min-w-max border-collapse text-body-s">
-        <thead className={cn("bg-surface", stickyHeader && "sticky top-0 z-10")}>
+    <div
+      className={cn(
+        "overflow-auto rounded-lg border border-border-subtle",
+        className,
+      )}
+    >
+      {/* "auto" (default): w-full fills the container when columns fit; min-w-max
+          lets intrinsic column widths win when they need more room than the
+          container, so the overflow-auto wrapper scrolls horizontally instead of
+          squishing cells. No scrollbar appears when everything already fits.
+          "fixed": table-fixed locks column widths to the header row so they never
+          re-flow as body data changes across sorting/pagination (Starling). */}
+      <table
+        className={cn(
+          "w-full border-collapse text-body-s",
+          layout === "fixed" ? "table-fixed" : "min-w-max",
+        )}
+      >
+        <thead
+          className={cn("bg-surface", stickyHeader && "sticky top-0 z-10")}
+        >
           <tr>
             {hasExpansion ? (
-              <th className={cn("w-8 px-2 py-3", !hasSelection && frozenHeaderClassName)} aria-hidden="true" />
+              <th
+                className={cn(
+                  "w-8 px-2 py-3",
+                  !hasSelection && frozenHeaderClassName,
+                )}
+                aria-hidden="true"
+              />
             ) : null}
             {hasSelection ? (
               <th className={cn("w-10 px-4 py-3", frozenHeaderClassName)}>
@@ -158,11 +215,17 @@ export function DataTable<T>({
                   key={column.id}
                   scope="col"
                   className={cn(
-                    "px-4 py-3 text-label-s font-medium text-fg-secondary",
+                    "px-4 py-3 text-label-s font-medium uppercase text-fg-secondary",
                     ALIGN_CLASSES[column.align ?? "start"],
                     column.widthClassName,
                   )}
-                  aria-sort={isSorted ? (sortDirection === "asc" ? "ascending" : "descending") : undefined}
+                  aria-sort={
+                    isSorted
+                      ? sortDirection === "asc"
+                        ? "ascending"
+                        : "descending"
+                      : undefined
+                  }
                 >
                   {column.sortable ? (
                     <button
@@ -181,7 +244,10 @@ export function DataTable<T>({
                           <ArrowDown className="size-3.5" aria-hidden="true" />
                         )
                       ) : (
-                        <ChevronsUpDown className="size-3.5 text-fg-muted" aria-hidden="true" />
+                        <ChevronsUpDown
+                          className="size-3.5 text-fg-muted"
+                          aria-hidden="true"
+                        />
                       )}
                     </button>
                   ) : (
@@ -197,12 +263,22 @@ export function DataTable<T>({
             Array.from({ length: loadingRowCount }).map((_, index) => (
               <tr key={`skeleton-${index}`}>
                 {hasExpansion ? (
-                  <td className={cn(cellPadding, !hasSelection && frozenCellClassName)} />
+                  <td
+                    className={cn(
+                      cellPadding,
+                      !hasSelection && frozenCellClassName,
+                    )}
+                  />
                 ) : null}
-                {hasSelection ? <td className={cn(cellPadding, frozenCellClassName)} /> : null}
+                {hasSelection ? (
+                  <td className={cn(cellPadding, frozenCellClassName)} />
+                ) : null}
                 {columns.map((column) => (
                   <td key={column.id} className={cellPadding}>
-                    <div className="h-4 w-full max-w-32 animate-pulse rounded bg-surface-sunken" aria-hidden="true" />
+                    <div
+                      className="h-4 w-full max-w-32 animate-pulse rounded bg-surface-sunken"
+                      aria-hidden="true"
+                    />
                   </td>
                 ))}
               </tr>
@@ -241,30 +317,55 @@ export function DataTable<T>({
                     )}
                   >
                     {hasExpansion ? (
-                      <td className={cn(cellPadding, "w-8", !hasSelection && frozenRowCellClassName)}>
+                      <td
+                        className={cn(
+                          cellPadding,
+                          "w-8",
+                          !hasSelection && frozenRowCellClassName,
+                        )}
+                      >
                         <button
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
                             toggleExpanded(id);
                           }}
-                          aria-label={isExpanded ? "Collapse row" : "Expand row"}
+                          aria-label={
+                            isExpanded ? "Collapse row" : "Expand row"
+                          }
                           aria-expanded={isExpanded}
                           className="flex size-5 items-center justify-center rounded-sm text-fg-muted transition-colors hover:text-fg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
                         >
-                          <ChevronRight className={cn("size-4 transition-transform", isExpanded && "rotate-90")} aria-hidden="true" />
+                          <ChevronRight
+                            className={cn(
+                              "size-4 transition-transform",
+                              isExpanded && "rotate-90",
+                            )}
+                            aria-hidden="true"
+                          />
                         </button>
                       </td>
                     ) : null}
                     {hasSelection ? (
-                      <td className={cn(frozenRowCellClassName, cellPadding)} onClick={(e) => e.stopPropagation()}>
-                        <Checkbox aria-label={`Select row ${id}`} checked={isSelected} onChange={() => toggleRow(id)} />
+                      <td
+                        className={cn(frozenRowCellClassName, cellPadding)}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Checkbox
+                          aria-label={`Select row ${id}`}
+                          checked={isSelected}
+                          onChange={() => toggleRow(id)}
+                        />
                       </td>
                     ) : null}
                     {columns.map((column) => (
                       <td
                         key={column.id}
-                        className={cn(cellPadding, "text-fg-primary", ALIGN_CLASSES[column.align ?? "start"])}
+                        className={cn(
+                          cellPadding,
+                          "text-fg-primary",
+                          ALIGN_CLASSES[column.align ?? "start"],
+                        )}
                       >
                         {column.cell(row)}
                       </td>
@@ -281,6 +382,39 @@ export function DataTable<T>({
               );
             })
           )}
+          {/* Empty filler rows keep the body height constant on a partial last
+              page so Pagination below never shifts. Non-interactive and
+              hidden from assistive tech; the &nbsp; gives each cell the same
+              line-box height as a real data cell under the same padding. */}
+          {fillerRowCount > 0
+            ? Array.from({ length: fillerRowCount }).map((_, index) => (
+                <tr key={`filler-${index}`} aria-hidden="true">
+                  {hasExpansion ? (
+                    <td
+                      className={cn(
+                        cellPadding,
+                        "w-8",
+                        !hasSelection && frozenCellClassName,
+                      )}
+                    />
+                  ) : null}
+                  {hasSelection ? (
+                    <td className={cn(cellPadding, frozenCellClassName)} />
+                  ) : null}
+                  {columns.map((column, colIndex) => (
+                    <td
+                      key={column.id}
+                      className={cn(
+                        cellPadding,
+                        "text-body-s text-transparent",
+                      )}
+                    >
+                      {colIndex === 0 ? " " : null}
+                    </td>
+                  ))}
+                </tr>
+              ))
+            : null}
         </tbody>
       </table>
     </div>
@@ -295,7 +429,12 @@ export interface DataTableToolbarProps {
 }
 
 /** Contextual batch-actions bar shown above the table when rows are selected. */
-export function DataTableToolbar({ selectionCount, onClearSelection, children, className }: DataTableToolbarProps) {
+export function DataTableToolbar({
+  selectionCount,
+  onClearSelection,
+  children,
+  className,
+}: DataTableToolbarProps) {
   if (selectionCount === 0) return null;
 
   return (
@@ -306,7 +445,9 @@ export function DataTableToolbar({ selectionCount, onClearSelection, children, c
       )}
     >
       <div className="flex items-center gap-3">
-        <span className="text-label-m font-medium text-primary-700">{selectionCount} selected</span>
+        <span className="text-label-m font-medium text-primary-700">
+          {selectionCount} selected
+        </span>
         {onClearSelection ? (
           <button
             type="button"
@@ -317,7 +458,9 @@ export function DataTableToolbar({ selectionCount, onClearSelection, children, c
           </button>
         ) : null}
       </div>
-      {children ? <div className="flex items-center gap-2">{children}</div> : null}
+      {children ? (
+        <div className="flex items-center gap-2">{children}</div>
+      ) : null}
     </div>
   );
 }

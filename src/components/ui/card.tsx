@@ -18,6 +18,13 @@ export interface CardProps {
   isLoading?: boolean;
   padding?: CardPadding;
   className?: string;
+  /**
+   * Classes for the inner padding wrapper (the element that actually holds
+   * `children`). Use `h-full` here to let content fill a card that is being
+   * stretched by a flex/grid parent, since the padding div otherwise sizes to
+   * content and blocks a child's `h-full`. Optional; existing callers unaffected.
+   */
+  contentClassName?: string;
 }
 
 /**
@@ -28,7 +35,15 @@ export interface CardProps {
  * the standard header/body/footer layout, or pass raw `children` for a
  * simpler block.
  */
-export function Card({ children, onClick, selected = false, isLoading = false, padding = "default", className }: CardProps) {
+export function Card({
+  children,
+  onClick,
+  selected = false,
+  isLoading = false,
+  padding = "default",
+  className,
+  contentClassName,
+}: CardProps) {
   const isInteractive = Boolean(onClick) && !isLoading;
   const Component = onClick ? "button" : "div";
 
@@ -40,14 +55,26 @@ export function Card({ children, onClick, selected = false, isLoading = false, p
       className={cn(
         "relative w-full rounded-lg border bg-surface-raised text-left shadow-sm transition-shadow",
         selected ? "border-border-strong" : "border-border-subtle",
-        isInteractive && "cursor-pointer hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2",
+        isInteractive &&
+          "cursor-pointer hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2",
         className,
       )}
     >
-      <div className={cn(PADDING_CLASSES[padding], isLoading && "invisible")}>{children}</div>
+      <div
+        className={cn(
+          PADDING_CLASSES[padding],
+          isLoading && "invisible",
+          contentClassName,
+        )}
+      >
+        {children}
+      </div>
       {isLoading ? (
         <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-surface-raised">
-          <span className="size-5 animate-spin rounded-full border-2 border-border-subtle border-t-primary-700" aria-hidden="true" />
+          <span
+            className="size-5 animate-spin rounded-full border-2 border-border-subtle border-t-primary-700"
+            aria-hidden="true"
+          />
           <span className="sr-only">Loading</span>
         </div>
       ) : null}
@@ -64,28 +91,50 @@ export interface CardHeaderProps {
   media?: ReactNode;
   /** Trailing actions — icon buttons, a Menu trigger. */
   actions?: ReactNode;
-  /**
-   * Opt-in escape hatch for the title `<h3>`, merged AFTER the base classes so it can override
-   * them. The default title is single-line (`truncate`) at `text-heading-l`; pass this to let a
-   * specific surface wrap or resize the title without changing that shared default. To let the
-   * title wrap to two lines, defeat the base `truncate` (overflow-hidden + text-ellipsis +
-   * whitespace-nowrap) with `line-clamp-2 whitespace-normal` and set a smaller type token.
-   */
+  /** Overrides the title's classes, e.g. to allow wrapping or step the type down. */
   titleClassName?: string;
   className?: string;
 }
 
 /** Card's header row: optional media, title/description stack, trailing actions. */
-export function CardHeader({ children, title, description, media, actions, titleClassName, className }: CardHeaderProps) {
+export function CardHeader({
+  children,
+  title,
+  description,
+  media,
+  actions,
+  titleClassName,
+  className,
+}: CardHeaderProps) {
   return (
     <div className={cn("flex items-start gap-3", className)}>
-      {media ? <span className="flex shrink-0 items-center text-fg-secondary" aria-hidden="true">{media}</span> : null}
+      {media ? (
+        <span
+          className="flex shrink-0 items-center text-fg-secondary"
+          aria-hidden="true"
+        >
+          {media}
+        </span>
+      ) : null}
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        {title ? <h3 className={cn("truncate text-heading-l font-semibold text-fg-primary", titleClassName)}>{title}</h3> : null}
-        {description ? <p className="text-body-s text-fg-muted">{description}</p> : null}
+        {title ? (
+          <h3
+            className={cn(
+              "truncate text-heading-l font-semibold text-fg-primary",
+              titleClassName,
+            )}
+          >
+            {title}
+          </h3>
+        ) : null}
+        {description ? (
+          <p className="text-body-s text-fg-muted">{description}</p>
+        ) : null}
         {children}
       </div>
-      {actions ? <div className="flex shrink-0 items-center gap-1">{actions}</div> : null}
+      {actions ? (
+        <div className="flex shrink-0 items-center gap-1">{actions}</div>
+      ) : null}
     </div>
   );
 }
@@ -97,7 +146,11 @@ export interface CardBodyProps {
 
 /** Card's main content region — spaced from the header/footer. */
 export function CardBody({ children, className }: CardBodyProps) {
-  return <div className={cn("mt-3 text-body-m text-fg-secondary", className)}>{children}</div>;
+  return (
+    <div className={cn("mt-3 text-body-m text-fg-secondary", className)}>
+      {children}
+    </div>
+  );
 }
 
 export interface CardFooterProps {
@@ -107,5 +160,14 @@ export interface CardFooterProps {
 
 /** Card's footer row — typically actions, aligned to the trailing edge. */
 export function CardFooter({ children, className }: CardFooterProps) {
-  return <div className={cn("mt-4 flex items-center justify-end gap-2 border-t border-border-subtle pt-3", className)}>{children}</div>;
+  return (
+    <div
+      className={cn(
+        "mt-4 flex items-center justify-end gap-2 border-t border-border-subtle pt-3",
+        className,
+      )}
+    >
+      {children}
+    </div>
+  );
 }

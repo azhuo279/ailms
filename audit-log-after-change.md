@@ -1,0 +1,392 @@
+- generic [active] [ref=f1e1]:
+  - generic [ref=f1e2]:
+    - complementary [ref=f1e8]:
+      - generic [ref=f1e9]:
+        - link "AiLMS" [ref=f1e10] [cursor=pointer]:
+          - /url: /
+          - img [ref=f1e12]
+          - generic [ref=f1e22]: AiLMS
+        - button "Collapse sidebar" [ref=f1e23]:
+          - img [ref=f1e25]
+      - navigation [ref=f1e28]:
+        - generic [ref=f1e29]:
+          - paragraph [ref=f1e30]: Operations
+          - link "Workspace" [ref=f1e31] [cursor=pointer]:
+            - /url: /workspace
+            - img [ref=f1e32]
+            - generic [ref=f1e37]: Workspace
+          - link "Audit Log" [ref=f1e38] [cursor=pointer]:
+            - /url: /audit-log
+            - img [ref=f1e40]
+            - generic [ref=f1e43]: Audit Log
+        - generic [ref=f1e44]:
+          - paragraph [ref=f1e45]: Insights
+          - link "Performance" [ref=f1e46] [cursor=pointer]:
+            - /url: /performance
+            - img [ref=f1e47]
+            - generic [ref=f1e49]: Performance
+      - generic [ref=f1e51]:
+        - img "Jordan Lee" [ref=f1e53]:
+          - generic [ref=f1e54]: JL
+        - generic [ref=f1e55]:
+          - generic [ref=f1e56]: Jordan Lee
+          - generic [ref=f1e57]: Zone Ops Manager
+        - button "Account options" [ref=f1e58]:
+          - img [ref=f1e60]
+    - main [ref=f1e65]:
+      - generic [ref=f1e118]:
+        - generic [ref=f1e119]:
+          - heading "Audit Log" [level=1] [ref=f1e121]
+          - generic [ref=f1e122]:
+            - generic [ref=f1e123]: 4 of 35 events
+            - button "Export" [ref=f1e124]:
+              - img [ref=f1e126]
+              - generic [ref=f1e129]: Export
+        - generic [ref=f1e130]:
+          - complementary "Audit log filters" [ref=f1e131]:
+            - generic [ref=f1e132]:
+              - paragraph [ref=f1e133]: Filters
+              - button "Collapse filters" [expanded] [ref=f1e134]:
+                - img [ref=f1e136]
+            - group "Author" [ref=f1e141]:
+              - generic [ref=f1e142]: Author
+              - generic [ref=f1e143]:
+                - generic [ref=f1e144] [cursor=pointer]:
+                  - generic [ref=f1e145]:
+                    - checkbox "AI actions" [checked] [ref=f1e146]
+                    - img [ref=f1e148]
+                  - generic [ref=f1e150]: AI actions
+                - generic [ref=f1e151] [cursor=pointer]:
+                  - generic [ref=f1e152]:
+                    - checkbox "Human actions" [checked] [ref=f1e153]
+                    - img [ref=f1e155]
+                  - generic [ref=f1e157]: Human actions
+            - generic [ref=f1e158]:
+              - generic [ref=f1e159]:
+                - generic [ref=f1e160]: Action type
+                - button "Select all" [ref=f1e161]
+              - generic [ref=f1e163]:
+                - img [ref=f1e165]
+                - searchbox "Search action types" [ref=f1e168]
+              - generic [ref=f1e169]:
+                - generic [ref=f1e170] [cursor=pointer]:
+                  - checkbox "All action types" [ref=f1e172]
+                  - generic [ref=f1e174]: All action types
+                - generic [ref=f1e175] [cursor=pointer]:
+                  - checkbox "AI recommendation" [ref=f1e177]
+                  - generic [ref=f1e179]: AI recommendation
+                - generic [ref=f1e180] [cursor=pointer]:
+                  - checkbox "Approval" [ref=f1e182]
+                  - generic [ref=f1e184]: Approval
+                - generic [ref=f1e185] [cursor=pointer]:
+                  - checkbox "Override" [ref=f1e187]
+                  - generic [ref=f1e189]: Override
+                - generic [ref=f1e190] [cursor=pointer]:
+                  - checkbox "Escalation" [ref=f1e192]
+                  - generic [ref=f1e194]: Escalation
+                - generic [ref=f1e195] [cursor=pointer]:
+                  - checkbox "Delegation" [ref=f1e197]
+                  - generic [ref=f1e199]: Delegation
+                - generic [ref=f1e200] [cursor=pointer]:
+                  - checkbox "Customs hold" [ref=f1e202]
+                  - generic [ref=f1e204]: Customs hold
+                - generic [ref=f1e205] [cursor=pointer]:
+                  - checkbox "Tier routing" [ref=f1e207]
+                  - generic [ref=f1e209]: Tier routing
+                - generic [ref=f1e210] [cursor=pointer]:
+                  - checkbox "Feedback" [ref=f1e212]
+                  - generic [ref=f1e214]: Feedback
+            - generic [ref=f1e215]:
+              - generic [ref=f1e216]: Priority
+              - generic [ref=f1e217]:
+                - generic [ref=f1e218] [cursor=pointer]:
+                  - checkbox "Critical" [ref=f1e220]
+                  - generic [ref=f1e222]: Critical
+                - generic [ref=f1e223] [cursor=pointer]:
+                  - checkbox "High" [ref=f1e225]
+                  - generic [ref=f1e227]: High
+                - generic [ref=f1e228] [cursor=pointer]:
+                  - checkbox "Medium" [ref=f1e230]
+                  - generic [ref=f1e232]: Medium
+                - generic [ref=f1e233] [cursor=pointer]:
+                  - checkbox "Low" [ref=f1e235]
+                  - generic [ref=f1e237]: Low
+            - generic [ref=f1e238]:
+              - generic [ref=f1e240]: Date range
+              - button "Date range" [ref=f1e242]:
+                - generic [ref=f1e243]:
+                  - generic [ref=f1e244]: Start date
+                  - generic [ref=f1e245]: MM/DD/YYYY
+                  - generic [ref=f1e246]: –
+                  - generic [ref=f1e247]: End date
+                  - generic [ref=f1e248]: MM/DD/YYYY
+                - img [ref=f1e249]
+            - generic [ref=f1e251]:
+              - generic [ref=f1e253]: Exception
+              - generic [ref=f1e255]:
+                - combobox "Exception" [ref=f1e256]
+                - button "Open options" [ref=f1e257]:
+                  - img [ref=f1e258]
+            - generic [ref=f1e260]:
+              - generic [ref=f1e262]: User
+              - generic [ref=f1e264]:
+                - combobox "User" [ref=f1e265]
+                - button "Open options" [ref=f1e266]:
+                  - img [ref=f1e267]
+          - generic [ref=f1e269]:
+            - generic [ref=f1e270]:
+              - generic [ref=f1e271]:
+                - generic [ref=f1e272]: SHP-48213 (exc-1001)
+                - button "Remove" [ref=f1e273]:
+                  - img [ref=f1e274]
+              - button "Clear all" [ref=f1e277]
+            - table [ref=f1e279]:
+              - rowgroup [ref=f1e280]:
+                - row "Shipment / Exception Highest priority Latest activity Last updated" [ref=f1e281]:
+                  - columnheader [ref=f1e282]
+                  - columnheader "Shipment / Exception" [ref=f1e283]
+                  - columnheader "Highest priority" [ref=f1e284]
+                  - columnheader "Latest activity" [ref=f1e285]
+                  - columnheader "Last updated" [ref=f1e286]
+              - rowgroup [ref=f1e287]:
+                - row "Collapse row SHP-48213 exc-1001 Critical (T1) Escalated to the customs broker on call for an HS-code ruling, with the AI package attached. Jul 5, 2026 8:36:20 PM GMT+1" [ref=f1e288]:
+                  - cell "Collapse row" [ref=f1e289]:
+                    - button "Collapse row" [expanded] [ref=f1e290]:
+                      - img [ref=f1e291]
+                  - cell "SHP-48213 exc-1001" [ref=f1e293]:
+                    - generic [ref=f1e294]:
+                      - img [ref=f1e296]
+                      - generic [ref=f1e300]:
+                        - generic [ref=f1e301]: SHP-48213
+                        - generic [ref=f1e302]: exc-1001
+                  - cell "Critical (T1)" [ref=f1e303]:
+                    - generic [ref=f1e304]:
+                      - img [ref=f1e305]
+                      - text: Critical
+                      - generic [ref=f1e307]: (T1)
+                  - cell "Escalated to the customs broker on call for an HS-code ruling, with the AI package attached." [ref=f1e308]:
+                    - generic [ref=f1e309]:
+                      - text: Escalated to the
+                      - strong [ref=f1e310]: customs broker on call
+                      - text: for an HS-code ruling, with the AI package attached.
+                  - cell "Jul 5, 2026 8:36:20 PM GMT+1" [ref=f1e311]:
+                    - generic [ref=f1e312]:
+                      - generic [ref=f1e313]: Jul 5, 2026
+                      - generic [ref=f1e314]: 8:36:20 PM GMT+1
+                - row "Maria Santos Dispatcher Escalation Escalated to the customs broker on call for an HS-code ruling, with the AI package attached. Jul 5, 2026 8:36:20 PM GMT+1 Maria Santos Dispatcher Override Overrode the recommendation to hold the load for a broker review instead of self-filing the correction. Jul 5, 2026 8:34:51 PM GMT+1 Kase AI Co-pilot AI recommendation Recommended expediting a corrected commercial invoice to BorderIQ to clear the Laredo customs hold before the 4-hour breach window. Jul 5, 2026 8:32:07 PM GMT+1 Kase AI Co-pilot Customs hold Classified the BorderIQ flag as a customs hold on HS code 8471.30 and attached it to this exception. Jul 5, 2026 7:58:44 PM GMT+1" [ref=f1e315]:
+                  - cell "Maria Santos Dispatcher Escalation Escalated to the customs broker on call for an HS-code ruling, with the AI package attached. Jul 5, 2026 8:36:20 PM GMT+1 Maria Santos Dispatcher Override Overrode the recommendation to hold the load for a broker review instead of self-filing the correction. Jul 5, 2026 8:34:51 PM GMT+1 Kase AI Co-pilot AI recommendation Recommended expediting a corrected commercial invoice to BorderIQ to clear the Laredo customs hold before the 4-hour breach window. Jul 5, 2026 8:32:07 PM GMT+1 Kase AI Co-pilot Customs hold Classified the BorderIQ flag as a customs hold on HS code 8471.30 and attached it to this exception. Jul 5, 2026 7:58:44 PM GMT+1" [ref=f1e316]:
+                    - list [ref=f1e317]:
+                      - listitem [ref=f1e318]:
+                        - button "Maria Santos Dispatcher Escalation Escalated to the customs broker on call for an HS-code ruling, with the AI package attached. Jul 5, 2026 8:36:20 PM GMT+1" [ref=f1e319]:
+                          - generic [ref=f1e320]:
+                            - generic [ref=f1e321]: MS
+                            - generic [ref=f1e322]:
+                              - generic [ref=f1e323]: Maria Santos
+                              - generic [ref=f1e324]: Dispatcher
+                          - generic [ref=f1e325]:
+                            - generic [ref=f1e326]:
+                              - img [ref=f1e327]
+                              - text: Escalation
+                            - generic [ref=f1e330]:
+                              - text: Escalated to the
+                              - strong [ref=f1e331]: customs broker on call
+                              - text: for an HS-code ruling, with the AI package attached.
+                          - generic [ref=f1e332]:
+                            - generic [ref=f1e333]: Jul 5, 2026
+                            - generic [ref=f1e334]: 8:36:20 PM GMT+1
+                      - listitem [ref=f1e335]:
+                        - button "Maria Santos Dispatcher Override Overrode the recommendation to hold the load for a broker review instead of self-filing the correction. Jul 5, 2026 8:34:51 PM GMT+1" [ref=f1e336]:
+                          - generic [ref=f1e337]:
+                            - generic [ref=f1e338]: MS
+                            - generic [ref=f1e339]:
+                              - generic [ref=f1e340]: Maria Santos
+                              - generic [ref=f1e341]: Dispatcher
+                          - generic [ref=f1e342]:
+                            - generic [ref=f1e343]:
+                              - img [ref=f1e344]
+                              - text: Override
+                            - generic [ref=f1e346]:
+                              - text: Overrode the recommendation to
+                              - strong [ref=f1e347]: hold the load for a broker review
+                              - text: instead of self-filing the correction.
+                          - generic [ref=f1e348]:
+                            - generic [ref=f1e349]: Jul 5, 2026
+                            - generic [ref=f1e350]: 8:34:51 PM GMT+1
+                      - listitem [ref=f1e351]:
+                        - button "Kase AI Co-pilot AI recommendation Recommended expediting a corrected commercial invoice to BorderIQ to clear the Laredo customs hold before the 4-hour breach window. Jul 5, 2026 8:32:07 PM GMT+1" [ref=f1e352]:
+                          - generic [ref=f1e353]:
+                            - img [ref=f1e355]
+                            - generic [ref=f1e357]:
+                              - generic [ref=f1e358]: Kase
+                              - generic [ref=f1e359]: AI Co-pilot
+                          - generic [ref=f1e360]:
+                            - generic [ref=f1e361]:
+                              - img [ref=f1e362]
+                              - text: AI recommendation
+                            - generic [ref=f1e364]:
+                              - text: Recommended
+                              - strong [ref=f1e365]: expediting a corrected commercial invoice
+                              - text: to BorderIQ to clear the
+                              - strong [ref=f1e366]: Laredo customs hold
+                              - text: before the 4-hour breach window.
+                          - generic [ref=f1e367]:
+                            - generic [ref=f1e368]: Jul 5, 2026
+                            - generic [ref=f1e369]: 8:32:07 PM GMT+1
+                      - listitem [ref=f1e370]:
+                        - button "Kase AI Co-pilot Customs hold Classified the BorderIQ flag as a customs hold on HS code 8471.30 and attached it to this exception. Jul 5, 2026 7:58:44 PM GMT+1" [ref=f1e371]:
+                          - generic [ref=f1e372]:
+                            - img [ref=f1e374]
+                            - generic [ref=f1e376]:
+                              - generic [ref=f1e377]: Kase
+                              - generic [ref=f1e378]: AI Co-pilot
+                          - generic [ref=f1e379]:
+                            - generic [ref=f1e380]:
+                              - img [ref=f1e381]
+                              - text: Customs hold
+                            - generic [ref=f1e383]:
+                              - text: Classified the BorderIQ flag as a
+                              - strong [ref=f1e384]: customs hold
+                              - text: "on"
+                              - strong [ref=f1e385]: HS code 8471.30
+                              - text: and attached it to this exception.
+                          - generic [ref=f1e386]:
+                            - generic [ref=f1e387]: Jul 5, 2026
+                            - generic [ref=f1e388]: 7:58:44 PM GMT+1
+                - row [ref=f1e389]:
+                  - cell [ref=f1e390]
+                  - cell [ref=f1e391]
+                  - cell [ref=f1e392]
+                  - cell [ref=f1e393]
+                  - cell [ref=f1e394]
+                - row [ref=f1e395]:
+                  - cell [ref=f1e396]
+                  - cell [ref=f1e397]
+                  - cell [ref=f1e398]
+                  - cell [ref=f1e399]
+                  - cell [ref=f1e400]
+                - row [ref=f1e401]:
+                  - cell [ref=f1e402]
+                  - cell [ref=f1e403]
+                  - cell [ref=f1e404]
+                  - cell [ref=f1e405]
+                  - cell [ref=f1e406]
+                - row [ref=f1e407]:
+                  - cell [ref=f1e408]
+                  - cell [ref=f1e409]
+                  - cell [ref=f1e410]
+                  - cell [ref=f1e411]
+                  - cell [ref=f1e412]
+                - row [ref=f1e413]:
+                  - cell [ref=f1e414]
+                  - cell [ref=f1e415]
+                  - cell [ref=f1e416]
+                  - cell [ref=f1e417]
+                  - cell [ref=f1e418]
+                - row [ref=f1e419]:
+                  - cell [ref=f1e420]
+                  - cell [ref=f1e421]
+                  - cell [ref=f1e422]
+                  - cell [ref=f1e423]
+                  - cell [ref=f1e424]
+                - row [ref=f1e425]:
+                  - cell [ref=f1e426]
+                  - cell [ref=f1e427]
+                  - cell [ref=f1e428]
+                  - cell [ref=f1e429]
+                  - cell [ref=f1e430]
+                - row [ref=f1e431]:
+                  - cell [ref=f1e432]
+                  - cell [ref=f1e433]
+                  - cell [ref=f1e434]
+                  - cell [ref=f1e435]
+                  - cell [ref=f1e436]
+                - row [ref=f1e437]:
+                  - cell [ref=f1e438]
+                  - cell [ref=f1e439]
+                  - cell [ref=f1e440]
+                  - cell [ref=f1e441]
+                  - cell [ref=f1e442]
+                - row [ref=f1e443]:
+                  - cell [ref=f1e444]
+                  - cell [ref=f1e445]
+                  - cell [ref=f1e446]
+                  - cell [ref=f1e447]
+                  - cell [ref=f1e448]
+                - row [ref=f1e449]:
+                  - cell [ref=f1e450]
+                  - cell [ref=f1e451]
+                  - cell [ref=f1e452]
+                  - cell [ref=f1e453]
+                  - cell [ref=f1e454]
+                - row [ref=f1e455]:
+                  - cell [ref=f1e456]
+                  - cell [ref=f1e457]
+                  - cell [ref=f1e458]
+                  - cell [ref=f1e459]
+                  - cell [ref=f1e460]
+                - row [ref=f1e461]:
+                  - cell [ref=f1e462]
+                  - cell [ref=f1e463]
+                  - cell [ref=f1e464]
+                  - cell [ref=f1e465]
+                  - cell [ref=f1e466]
+                - row [ref=f1e467]:
+                  - cell [ref=f1e468]
+                  - cell [ref=f1e469]
+                  - cell [ref=f1e470]
+                  - cell [ref=f1e471]
+                  - cell [ref=f1e472]
+            - navigation "Pagination" [ref=f1e473]:
+              - generic [ref=f1e475]: 1–1 of 1
+              - generic [ref=f1e476]:
+                - button "Previous page" [disabled] [ref=f1e477]:
+                  - img [ref=f1e479]
+                - button "1" [pressed] [ref=f1e481]:
+                  - generic [ref=f1e482]: "1"
+                - button "Next page" [disabled] [ref=f1e483]:
+                  - img [ref=f1e485]
+    - generic [ref=f1e81]:
+      - generic [ref=f1e82]:
+        - heading [level=2] [ref=f1e83]: Kase
+        - button [ref=f1e84]:
+          - img [ref=f1e86]
+      - paragraph [ref=f1e92]: How may I help you today?
+      - generic [ref=f1e93]:
+        - list [ref=f1e94]:
+          - listitem [ref=f1e95]:
+            - button [ref=f1e96]:
+              - generic [ref=f1e98]: What needs my attention right now?
+          - listitem [ref=f1e99]:
+            - button [ref=f1e100]:
+              - generic [ref=f1e102]: Any shipments at risk of a breach?
+        - generic [ref=f1e103]:
+          - generic [ref=f1e105]:
+            - generic [ref=f1e106]: Message Copilot
+            - textbox [ref=f1e109]:
+              - /placeholder: Message Copilot
+          - button [disabled] [ref=f1e110]:
+            - img [ref=f1e112]
+  - button "Open Next.js Dev Tools" [ref=f1e492] [cursor=pointer]:
+    - img [ref=f1e493]
+  - alert [ref=f1e114]
+  - generic:
+    - generic:
+      - generic [ref=f1e496]:
+        - generic [ref=f1e497]:
+          - button "Collapse toolbar" [ref=f1e498] [cursor=pointer]:
+            - img [ref=f1e499]
+          - button "Markup" [ref=f1e502] [cursor=pointer]: Markup
+          - button "Show all" [ref=f1e504] [cursor=pointer]: Show all
+          - button "List 0" [ref=f1e507] [cursor=pointer]:
+            - text: List
+            - generic [ref=f1e508]: "0"
+          - button "Compile" [disabled] [ref=f1e509]:
+            - generic [ref=f1e510]: Compile
+          - button "Clear all" [disabled] [ref=f1e511]
+          - button "Hide" [ref=f1e513] [cursor=pointer]
+        - button "Expand toolbar":
+          - img
+      - status
+      - generic [ref=f1e515]:
+        - generic [ref=f1e516]: Annotations
+        - button "×" [ref=f1e517] [cursor=pointer]

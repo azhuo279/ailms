@@ -221,11 +221,13 @@ export const modelGapSchema = z.object({
 });
 export type ModelGap = z.infer<typeof modelGapSchema>;
 
-/** Trajectory cue for a leaderboard row. */
-export const trajectorySchema = z.enum(["rising", "steady", "falling"]);
-export type Trajectory = z.infer<typeof trajectorySchema>;
-
-/** One ranked ZOM in the adoption leaderboard. */
+/**
+ * One ranked ZOM in the adoption leaderboard. Rendered as a flat ranked list on
+ * the shared DataTable (ordered by acceptance rate). The trend sparkline,
+ * trajectory cue, tier grouping, and viewer self-row were removed per Starling
+ * feedback, so `weeklyBuckets` / `trajectory` / `tier` / `isSelf` no longer
+ * exist on this entry.
+ */
 export const leaderboardEntrySchema = z.object({
   rank: z.number().min(1),
   /** Display name, e.g. "K. Mensah". */
@@ -235,12 +237,6 @@ export const leaderboardEntrySchema = z.object({
   acceptedPct: z.number().min(0).max(100),
   modifiedPct: z.number().min(0).max(100),
   rejectedPct: z.number().min(0).max(100),
-  trajectory: trajectorySchema,
-  weeklyBuckets: z.array(trendBucketSchema),
-  /** Superuser vs trailing tier — drives the divider row. */
-  tier: z.enum(["superuser", "trailing"]),
-  /** True for the signed-in director's own row (self-highlight). */
-  isSelf: z.boolean(),
   /** True for top adopters — earns a badge. */
   isTopAdopter: z.boolean(),
 });

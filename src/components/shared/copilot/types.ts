@@ -2,7 +2,10 @@ import type { ReactNode } from "react";
 import type { ChartType, ChartSeries } from "@/components/ui/chart";
 import type { EpistemicTone } from "@/components/ui/epistemic-status";
 import type { ButtonVariant } from "@/components/ui/button";
-import type { ImpactProjectionEvidenceItem } from "@/components/ui/epistemic-status";
+import type {
+  ImpactProjectionEvidenceItem,
+  ImpactProjectionMetric,
+} from "@/components/ui/epistemic-status";
 import type {
   StatTileTrend,
   StatTileComparisonBar,
@@ -58,6 +61,10 @@ export interface ReceiptProjectionBlock {
   kind: "receipt";
   variant: "projection";
   headline: ReactNode;
+  /** Optional at-a-glance metric row (Direction A). When present, the numbers
+   * lift out of the headline into a metric grid and the headline reads as a
+   * caption. When omitted, the panel uses the headline-as-description fallback. */
+  metrics?: ImpactProjectionMetric[];
   confidenceLabel: string;
   riskCountLabel: string;
   reasoningTitle?: string;

@@ -78,11 +78,15 @@ export const CONVERSATION_STEPS: ConversationStep[] = [
         {
           kind: "receipt",
           variant: "projection",
+          metrics: [
+            { value: "3", label: "Orders at risk" },
+            { value: "2", label: "Gold customers" },
+            { value: "4h", label: "Breach window" },
+          ],
           headline: (
             <>
-              If not resolved within the <strong>4-hour breach window</strong>,{" "}
-              <strong>3 orders</strong> tied to{" "}
-              <strong>2 Gold-tier customers</strong> are projected to miss SLA.
+              If not resolved in the window, these orders are{" "}
+              <strong>projected to miss SLA</strong>.
             </>
           ),
           confidenceLabel: "Medium confidence · 68%",

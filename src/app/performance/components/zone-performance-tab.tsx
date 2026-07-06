@@ -9,8 +9,6 @@ import {
   type SortDirection,
 } from "@/components/ui/data-table";
 import { Pagination } from "@/components/ui/pagination";
-import { Tag } from "@/components/ui/tag";
-import { PriorityTierBadge } from "@/components/ui/priority-tier-badge";
 import { ZoneNarrativeBanner } from "./zone-narrative-banner";
 import { ZoneInsightsDrawer } from "./zone-insights-drawer";
 import { KPI_HEAT_CLASSES } from "../lib/performance-format";
@@ -51,17 +49,6 @@ function HeatCell({ cell }: { cell: WarehousePerformance["cells"][KpiId] }) {
       {cell.value}
     </span>
   );
-}
-
-function StatusCell({ row }: { row: WarehousePerformance }) {
-  if (row.status === "needs-attention") {
-    // True needs-attention state → reserved severity ramp via PriorityTierBadge.
-    return <PriorityTierBadge tier="T1" />;
-  }
-  if (row.status === "watch") {
-    return <Tag tone="warning" size="md">Watch</Tag>;
-  }
-  return <span className="text-body-s text-fg-muted">On track</span>;
 }
 
 export interface ZonePerformanceTabProps {
@@ -108,7 +95,11 @@ export function ZonePerformanceTab({ feed }: ZonePerformanceTabProps) {
   const totalPages = Math.max(1, Math.ceil(rows.length / ROWS_PER_PAGE));
   const currentPage = Math.min(page, totalPages);
   const pageRows = useMemo(
-    () => rows.slice((currentPage - 1) * ROWS_PER_PAGE, currentPage * ROWS_PER_PAGE),
+    () =>
+      rows.slice(
+        (currentPage - 1) * ROWS_PER_PAGE,
+        currentPage * ROWS_PER_PAGE,
+      ),
     [rows, currentPage],
   );
 
@@ -116,6 +107,7 @@ export function ZonePerformanceTab({ feed }: ZonePerformanceTabProps) {
     {
       id: "warehouse",
       header: "Warehouse",
+      widthClassName: "w-64",
       cell: (row) => (
         <div className="flex flex-col">
           <span className="font-medium text-fg-primary">{row.name}</span>
@@ -128,13 +120,9 @@ export function ZonePerformanceTab({ feed }: ZonePerformanceTabProps) {
       header: k.header,
       sortable: true,
       align: "end",
+      widthClassName: "w-28",
       cell: (row) => <HeatCell cell={row.cells[k.id]} />,
     })),
-    {
-      id: "status",
-      header: "Status",
-      cell: (row) => <StatusCell row={row} />,
-    },
   ];
 
   return (
@@ -172,10 +160,7 @@ export function ZonePerformanceTab({ feed }: ZonePerformanceTabProps) {
                   narrative: kpi.trendNarrative,
                 }}
                 weeklyBuckets={kpi.weeklyBuckets}
-                className={cn(
-                  "h-full",
-                  kpi.id === "mttr" && "ring-2 ring-primary-500 ring-offset-0",
-                )}
+                className="h-full"
               />
             );
           })}
@@ -185,16 +170,15 @@ export function ZonePerformanceTab({ feed }: ZonePerformanceTabProps) {
       <section aria-label="Per-warehouse breakdown">
         <div className="mb-2 flex items-baseline justify-between gap-3">
           <h2 className="text-title font-semibold text-fg-primary">
-            Per-warehouse breakdown
+            Breakdown by warehouse
           </h2>
-          <span className="text-footnote text-fg-muted">
-            Sorted worst-first by MTTR.
-          </span>
         </div>
         <DataTable
           columns={columns}
           rows={pageRows}
+          layout="fixed"
           getRowId={(row) => row.id}
+          minRows={ROWS_PER_PAGE}
           sortColumnId={sort.id}
           sortDirection={sort.dir}
           onSortChange={(id, dir) => {
@@ -205,6 +189,7 @@ export function ZonePerformanceTab({ feed }: ZonePerformanceTabProps) {
         {totalPages > 1 ? (
           <Pagination
             className="mt-3"
+            align="center"
             currentPage={currentPage}
             totalPages={totalPages}
             onPageChange={setPage}

@@ -139,8 +139,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
             ICON_ONLY_SIZE_CLASSES[size],
             variantClasses(variant, destructive, isSelected, true),
-            isDisabled &&
-              "cursor-not-allowed bg-surface-disabled text-fg-disabled hover:bg-surface-disabled",
+            isDisabled && "cursor-not-allowed text-fg-disabled",
             className,
           )}
           {...buttonProps}

@@ -35,8 +35,31 @@ import {
 import type {
   ExceptionQueue,
   ExceptionRecord,
+  PriorityTier,
   Warehouse,
 } from "@/app/workspace/lib/exception-types";
+import type { TierChange } from "./editable-tier-control";
+import { useAuditSessionStore } from "@/hooks/shared/use-audit-session-store";
+import { buildTierChangeAuditEvent } from "@/app/audit-log/lib/audit-session-events";
+import { MODIFICATION_REASONS } from "@/app/workspace/lib/exception-detail";
+
+// Representative priorityScore per tier band. When a tier is overridden from the
+// detail view the record's tier changes, but the feed's default sort keys on the
+// internal priorityScore (never rendered) — so the override also re-scores the
+// record into the destination tier's band, landing the card among its new peers
+// and triggering the feed's FLIP reorder. Values sit mid-band so re-tiered cards
+// order after native members of that band without a score collision.
+const TIER_BAND_SCORE: Record<PriorityTier, number> = {
+  T1: 82,
+  T2: 62,
+  T3: 42,
+  T4: 22,
+};
+
+/** Human tier label from the shared order source, e.g. "T2 High". */
+function tierLabelOf(tier: PriorityTier): string {
+  return PRIORITY_TIER_ORDER.find((t) => t.id === tier)?.label ?? tier;
+}
 
 // Queue tab definitions. Counts are injected per-render from data.exceptions
 // (see queueTabs memo) so the badge reflects each queue's total, independent of
@@ -116,6 +139,30 @@ export function WorkspaceContent() {
     Record<string, ExceptionQueue>
   >({});
 
+  // Local priority-tier overrides applied on top of the fetched feed, mirroring
+  // the queueOverrides pattern. When the ZOM changes an exception's priority
+  // from its detail view, the confirmed tier lands here so the shared working
+  // set reflects it: the header badge, the feed card, and the feed's
+  // priority-sorted position (via re-scoring into the new band) all update, and
+  // the list FLIP-animates the card to its new slot. A real build posts the
+  // change and invalidates the query; this keeps it self-contained over the mock.
+  const [tierOverrides, setTierOverrides] = useState<
+    Record<string, PriorityTier>
+  >({});
+
+  // Ids the ZOM just edited directly (e.g. a tier change), so the feed commits
+  // them immediately instead of queuing them behind its background-update banner
+  // — a direct action must land at once, and the changed card gets the feed's
+  // one-shot FLIP entrance treatment. Cleared by the feed after the animation.
+  const [userEditedIds, setUserEditedIds] = useState<Set<string>>(
+    () => new Set(),
+  );
+
+  // Append-only session audit overlay (see useAuditSessionStore) — a confirmed
+  // tier change writes a `tier_routing` event here so it surfaces in /audit-log
+  // this session.
+  const addAuditEvent = useAuditSessionStore((s) => s.addEvent);
+
   // Frozen per-mount so relative "updated Xm ago" labels don't drift on every
   // React re-render, only on data refetch.
   const [nowMs] = useState(() => Date.now());
@@ -134,10 +181,25 @@ export function WorkspaceContent() {
   // lookup consistently.
   const baselineExceptions = useMemo<ExceptionRecord[]>(() => {
     if (!data) return [];
-    return data.exceptions.map((e) =>
-      queueOverrides[e.id] ? { ...e, queue: queueOverrides[e.id] } : e,
-    );
-  }, [data, queueOverrides]);
+    return data.exceptions.map((e) => {
+      const queue = queueOverrides[e.id] ?? e.queue;
+      const overrideTier = tierOverrides[e.id];
+      if (!overrideTier && queue === e.queue) return e;
+      // A tier override also re-scores the record into the destination tier's
+      // band so the priority sort places the card among its new peers and the
+      // feed FLIP-animates it there; the tier drives the badge + FLIP grouping.
+      return {
+        ...e,
+        queue,
+        ...(overrideTier
+          ? {
+              priorityTier: overrideTier,
+              priorityScore: TIER_BAND_SCORE[overrideTier],
+            }
+          : {}),
+      };
+    });
+  }, [data, queueOverrides, tierOverrides]);
 
   // Dev-only simulator standing in for the real-time push channel PRD
   // FR-SYS-02 describes (no backend yet). Mutates the baseline underneath the
@@ -288,6 +350,52 @@ export function WorkspaceContent() {
     handleClearSelection();
   };
 
+  // A confirmed priority change from an exception's detail view. Lifts the tier
+  // into the shared working set (so the feed re-sorts and its card FLIP-animates
+  // to the new position, the header badge updates, and the Progress stepper gets
+  // an appended step keyed on this exception + tier), and appends a session
+  // audit event so the change appears in /audit-log this session. The detail
+  // view stays open on the same exception, so no selection change here.
+  const handleTierChange = (id: string, change: TierChange) => {
+    const exception = exceptions.find((e) => e.id === id);
+    if (!exception) return;
+    const fromTier = exception.priorityTier;
+    // Same tier -> no-op (the control already guards this, but stay defensive).
+    if (fromTier === change.tier) return;
+
+    setTierOverrides((prev) => ({ ...prev, [id]: change.tier }));
+    // Mark this id as a user edit so the feed applies it immediately (a direct
+    // action, not queued background drift) and gives the card the FLIP entrance.
+    setUserEditedIds((prev) => new Set(prev).add(id));
+
+    const reasonLabel =
+      MODIFICATION_REASONS.find((r) => r.id === change.reasonId)?.label ??
+      "Other";
+    addAuditEvent(
+      buildTierChangeAuditEvent({
+        exceptionId: id,
+        shipmentId: exception.shipmentId,
+        fromTier,
+        toTier: change.tier,
+        fromTierLabel: tierLabelOf(fromTier),
+        toTierLabel: tierLabelOf(change.tier),
+        reasonLabel,
+        note: change.note,
+      }),
+    );
+  };
+
+  // The feed acknowledges it committed a set of user-edited ids, so we drop them
+  // from the pending set (they should only trigger the one-shot entrance once).
+  const handleForceApplied = (ids: string[]) => {
+    if (ids.length === 0) return;
+    setUserEditedIds((prev) => {
+      const next = new Set(prev);
+      for (const id of ids) next.delete(id);
+      return next;
+    });
+  };
+
   const handleClearFilters = () => {
     setSearch("");
     setActiveTypeIds([]);
@@ -410,31 +518,23 @@ export function WorkspaceContent() {
           warehouseMap={warehouseMap}
           sortMode={sortMode}
           onSortChange={setSortMode}
+          forceApplyIds={userEditedIds}
+          onForceApplied={handleForceApplied}
         />
         {/* Right pane. With no selection, the map owns the full pane. When a
-            record is selected the map does NOT vanish (spatial context is part
-            of triage): the detail view takes the pane and the map persists as a
-            small inset above it, keeping the active pin visible. */}
+            record is selected the detail view takes the FULL pane height
+            (Starling: the small inset map above it is removed). Spatial context
+            is not lost, it moves into the detail view's Progress tab as a static
+            snapshot of the exception's marker. */}
         {selectedException ? (
-          <div className="grid min-h-0 grid-rows-[9rem_minmax(0,1fr)] gap-3">
-            <ExceptionMapPanel
-              exceptions={filteredExceptions}
-              warehouseMap={warehouseMap}
-              selectedId={selectedId}
-              onSelect={handleSelect}
-              hoveredId={hoveredId}
-              onHoverChange={setHoveredId}
-              onViewSite={handleViewSite}
-              inset
-            />
-            <ExceptionDetailView
-              exception={selectedException}
-              warehouseMap={warehouseMap}
-              sourceHealth={data.sourceHealth}
-              onBack={handleClearSelection}
-              onRouted={handleRouted}
-            />
-          </div>
+          <ExceptionDetailView
+            exception={selectedException}
+            warehouseMap={warehouseMap}
+            sourceHealth={data.sourceHealth}
+            onBack={handleClearSelection}
+            onRouted={handleRouted}
+            onTierChange={handleTierChange}
+          />
         ) : (
           <ExceptionMapPanel
             exceptions={filteredExceptions}
