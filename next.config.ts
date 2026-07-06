@@ -9,15 +9,26 @@ const nextConfig: NextConfig = {
   outputFileTracingRoot: path.join(__dirname),
 };
 
-// Starling is currently disabled (the <Starling/> mount is commented out in
-// app/layout.tsx). `withStarling()` in dev both scaffolds an API route into
-// src/app and registers a webpack loader on every .tsx — on this OneDrive-synced
-// tree that amplifies Next's file-watcher churn into frequent Fast Refresh
-// recompiles, and each recompile remounts the layout-level <Canvas>, spinning up
-// a new WebGL context and accelerating context-pool exhaustion (a driver of the
-// AiAvatar "Context Lost" crash). So keep the config unwrapped while Starling is
-// off. To re-enable Starling, uncomment its mount in app/layout.tsx AND swap the
-// export below back to `withStarling(nextConfig)`.
-const ENABLE_STARLING = false;
+// Starling source-stamping. When ENABLED, `withStarling()` scaffolds the
+// save/list/load API route into src/app AND registers a webpack loader on every
+// .tsx that runs Starling's Babel plugin in-memory (babelrc:false — it does NOT
+// change how the rest of the app compiles) so annotations capture exact file:line
+// (double-click-to-code). The <Starling/> mount in app/layout.tsx is gated on the
+// same NEXT_PUBLIC_ENABLE_STARLING signal, so config + mount stay in sync.
+//
+// DISABLED on main (the Vercel deployment branch): Starling is a dev annotation
+// tool and its API routes / remote store have no place in the public deploy.
+// Re-enabled on the dev branch by setting NEXT_PUBLIC_ENABLE_STARLING=true.
+//
+// KNOWN TRADEOFF when enabled: on this OneDrive-synced tree the loader amplifies
+// Next's file-watcher churn into frequent Fast Refresh recompiles; each recompile
+// remounts the layout-level <Canvas>, spinning up a new WebGL context and
+// accelerating context-pool exhaustion (a driver of the AiAvatar "Context Lost"
+// crash). REQUIRED with this on: the dev server must run under WEBPACK, not
+// Turbopack — Turbopack does not run the Babel-AST loader, so source stamping is
+// silently skipped. On Next 15 webpack is the default, so `next dev` (no
+// --turbopack flag) is correct; do NOT add --turbopack to the "dev" script while
+// this is true.
+const ENABLE_STARLING = process.env.NEXT_PUBLIC_ENABLE_STARLING === "true";
 
 export default ENABLE_STARLING ? withStarling(nextConfig) : nextConfig;

@@ -33,15 +33,20 @@ export default function RootLayout({
         <QueryProvider>
           <AppShell>{children}</AppShell>
         </QueryProvider>
-        {/* Dev-only annotation tool (no-op in production). Compile persists to the
-            shared remote store scoped by appId; Rewind lists/loads from there. */}
-        {/* <Starling
-          appId="ailms"
-          saveEndpoint="/api/starling/save"
-          listEndpoint="/api/starling/list"
-          loadEndpoint="/api/starling/load"
-          openEndpoint="/api/starling/open"
-        /> */}
+        {/* Dev-only annotation tool. Gated on the same NEXT_PUBLIC_ENABLE_STARLING
+            signal as withStarling() in next.config.ts so the mount and the API
+            routes it calls stay in sync — disabled on main, on for the dev branch.
+            Compile persists to the shared remote store scoped by appId; Rewind
+            lists/loads from there. */}
+        {process.env.NEXT_PUBLIC_ENABLE_STARLING === "true" && (
+          <Starling
+            appId="ailms"
+            saveEndpoint="/api/starling/save"
+            listEndpoint="/api/starling/list"
+            loadEndpoint="/api/starling/load"
+            openEndpoint="/api/starling/open"
+          />
+        )}
       </body>
     </html>
   );
