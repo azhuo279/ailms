@@ -20,13 +20,13 @@ const SELECTED_TONE_CLASSES: Record<TagTone, string> = {
 };
 
 const SIZE_CLASSES: Record<TagSize, string> = {
-  sm: "h-6 gap-1 pl-2 pr-1.5 text-label-s",
-  md: "h-7 gap-1.5 pl-3 pr-1.5 text-label-s",
+  sm: "h-5 gap-1 pl-1.5 pr-1 text-footnote",
+  md: "h-6 gap-1 pl-2 pr-1.5 text-footnote",
 };
 
 const SIZE_CLASSES_NO_REMOVE: Record<TagSize, string> = {
-  sm: "h-6 gap-1 px-2 text-label-s",
-  md: "h-7 gap-1.5 px-3 text-label-s",
+  sm: "h-5 gap-1 px-1.5 text-footnote",
+  md: "h-6 gap-1 px-2 text-footnote",
 };
 
 const REMOVE_ICON_SIZE: Record<TagSize, string> = {

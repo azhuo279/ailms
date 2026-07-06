@@ -48,6 +48,26 @@ export const geoCoordinatesSchema = z.object({
 });
 export type GeoCoordinates = z.infer<typeof geoCoordinatesSchema>;
 
+/**
+ * Warehouse / cluster registry entity (PRD v1.6 §5.0.1, FR-51/FR-52). A
+ * warehouse is now a first-class entity and the single source of geographic +
+ * name truth for any exception that references it. `name` is the human-readable
+ * sort/group key; `location` and `coordinates` are DERIVED onto exceptions from
+ * here rather than stored free-text on each record. `coordinates` stays
+ * nullable (FR-52): a null-coord warehouse simply does not plot on the map, and
+ * the feed list remains the always-available equivalent.
+ */
+export const warehouseSchema = z.object({
+  /** Short code, e.g. "DAL-S". */
+  id: z.string(),
+  /** Human-readable name, the sort/group key, e.g. "Dallas South DC". */
+  name: z.string(),
+  /** City/state string, e.g. "Laredo, TX". */
+  location: z.string(),
+  coordinates: geoCoordinatesSchema.nullable(),
+});
+export type Warehouse = z.infer<typeof warehouseSchema>;
+
 export const exceptionRecordSchema = z.object({
   id: z.string(),
   shipmentId: z.string(),
@@ -64,8 +84,18 @@ export const exceptionRecordSchema = z.object({
   sourceSystems: z.array(sourceSystemSchema).min(1),
   epistemicTone: epistemicToneSchema,
   epistemicBasis: z.string().optional(),
-  location: z.string(),
-  coordinates: geoCoordinatesSchema.nullable(),
+  // Marks a sanctions / legal / compliance hold that a dispatcher must NOT
+  // self-route with an AI documentation remedy (inspector F1 / Starling). When
+  // true the detail view suppresses the AI action recommendation, forces the
+  // sole CTA to Escalate to Legal, and the summary/action derivations strip any
+  // documentation-remedy cue. A robust record-level flag rather than matching
+  // headline text or exception type at render time (a T4 Customs Hold can be a
+  // routine broker amendment, not a legal matter). Optional so existing records
+  // still parse at the fetch boundary; absent / false means a normal exception.
+  requiresLegalEscalation: z.boolean().optional(),
+  // FK into the warehouse registry (PRD v1.6 §5.0.1). Location + coordinates
+  // are DERIVED from the associated warehouse, no longer stored per-record.
+  warehouseId: z.string(),
   eventTimestamp: z.string(),
   lastUpdatedAt: z.string(),
   isStale: z.boolean(),
@@ -87,6 +117,9 @@ export type SourceHealth = z.infer<typeof sourceHealthSchema>;
 export const workspaceFeedSchema = z.object({
   situationBrief: z.string(),
   sourceHealth: z.array(sourceHealthSchema),
+  // Warehouse registry travels with the feed (PRD v1.6 §5.0.1) — the single
+  // source of geographic + name truth for every exception's warehouseId FK.
+  warehouses: z.array(warehouseSchema),
   exceptions: z.array(exceptionRecordSchema),
   generatedAt: z.string(),
 });

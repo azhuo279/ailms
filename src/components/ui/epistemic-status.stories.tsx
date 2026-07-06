@@ -86,6 +86,29 @@ export const ImpactProjection: Story = {
   ),
 };
 
+export const ImpactProjectionCompact: Story = {
+  name: "ImpactProjectionPanel / Compact (copilot chat)",
+  render: () => (
+    <ImpactProjectionPanel
+      compact
+      className="w-[28rem]"
+      headline={
+        <>
+          If not resolved within the <b>4-hour breach window</b>, <b>3 orders</b> tied to{" "}
+          <b>2 Gold-tier customers</b> are projected to miss SLA.
+        </>
+      }
+      confidenceLabel="Medium confidence · 68%"
+      riskCountLabel="3 orders at risk"
+      evidence={[
+        { id: "o1", content: <><b>Order 48291</b> Gold tier, SLA 18:00 CT, exposure $4,200</> },
+        { id: "o2", content: <><b>Order 48305</b> Gold tier, SLA 19:30 CT, exposure $2,850</> },
+      ]}
+      citations={["TMS", "Order Management"]}
+    />
+  ),
+};
+
 export const ImpactProjectionCustomsHold: Story = {
   name: "ImpactProjectionPanel / Customs hold cascade",
   render: () => (

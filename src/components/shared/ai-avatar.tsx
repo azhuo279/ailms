@@ -27,6 +27,13 @@ export interface AiAvatarProps {
    *   own dormant/active pose internally, toggling on click of the body cube.
    */
   state?: AiAvatarState;
+  /**
+   * Fires when the avatar's body cube is clicked. In controlled mode (an
+   * explicit `state` prop) this is the signal a parent listens to for the
+   * click, since the avatar no longer toggles its own pose — e.g. the App
+   * Shell uses it to open the Copilot panel and drive `state` itself.
+   */
+  onClick?: () => void;
   className?: string;
   /**
    * Single source of truth for the avatar's on-screen footprint, in pixels.
@@ -66,19 +73,6 @@ const TOKEN_COLORS = {
   ai700: "#00645f",
   /** --color-neutral-900: oklch(0.22 0.014 258) — face decal (eyes/mouth) ink tone. */
   neutral900: "#171b21",
-  /**
-   * --color-primary-400: oklch(0.68 0.098 250) — DESIGN-SYSTEM EXCEPTION.
-   * `--color-primary-*` is normally reserved exclusively for buttons/links/
-   * focus rings (see globals.css header comment); it is not part of the
-   * `ai-*` surface ramp. Blending a touch of it into the avatar body's
-   * gradient was an explicit, human-approved one-off exception (requested
-   * to avoid a flat single-hue teal cube, matching a reference mascot's
-   * blue-to-teal gradient) — not a precedent for other AI-surface work.
-   * Bumped one step darker/more saturated than the original 300 pick: the
-   * paler 300 step was getting washed out to near-white by the clearcoat
-   * specular and the key light, so it never read as visibly blue.
-   */
-  primary400Exception: "#78a4e8",
 } as const;
 
 /** Body cube edge length, in Three.js scene units. */
@@ -122,11 +116,12 @@ function applyVerticalGradient(
   const c = new THREE.Color();
   for (let i = 0; i < position.count; i++) {
     const t = (position.getY(i) - minY) / range;
-    // Biased toward the top color (t^0.6 instead of linear t) so the accent
-    // covers roughly the top half of the form instead of only a thin sliver
-    // right at the crown — otherwise it reads as barely-there against the
-    // dominant teal base.
-    const biasedT = Math.pow(t, 0.6);
+    // Both stops are now teal (ai300 crown → ai400 base), so this is a gentle
+    // top-lit dimensional shade rather than a two-hue blend. A mild top bias
+    // (t^0.85) keeps the lighter crown reading as a soft highlight without a
+    // hard band. The blue accent is no longer in this gradient at all — it
+    // lives on the fresnel rim glow (see RimGlow) so it stays on the edges.
+    const biasedT = Math.pow(t, 0.85);
     c.copy(bottom).lerp(top, biasedT);
     colors[i * 3] = c.r;
     colors[i * 3 + 1] = c.g;
@@ -466,10 +461,10 @@ function Appendage({
       {
         args: [APPENDAGE_SIZE, APPENDAGE_SIZE, APPENDAGE_SIZE],
         radius: APPENDAGE_RADIUS,
-        // Same top-to-bottom gradient treatment as the body (see AvatarScene)
-        // so the appendages read as part of the same mascot, not a flatter
-        // single-hue accessory.
-        topColor: TOKEN_COLORS.primary400Exception,
+        // Same teal-only face treatment as the body (see AvatarScene): a
+        // gentle ai300→ai400 teal gradient with no blue on the faces. The
+        // blue accent lives on the rim glow below so it stays on the edges.
+        topColor: TOKEN_COLORS.ai300,
         bottomColor: TOKEN_COLORS.ai400,
       },
       // Soft satin-plastic material: matches the body's clearcoat treatment
@@ -581,11 +576,14 @@ function AvatarScene({
         {
           args: [BODY_SIZE, BODY_SIZE, BODY_SIZE],
           radius: BODY_RADIUS,
-          // Top-to-bottom gradient: a touch of the flagged primary-blue
-          // exception color at the crown fading into the reserved ai-400
-          // teal toward the base, so the body reads with real dimensional
-          // color like the reference mascot instead of one flat teal fill.
-          topColor: TOKEN_COLORS.primary400Exception,
+          // Body faces are pure teal now — a gentle lighter-to-base teal
+          // gradient (ai300 crown → ai400 base) for top-lit dimension, with
+          // NO blue on the faces. The blue accent lives entirely on the
+          // fresnel rim glow (see RimGlow below), so it rides the silhouette
+          // edges alongside the highlight rather than flooding the upper
+          // faces the way a blue crown gradient did (the "too much blue"
+          // ice-cube reading).
+          topColor: TOKEN_COLORS.ai300,
           bottomColor: TOKEN_COLORS.ai400,
           // Click-to-activate: the body cube is the clickable region, not the
           // full canvas, so clicking empty canvas space around the mascot is a
@@ -708,6 +706,7 @@ function CanvasFallback() {
  */
 export function AiAvatar({
   state: controlledState,
+  onClick,
   className,
   size = 128,
 }: AiAvatarProps) {
@@ -717,8 +716,12 @@ export function AiAvatar({
   const state = isControlled ? controlledState : uncontrolledState;
 
   function handleToggle() {
-    // Controlled mode takes precedence: a parent driving `state` directly
-    // owns the pose, so a click here is a no-op rather than fighting the prop.
+    // Always surface the click to the parent first, so a controlled parent
+    // (e.g. the App Shell opening the Copilot panel) gets the signal even
+    // though it owns the pose via `state`.
+    onClick?.();
+    // Controlled mode takes precedence for the pose: a parent driving `state`
+    // directly owns it, so we don't also flip the internal uncontrolled state.
     if (isControlled) return;
     setUncontrolledState((prev) => (prev === "dormant" ? "active" : "dormant"));
   }

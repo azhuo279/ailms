@@ -23,6 +23,7 @@
     "@tanstack/react-query": "^5.62.7",
     "clsx": "^2.1.1",
     "lucide-react": "^0.468.0",
+    "maplibre-gl": "^5.24.0",
     "motion": "^11.15.0",
     "next": "15.5.20",
     "react": "^19.0.0",
@@ -34,8 +35,10 @@
     "zustand": "^5.0.2"
   },
   "devDependencies": {
-    "@starling/dev": "file:starling",
     "@playwright/test": "^1.49.1",
+    "@starling/dev": "file:starling",
+    "@storybook/addon-docs": "^10.4.6",
+    "@storybook/nextjs-vite": "10.4.6",
     "@storybook/react": "^10.4.6",
     "@tailwindcss/postcss": "^4.0.0",
     "@testing-library/jest-dom": "^6.6.3",
@@ -50,9 +53,7 @@
     "storybook": "^10.4.6",
     "tailwindcss": "^4.0.0",
     "typescript": "^5.7.2",
-    "vitest": "^2.1.8",
-    "@storybook/nextjs-vite": "10.4.6",
     "vite": "^7.0.0",
-    "@storybook/addon-docs": "^10.4.6"
+    "vitest": "^2.1.8"
   }
 }

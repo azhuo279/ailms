@@ -1,17 +1,16 @@
 # Scaffold inventory — what's an example vs. permanent
 
 This project was scaffolded from `codebase-framework-template.md`. To exercise
-the framework end-to-end, the scaffold includes a **fake demo data feed** (a
-logistics "fleet summary"). Everything below tagged **EXAMPLE** is safe to
-delete once you start building real features — it exists only to demonstrate the
-patterns in the framework doc. Files carry an inline `⚠️ SCAFFOLD EXAMPLE`
-banner so they're obvious in the editor too.
+the framework end-to-end, the scaffold originally included a **fake demo data
+feed** (a logistics "fleet summary") demonstrating the patterns in the
+framework doc. That demo feed has been removed now that the real Workspace
+surface (Flow 4.1b) is the home route.
 
-## 🗑️ EXAMPLE — delete when you have real features
+## ✅ Removed — the fleet-summary demo feed
 
-These form one self-contained demo feed. Delete them together:
+These files were deleted once real features landed:
 
-| File | What it demonstrates |
+| File | What it demonstrated |
 | ---- | -------------------- |
 | `public/mock/fleet-summary.json` | Mock fixture in `public/mock/` (§5) |
 | `src/app/lib/fleet-summary-types.ts` | Domain types + Zod boundary validation (§5) |
@@ -20,8 +19,8 @@ These form one self-contained demo feed. Delete them together:
 | `src/app/components/fleet-summary-grid.tsx` | Hook-backed component with skeleton + inline error/retry (§9) |
 | `e2e/home.spec.ts` | Playwright smoke test for a surface (§10) |
 
-After deleting, also remove the reference to `FleetSummaryGrid` from
-`src/app/page.tsx` (replace the `<section>` with your real content).
+`src/app/page.tsx` now just redirects `/` to `/workspace`, the app's real home
+screen.
 
 ## 🤔 EXAMPLE but reusable — keep or adapt
 
@@ -38,7 +37,7 @@ Small, generic, and likely useful — safe to keep as-is:
 
 - `src/app/layout.tsx`, `src/app/globals.css` — root layout + theme tokens
 - `src/app/loading.tsx`, `src/app/error.tsx` — route-level fallbacks (§9)
-- `src/app/page.tsx` — the home route (keep; swap its body)
+- `src/app/page.tsx` — the home route (redirects to `/workspace`)
 - `src/lib/utils.ts` (`cn()`), `src/lib/query-provider.tsx`
 - `src/components/layout/app-shell.tsx`, `src/components/shared/navbar.tsx`
 - All config: `package.json`, `tsconfig.json`, `next.config.ts`,

@@ -1,10 +1,11 @@
-import type { Metadata } from "next";
-import { RouteStub } from "@/components/shared/route-stub";
+import { redirect } from "next/navigation";
 
-export const metadata: Metadata = {
-  title: "Adoption Tracker · AiLMS",
-};
-
+/**
+ * Superseded route. The director-only Adoption Tracker folded into
+ * /performance as its second tab ("AI Adoption", inventor Direction C). This
+ * route now permanently redirects there so any existing links/bookmarks keep
+ * working; the tab's own director gate (via `useUserPersona`) governs access.
+ */
 export default function AdoptionTrackerPage() {
-  return <RouteStub title="Adoption Tracker" />;
+  redirect("/performance");
 }

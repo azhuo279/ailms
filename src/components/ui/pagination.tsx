@@ -15,6 +15,13 @@ export interface PaginationProps {
   onPageSizeChange?: (size: number) => void;
   /** Total item count, used to render the summary text. */
   totalItems?: number;
+  /**
+   * Horizontal layout of the control cluster. "between" (default) keeps the
+   * summary/page-size on the left and the prev/next/page-number controls on the
+   * right. "center" centers the control cluster within the nav while the summary
+   * and page-size selector stay to the left, so the controls read as centered.
+   */
+  align?: "between" | "center";
   className?: string;
 }
 
@@ -51,6 +58,7 @@ export function Pagination({
   pageSizeOptions = [10, 25, 50, 100],
   onPageSizeChange,
   totalItems,
+  align = "between",
   className,
 }: PaginationProps) {
   const pageItems = getPageItems(currentPage, totalPages);
@@ -60,10 +68,21 @@ export function Pagination({
   const rangeStart = pageSize ? (currentPage - 1) * pageSize + 1 : undefined;
   const rangeEnd = pageSize && totalItems ? Math.min(currentPage * pageSize, totalItems) : undefined;
 
+  const isCentered = align === "center";
+
   return (
     <nav
       aria-label="Pagination"
-      className={cn("flex flex-wrap items-center justify-between gap-3", className)}
+      className={cn(
+        "gap-3",
+        // "between": summary/page-size left, controls right (default).
+        // "center": a 3-column grid so the control cluster sits truly centered
+        // within the nav while the summary/page-size stays on the left.
+        isCentered
+          ? "grid grid-cols-[1fr_auto_1fr] items-center"
+          : "flex flex-wrap items-center justify-between",
+        className,
+      )}
     >
       <div className="flex items-center gap-3 text-body-s text-fg-muted">
         {totalItems != null && pageSize != null ? (
@@ -84,7 +103,7 @@ export function Pagination({
         ) : null}
       </div>
 
-      <div className="flex items-center gap-1">
+      <div className="flex items-center justify-center gap-1">
         {showFirstLast ? (
           <Button
             iconOnly
@@ -147,6 +166,10 @@ export function Pagination({
           />
         ) : null}
       </div>
+
+      {/* Trailing spacer — balances the summary column so the control cluster
+          reads as centered in the "center" layout. Omitted in "between". */}
+      {isCentered ? <div aria-hidden="true" /> : null}
     </nav>
   );
 }

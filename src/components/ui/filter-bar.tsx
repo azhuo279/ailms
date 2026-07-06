@@ -41,10 +41,14 @@ export function FilterBar({
   const hasActiveFilters = activeFilters.length > 0;
 
   return (
-    <div className={cn("flex flex-col gap-3 rounded-lg border border-border-subtle bg-surface-raised p-4", className)}>
-      <div className="flex flex-wrap items-end gap-3">
+    <div className={cn("flex flex-col gap-3", className)}>
+      <div className="flex flex-wrap items-end w-full justify-between">
         {children}
-        {advancedFilters ? <div className="flex flex-wrap items-end gap-3">{advancedFilters}</div> : null}
+        {advancedFilters ? (
+          <div className="flex flex-wrap items-end gap-3">
+            {advancedFilters}
+          </div>
+        ) : null}
       </div>
 
       {hasActiveFilters ? (
@@ -97,7 +101,12 @@ export interface FilterPillRailProps {
  * fully interactive but render at reduced opacity so the rail never reflows
  * as counts change.
  */
-export function FilterPillRail({ options, activeIds, onToggle, className }: FilterPillRailProps) {
+export function FilterPillRail({
+  options,
+  activeIds,
+  onToggle,
+  className,
+}: FilterPillRailProps) {
   return (
     <div className={cn("flex flex-wrap items-center gap-2", className)}>
       {options.map((option) => {
@@ -110,9 +119,11 @@ export function FilterPillRail({ options, activeIds, onToggle, className }: Filt
             aria-pressed={isActive}
             onClick={() => onToggle(option.id)}
             className={cn(
-              "inline-flex h-7 shrink-0 items-center rounded-full px-3 text-label-s font-medium transition-colors",
+              "inline-flex h-7 shrink-0 items-center rounded-full border px-4 text-footnote font-medium transition-colors",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2",
-              isActive ? "bg-btn-primary text-fg-on-primary hover:bg-btn-primary-hover" : "bg-surface-sunken text-fg-primary hover:opacity-90",
+              isActive
+                ? "border-transparent bg-btn-primary text-fg-on-primary hover:bg-btn-primary-hover"
+                : "border-fg-muted bg-surface-shell text-fg-muted hover:bg-option-hover",
               isZero && !isActive && "opacity-55",
             )}
           >
@@ -158,7 +169,14 @@ export interface WatchlistProps {
  * or `--color-severity-*` for its own identity — it signals "human action"
  * via the project's non-reserved interactive tint (`bg-selection-surface`).
  */
-export function Watchlist({ items, onUnpin, onManage, capacity = 5, defaultExpanded = false, className }: WatchlistProps) {
+export function Watchlist({
+  items,
+  onUnpin,
+  onManage,
+  capacity = 5,
+  defaultExpanded = false,
+  className,
+}: WatchlistProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const panelId = useId();
   const headerId = useId();
@@ -174,7 +192,9 @@ export function Watchlist({ items, onUnpin, onManage, capacity = 5, defaultExpan
         className="flex min-w-0 flex-1 items-center gap-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2"
       >
         <Pin className="size-4 shrink-0 text-fg-secondary" aria-hidden="true" />
-        <span className="text-label-l font-medium text-fg-primary">Watchlist</span>
+        <span className="text-label-l font-medium text-fg-primary">
+          Watchlist
+        </span>
         <span className="inline-flex h-5 shrink-0 items-center rounded-full bg-surface-sunken px-2 text-label-s font-medium tabular-nums text-fg-secondary">
           {items.length}/{capacity}
         </span>
@@ -212,16 +232,27 @@ export function Watchlist({ items, onUnpin, onManage, capacity = 5, defaultExpan
         className={cn(
           "overflow-hidden motion-safe:transition-[grid-template-rows] motion-safe:duration-[220ms] motion-safe:ease-in-out",
           "grid",
-          isExpanded ? "grid-rows-[1fr]" : "grid-rows-[0fr] motion-reduce:hidden",
+          isExpanded
+            ? "grid-rows-[1fr]"
+            : "grid-rows-[0fr] motion-reduce:hidden",
         )}
       >
         <div className="min-h-0">
           <div className="flex flex-col gap-2 px-4 pb-4">
             {items.map((item) => (
-              <div key={item.id} className="flex items-center gap-3 rounded-md bg-selection-surface px-3 py-2">
+              <div
+                key={item.id}
+                className="flex items-center gap-3 rounded-md bg-selection-surface px-3 py-2"
+              >
                 <div className="min-w-0 flex-1">
-                  <div className="truncate text-label-l font-medium text-fg-primary">{item.title}</div>
-                  {item.meta ? <div className="truncate text-caption text-fg-muted">{item.meta}</div> : null}
+                  <div className="truncate text-label-l font-medium text-fg-primary">
+                    {item.title}
+                  </div>
+                  {item.meta ? (
+                    <div className="truncate text-caption text-fg-muted">
+                      {item.meta}
+                    </div>
+                  ) : null}
                 </div>
                 <Button
                   iconOnly

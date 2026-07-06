@@ -36,7 +36,7 @@ export function SituationBriefBanner({ brief, sourceHealth, className }: Situati
   return (
     <div
       className={cn(
-        "flex flex-col gap-3 rounded-lg border border-ai-border bg-ai-surface p-4 sm:flex-row sm:items-start sm:justify-between",
+        "ai-card flex flex-col gap-3 p-4 sm:flex-row sm:items-start sm:justify-between",
         className,
       )}
     >

@@ -40,15 +40,15 @@ interface ButtonIconOnlyProps extends ButtonBaseProps {
 export type ButtonProps = ButtonWithLabelProps | ButtonIconOnlyProps;
 
 const SIZE_CLASSES: Record<ButtonSize, string> = {
-  sm: "h-8 gap-1.5 rounded-md px-3 text-label-m",
-  md: "h-10 gap-2 rounded-md px-4 text-label-l",
-  lg: "h-12 gap-2 rounded-md px-5 text-label-l",
+  sm: "h-7 gap-1.5 rounded-md px-2.5 text-body-s",
+  md: "h-9 gap-1.5 rounded-md px-3.5 text-body-m",
+  lg: "h-11 gap-2 rounded-md px-4 text-body-l",
 };
 
 const ICON_ONLY_SIZE_CLASSES: Record<ButtonSize, string> = {
-  sm: "size-8 rounded-md",
-  md: "size-10 rounded-md",
-  lg: "size-12 rounded-md",
+  sm: "size-7 rounded-md",
+  md: "size-9 rounded-md",
+  lg: "size-11 rounded-md",
 };
 
 const ICON_SIZE_CLASSES: Record<ButtonSize, string> = {
@@ -63,7 +63,12 @@ const ICON_ONLY_GLYPH_SIZE_CLASSES: Record<ButtonSize, string> = {
   lg: "size-6",
 };
 
-function variantClasses(variant: ButtonVariant, destructive: boolean, isSelected: boolean, iconOnly: boolean) {
+function variantClasses(
+  variant: ButtonVariant,
+  destructive: boolean,
+  isSelected: boolean,
+  iconOnly: boolean,
+) {
   if (destructive) {
     return iconOnly
       ? "text-danger-fg hover:bg-danger-surface focus-visible:ring-danger-border"
@@ -83,7 +88,9 @@ function variantClasses(variant: ButtonVariant, destructive: boolean, isSelected
   }
   // ghost
   return cn(
-    iconOnly ? "bg-transparent text-fg-secondary hover:bg-option-hover" : "bg-transparent text-btn-secondary-fg hover:bg-option-hover",
+    iconOnly
+      ? "bg-transparent text-fg-secondary hover:bg-option-hover"
+      : "bg-transparent text-btn-secondary-fg hover:bg-option-hover",
     "focus-visible:ring-focus-ring",
     isSelected && "bg-option-hover",
   );
@@ -98,22 +105,74 @@ function variantClasses(variant: ButtonVariant, destructive: boolean, isSelected
  * what was previously a separate `IconButton` component. Icon-only mode requires
  * `icon` + `aria-label` in place of `children`.
  */
-export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(props, ref) {
-  const {
-    variant = "primary",
-    size = "md",
-    isLoading = false,
-    destructive = false,
-    isSelected = false,
-    disabled,
-    className,
-    ...rest
-  } = props;
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
+  function Button(props, ref) {
+    const {
+      variant = "primary",
+      size = "md",
+      isLoading = false,
+      destructive = false,
+      isSelected = false,
+      disabled,
+      className,
+      ...rest
+    } = props;
 
-  const isDisabled = disabled || isLoading;
+    const isDisabled = disabled || isLoading;
 
-  if (props.iconOnly) {
-    const { icon, iconOnly: _iconOnly, ...buttonProps } = rest as ButtonIconOnlyProps;
+    if (props.iconOnly) {
+      const {
+        icon,
+        iconOnly: _iconOnly,
+        ...buttonProps
+      } = rest as ButtonIconOnlyProps;
+
+      return (
+        <button
+          ref={ref}
+          type="button"
+          disabled={isDisabled}
+          aria-pressed={isSelected || undefined}
+          aria-busy={isLoading || undefined}
+          className={cn(
+            "inline-flex shrink-0 items-center justify-center transition-colors",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
+            ICON_ONLY_SIZE_CLASSES[size],
+            variantClasses(variant, destructive, isSelected, true),
+            isDisabled &&
+              "cursor-not-allowed bg-surface-disabled text-fg-disabled hover:bg-surface-disabled",
+            className,
+          )}
+          {...buttonProps}
+        >
+          {isLoading ? (
+            <Loader2
+              className={cn("animate-spin", ICON_ONLY_GLYPH_SIZE_CLASSES[size])}
+              aria-hidden="true"
+            />
+          ) : (
+            <span
+              className={cn(
+                "inline-flex items-center justify-center",
+                ICON_ONLY_GLYPH_SIZE_CLASSES[size],
+              )}
+              aria-hidden="true"
+            >
+              {icon}
+            </span>
+          )}
+        </button>
+      );
+    }
+
+    const {
+      leadingIcon,
+      trailingIcon,
+      children,
+      iconOnly: _iconOnly2,
+      icon: _icon,
+      ...buttonProps
+    } = rest as ButtonWithLabelProps;
 
     return (
       <button
@@ -123,60 +182,45 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
         aria-pressed={isSelected || undefined}
         aria-busy={isLoading || undefined}
         className={cn(
-          "inline-flex shrink-0 items-center justify-center transition-colors",
+          "inline-flex shrink-0 items-center justify-center whitespace-nowrap font-medium transition-colors",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
-          ICON_ONLY_SIZE_CLASSES[size],
-          variantClasses(variant, destructive, isSelected, true),
-          isDisabled && "cursor-not-allowed bg-surface-disabled text-fg-disabled hover:bg-surface-disabled",
+          SIZE_CLASSES[size],
+          variantClasses(variant, destructive, isSelected, false),
+          isDisabled &&
+            "cursor-not-allowed bg-surface-disabled text-fg-disabled hover:bg-surface-disabled",
           className,
         )}
         {...buttonProps}
       >
         {isLoading ? (
-          <Loader2 className={cn("animate-spin", ICON_ONLY_GLYPH_SIZE_CLASSES[size])} aria-hidden="true" />
-        ) : (
-          <span className={cn("inline-flex", ICON_ONLY_GLYPH_SIZE_CLASSES[size])} aria-hidden="true">
-            {icon}
-          </span>
-        )}
-      </button>
-    );
-  }
-
-  const { leadingIcon, trailingIcon, children, iconOnly: _iconOnly2, icon: _icon, ...buttonProps } = rest as ButtonWithLabelProps;
-
-  return (
-    <button
-      ref={ref}
-      type="button"
-      disabled={isDisabled}
-      aria-pressed={isSelected || undefined}
-      aria-busy={isLoading || undefined}
-      className={cn(
-        "inline-flex shrink-0 items-center justify-center whitespace-nowrap font-medium transition-colors",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
-        SIZE_CLASSES[size],
-        variantClasses(variant, destructive, isSelected, false),
-        isDisabled && "cursor-not-allowed bg-surface-disabled text-fg-disabled hover:bg-surface-disabled",
-        className,
-      )}
-      {...buttonProps}
-    >
-      {isLoading ? (
-        <Loader2 className={cn("animate-spin", ICON_SIZE_CLASSES[size])} aria-hidden="true" />
-      ) : (
-        leadingIcon ? (
-          <span className={cn("inline-flex shrink-0", ICON_SIZE_CLASSES[size])} aria-hidden="true">
+          <Loader2
+            className={cn("animate-spin", ICON_SIZE_CLASSES[size])}
+            aria-hidden="true"
+          />
+        ) : leadingIcon ? (
+          <span
+            className={cn(
+              "inline-flex shrink-0 items-center justify-center",
+              ICON_SIZE_CLASSES[size],
+            )}
+            aria-hidden="true"
+          >
             {leadingIcon}
           </span>
-        ) : null
-      )}
-      <span>{children}</span>
-      {!isLoading && trailingIcon ? (
-        <span className={cn("inline-flex shrink-0", ICON_SIZE_CLASSES[size])} aria-hidden="true">
-          {trailingIcon}
-        </span>
-      ) : null}
-    </button>
-  );
-});
+        ) : null}
+        <span className="inline-flex items-center">{children}</span>
+        {!isLoading && trailingIcon ? (
+          <span
+            className={cn(
+              "inline-flex shrink-0 items-center justify-center",
+              ICON_SIZE_CLASSES[size],
+            )}
+            aria-hidden="true"
+          >
+            {trailingIcon}
+          </span>
+        ) : null}
+      </button>
+    );
+  },
+);

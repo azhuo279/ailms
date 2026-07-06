@@ -1,174 +1,527 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { X } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createRoot, type Root } from "react-dom/client";
+import { MapPinOff } from "lucide-react";
+import type { Map as MapLibreMap, Marker as MapLibreMarker } from "maplibre-gl";
+// CSS is a side-effect import (no `window` access) so it can live at module top
+// level in this client component; the JS runtime is still loaded dynamically in
+// the effect below to keep it out of the server bundle.
+import "maplibre-gl/dist/maplibre-gl.css";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { PriorityTierBadge } from "@/components/ui/priority-tier-badge";
-import type { ExceptionRecord } from "@/app/workspace/lib/exception-types";
+import { ClusterMarker } from "./exception-map-cluster-marker";
+import {
+  ExceptionHoverPopover,
+  type HoverPreviewTarget,
+} from "./exception-hover-popover";
+import { getWarehouse } from "@/app/workspace/lib/exception-format";
+import type {
+  ExceptionQueue,
+  ExceptionRecord,
+  PriorityTier,
+  Warehouse,
+} from "@/app/workspace/lib/exception-types";
 
 export interface MapCluster {
   key: string;
-  /** Normalized 0-100 position within the map canvas, not real lat/lng math. */
-  x: number;
-  y: number;
+  /** Warehouse id — the site this cluster belongs to (feed-filter key). */
+  warehouseId: string;
+  /** Real geographic centroid of the grouped exceptions. */
+  lng: number;
+  lat: number;
+  /** Human-readable location of the anchoring warehouse, for labels. */
+  location: string;
+  topTier: PriorityTier;
+  /** True when every exception here is escalated/delegated (being handled). */
+  allHandled: boolean;
   exceptions: ExceptionRecord[];
+  warehouse: Warehouse | undefined;
+}
+
+/** An exception's queue counts as "being handled" once it leaves pending. */
+function isHandledQueue(queue: ExceptionQueue): boolean {
+  return queue === "escalated" || queue === "delegated";
 }
 
 /**
- * Buckets exceptions with coordinates into a small set of on-canvas
- * positions. This is a stylized, token-driven placeholder visualization, not
- * a real geospatial projection — flagged gap, see Step 11a manifest: no map
- * library is a dependency in this project (checked package.json), and
- * CLAUDE.md instructs flagging rather than pulling in a new heavy mapping
- * dependency without confirmation. Coordinates are hashed into a stable
- * pseudo-position so the same exception always renders in the same spot
- * across re-renders and filter changes.
+ * Groups exceptions by their anchoring warehouse so pins that share a site
+ * render as one count marker (FR-52 — warehouse-anchored map pins). Coordinates
+ * and the location label are DERIVED from the warehouse registry, the single
+ * source of geographic truth. A warehouse with null coordinates (or unresolved
+ * FK) does not plot — those exceptions surface via the no-geodata indicator and
+ * the feed list, never silently dropped.
  */
-function bucketIntoClusters(exceptions: ExceptionRecord[]): MapCluster[] {
-  const withCoords = exceptions.filter((e) => e.coordinates !== null);
-  const buckets = new Map<string, MapCluster>();
+function bucketIntoClusters(
+  exceptions: ExceptionRecord[],
+  warehouseMap: Map<string, Warehouse>,
+): MapCluster[] {
+  const buckets = new Map<
+    string,
+    { warehouse: Warehouse; group: ExceptionRecord[] }
+  >();
 
-  for (const exception of withCoords) {
-    const { lat, lng } = exception.coordinates!;
-    // Coarse grid bucket so nearby exceptions cluster together visually.
-    const gridX = Math.round(lng / 4);
-    const gridY = Math.round(lat / 4);
-    const key = `${gridX}:${gridY}`;
-
-    // Map lng/lat roughly onto a 0-100 canvas (continental US framing).
-    const x = Math.min(94, Math.max(6, ((lng + 125) / 60) * 100));
-    const y = Math.min(90, Math.max(10, 100 - ((lat - 24) / 25) * 100));
-
-    const existing = buckets.get(key);
-    if (existing) {
-      existing.exceptions.push(exception);
-    } else {
-      buckets.set(key, { key, x, y, exceptions: [exception] });
-    }
+  for (const exception of exceptions) {
+    const warehouse = getWarehouse(exception, warehouseMap);
+    if (!warehouse || warehouse.coordinates === null) continue;
+    const existing = buckets.get(warehouse.id);
+    if (existing) existing.group.push(exception);
+    else buckets.set(warehouse.id, { warehouse, group: [exception] });
   }
 
-  return Array.from(buckets.values());
+  return Array.from(buckets.entries()).map(([key, { warehouse, group }]) => {
+    // Lowest tier string (T1 < T2 < ...) is the highest severity.
+    const topTier = group.reduce<PriorityTier>(
+      (acc, e) => (e.priorityTier < acc ? e.priorityTier : acc),
+      "T4",
+    );
+    return {
+      key,
+      warehouseId: warehouse.id,
+      lng: warehouse.coordinates!.lng,
+      lat: warehouse.coordinates!.lat,
+      location: warehouse.location,
+      topTier,
+      allHandled: group.every((e) => isHandledQueue(e.queue)),
+      exceptions: group,
+      warehouse,
+    };
+  });
 }
 
-const TIER_DOT_CLASSES: Record<ExceptionRecord["priorityTier"], string> = {
-  T1: "bg-severity-emphasis",
-  T2: "bg-severity-emphasis/70",
-  T3: "bg-warning-emphasis",
-  T4: "bg-fg-muted",
-};
+/**
+ * Keyless, lightweight VECTOR basemap — CARTO's hosted Positron GL style, a
+ * muted near-white basemap so the severity-colored markers are the only
+ * saturated layer. Keyless so it works out of the box in this mock-first repo.
+ *
+ * FLAGGED (Step 11a): `basemaps.cartocdn.com` is CARTO's public style endpoint,
+ * fine for development. A production deployment should move to a self-hosted or
+ * account-scoped style and honor CARTO's attribution/usage terms.
+ */
+const BASEMAP_STYLE =
+  "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
+
+// Continental-US framing default, used when there are no plottable exceptions.
+const DEFAULT_CENTER: [number, number] = [-98.35, 39.5];
+const DEFAULT_ZOOM = 3.2;
 
 export interface ExceptionMapPanelProps {
   exceptions: ExceptionRecord[];
+  /** Warehouse registry — the source of each pin's coordinates + location. */
+  warehouseMap: Map<string, Warehouse>;
   selectedId: string | null;
   onSelect: (id: string) => void;
+  /**
+   * Symmetric hover link. `hoveredId` is the exception hovered in the feed (its
+   * pin/site lifts + pulses); `onHoverChange` fires when a pin is hovered so the
+   * feed can highlight + scroll to the matching card.
+   */
+  hoveredId?: string | null;
+  onHoverChange?: (id: string | null) => void;
+  /** Cluster click / popover "view all" → filter the feed to this warehouse. */
+  onViewSite?: (warehouseId: string) => void;
+  /**
+   * Exceptions that could not plot (their warehouse has no coordinates). Never
+   * silently dropped: surfaced via a corner indicator that snaps the feed to
+   * them via `onShowOffMap` (FR-52).
+   */
+  offMapExceptions?: ExceptionRecord[];
+  onShowOffMap?: () => void;
+  /** Compact inset mode — the persistent small map beside an open detail view. */
+  inset?: boolean;
+  nowMs?: number;
   className?: string;
 }
 
 /**
- * Right pane of the Row 3 split view. Renders exceptions with coordinates as
- * pins/clusters on a stylized placeholder canvas. Clicking a multi-exception
- * cluster expands it into a small list (Flow 4.1b steps G-H) rendered as a
- * portable overlay card anchored near the cluster. Exceptions without
- * coordinates are intentionally absent from the canvas (they still render in
- * the list pane) rather than silently dropped from the feed altogether.
+ * Right pane of the workspace split — a real MapLibre GL map that acts as one
+ * half of a linked triage instrument. SSR-safe: `maplibre-gl` is imported
+ * dynamically inside an effect so its WebGL/`window` access never runs during
+ * server render. Each marker is the shared `ClusterMarker`, rendered into the
+ * MapLibre marker element via its own React root.
+ *
+ * Linking: a single-exception pin selects it (opens the detail); a multi-
+ * exception cluster filters the feed to that site (`onViewSite`) rather than
+ * opening an in-panel list. Hovering a pin highlights + scrolls its feed
+ * card(s); hovering a feed card lifts + pulses its pin. Hover also raises a
+ * portalled preview popover anchored to the pin.
+ *
+ * In `inset` mode the map shrinks to a compact persistent context panel (no
+ * hover popover, no nav control) that keeps the active pin visible while the
+ * detail view owns the pane.
  */
-export function ExceptionMapPanel({ exceptions, selectedId, onSelect, className }: ExceptionMapPanelProps) {
-  const clusters = useMemo(() => bucketIntoClusters(exceptions), [exceptions]);
-  const [expandedClusterKey, setExpandedClusterKey] = useState<string | null>(null);
-  const noGeoCount = exceptions.length - exceptions.filter((e) => e.coordinates !== null).length;
+export function ExceptionMapPanel({
+  exceptions,
+  warehouseMap,
+  selectedId,
+  onSelect,
+  hoveredId = null,
+  onHoverChange,
+  onViewSite,
+  offMapExceptions = [],
+  onShowOffMap,
+  inset = false,
+  nowMs,
+  className,
+}: ExceptionMapPanelProps) {
+  const clusters = useMemo(() => {
+    const all = bucketIntoClusters(exceptions, warehouseMap);
+    // Inset is a static locator for the OPEN exception: plot only the pin for
+    // the selected exception's site, never the whole filtered set. The full map
+    // (no selection) keeps every cluster.
+    if (inset && selectedId) {
+      return all.filter((c) => c.exceptions.some((e) => e.id === selectedId));
+    }
+    return all;
+  }, [exceptions, warehouseMap, inset, selectedId]);
 
-  const expandedCluster = clusters.find((c) => c.key === expandedClusterKey) ?? null;
+  const containerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<MapLibreMap | null>(null);
+  // Each marker keeps its cluster + React root so its VISUAL state (selected /
+  // hovered / handled) can be re-rendered in place, without tearing down and
+  // recreating the MapLibre marker on every hover (that caused pin flicker).
+  const markersRef = useRef<
+    { cluster: MapCluster; marker: MapLibreMarker; root: Root }[]
+  >([]);
+  const resizeObserverRef = useRef<ResizeObserver | null>(null);
+  const [mapReady, setMapReady] = useState(false);
+  const [mapError, setMapError] = useState(false);
+
+  // Which cluster's pin the POINTER is over (drives the popover). Distinct from
+  // `hoveredId` (which comes from the feed). Either raises the pin's active
+  // state; only a pointer-hovered pin shows the popover.
+  const [pointerClusterKey, setPointerClusterKey] = useState<string | null>(
+    null,
+  );
+  const [popoverTarget, setPopoverTarget] = useState<HoverPreviewTarget | null>(
+    null,
+  );
+  const [nowMsLocal] = useState(() => nowMs ?? Date.now());
+
+  // Latest interaction handlers + derived state, read by marker callbacks
+  // without forcing the marker set to rebuild when identities change.
+  const onSelectRef = useRef(onSelect);
+  const onViewSiteRef = useRef(onViewSite);
+  const onHoverChangeRef = useRef(onHoverChange);
+  const selectedIdRef = useRef(selectedId);
+  const hoveredIdRef = useRef(hoveredId);
+  const insetRef = useRef(inset);
+  useEffect(() => {
+    onSelectRef.current = onSelect;
+    onViewSiteRef.current = onViewSite;
+    onHoverChangeRef.current = onHoverChange;
+    selectedIdRef.current = selectedId;
+    hoveredIdRef.current = hoveredId;
+    insetRef.current = inset;
+  });
+
+  // Compute + store the popover anchor (pin's viewport point) for a cluster.
+  const raisePopover = useCallback((cluster: MapCluster) => {
+    const map = mapRef.current;
+    const canvas = map?.getCanvas();
+    if (!map || !canvas) return;
+    const point = map.project([cluster.lng, cluster.lat]);
+    const rect = canvas.getBoundingClientRect();
+    setPopoverTarget({
+      x: rect.left + point.x,
+      y: rect.top + point.y,
+      exceptions: cluster.exceptions,
+      warehouse: cluster.warehouse,
+    });
+  }, []);
+
+  // Renders one marker's ClusterMarker into its root with the current visual
+  // state. Reused by both the build effect and the in-place state-update effect
+  // so a hover/select never recreates the MapLibre marker itself (that churn
+  // caused pin flicker + unstable click targets on hover).
+  const renderMarker = useCallback(
+    (cluster: MapCluster, root: Root) => {
+      const isSelected = cluster.exceptions.some((e) => e.id === selectedId);
+      const isHovered =
+        cluster.exceptions.some((e) => e.id === hoveredId) ||
+        cluster.key === pointerClusterKey;
+      root.render(
+        <ClusterMarker
+          topTier={cluster.topTier}
+          count={cluster.exceptions.length}
+          selected={isSelected}
+          hovered={isHovered}
+          handled={cluster.allHandled}
+          label={
+            cluster.exceptions.length > 1
+              ? `${cluster.exceptions.length} exceptions at ${cluster.location}, view in feed`
+              : `${cluster.exceptions[0].headline}, ${cluster.location}, open exception`
+          }
+          onClick={() => {
+            if (insetRef.current) return; // inset is context-only
+            if (cluster.exceptions.length > 1)
+              onViewSiteRef.current?.(cluster.warehouseId);
+            else onSelectRef.current(cluster.exceptions[0].id);
+          }}
+          onPointerEnter={() => {
+            if (insetRef.current) return;
+            setPointerClusterKey(cluster.key);
+            raisePopover(cluster);
+            onHoverChangeRef.current?.(cluster.exceptions[0].id);
+          }}
+          onPointerLeave={() => {
+            setPointerClusterKey((k) => (k === cluster.key ? null : k));
+            onHoverChangeRef.current?.(null);
+          }}
+        />,
+      );
+    },
+    [selectedId, hoveredId, pointerClusterKey, raisePopover],
+  );
+
+  // Create the map once, client-side only.
+  useEffect(() => {
+    let cancelled = false;
+    let map: MapLibreMap | null = null;
+
+    (async () => {
+      if (!containerRef.current) return;
+      try {
+        const maplibre = await import("maplibre-gl");
+        if (cancelled || !containerRef.current) return;
+
+        // In the compact inset the map is a STATIC locator for the open
+        // exception, not an interactive surface: disable every gesture up front
+        // via the constructor options so it never pans/zooms/rotates.
+        const isInset = insetRef.current;
+        map = new maplibre.Map({
+          container: containerRef.current,
+          style: BASEMAP_STYLE,
+          center: DEFAULT_CENTER,
+          zoom: DEFAULT_ZOOM,
+          attributionControl: { compact: true },
+          interactive: !isInset,
+          dragPan: !isInset,
+          scrollZoom: !isInset,
+          boxZoom: !isInset,
+          dragRotate: !isInset,
+          doubleClickZoom: !isInset,
+          touchZoomRotate: !isInset,
+          keyboard: !isInset,
+        });
+        // No zoom/nav chrome in the compact inset — it is context, not a
+        // primary interaction surface there.
+        if (!isInset) {
+          map.addControl(
+            new maplibre.NavigationControl({ showCompass: false }),
+            "top-right",
+          );
+        }
+        // The container is absolutely positioned inside nested `flex-1`/`min-h-0`
+        // panes, so at the moment MapLibre reads its size it can measure 0×0 and
+        // initialize to a zero-size (blank) canvas that never re-reads its bounds.
+        // A ResizeObserver forces a `resize()` once the pane has real dimensions,
+        // so the basemap and markers actually paint (fix: blank map).
+        const resizeObserver = new ResizeObserver(() => map?.resize());
+        resizeObserver.observe(containerRef.current);
+        resizeObserverRef.current = resizeObserver;
+        map.on("load", () => {
+          if (!cancelled) {
+            map?.resize();
+            setMapReady(true);
+          }
+        });
+        // Repositioning the popover as the map moves keeps it glued to the pin.
+        map.on("move", () => setPopoverTarget(null));
+        map.on("error", (event) => {
+          if (!cancelled && !("tile" in (event as object))) setMapError(true);
+        });
+        mapRef.current = map;
+      } catch {
+        if (!cancelled) setMapError(true);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      resizeObserverRef.current?.disconnect();
+      resizeObserverRef.current = null;
+      markersRef.current.forEach(({ marker, root }) => {
+        marker.remove();
+        queueMicrotask(() => root.unmount());
+      });
+      markersRef.current = [];
+      map?.remove();
+      mapRef.current = null;
+    };
+  }, []);
+
+  // BUILD markers — only when the plotted set itself changes (clusters, map
+  // readiness, inset mode). Visual state (selected/hovered/handled) is NOT a
+  // dependency here; a separate effect re-renders it in place so a hover never
+  // tears down and recreates the MapLibre markers.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapReady) return;
+
+    let disposed = false;
+    const previous = markersRef.current;
+    markersRef.current = [];
+
+    (async () => {
+      const maplibre = await import("maplibre-gl");
+      if (disposed) return;
+
+      const next: { cluster: MapCluster; marker: MapLibreMarker; root: Root }[] =
+        [];
+      for (const cluster of clusters) {
+        const el = document.createElement("div");
+        const root = createRoot(el);
+        renderMarker(cluster, root);
+        const marker = new maplibre.Marker({ element: el })
+          .setLngLat([cluster.lng, cluster.lat])
+          .addTo(map);
+        next.push({ cluster, marker, root });
+      }
+      markersRef.current = next;
+
+      // Frame the plotted exceptions. In the inset the set is already narrowed
+      // to the selected exception's single site, so this centers + zooms onto
+      // that pin (a tighter zoom than the full map, since it is a locator).
+      if (clusters.length === 1) {
+        map.easeTo({
+          center: [clusters[0].lng, clusters[0].lat],
+          zoom: inset ? 8 : 6,
+          duration: 400,
+        });
+      } else if (clusters.length > 1) {
+        const bounds = new maplibre.LngLatBounds();
+        clusters.forEach((c) => bounds.extend([c.lng, c.lat]));
+        map.fitBounds(bounds, {
+          padding: inset ? 40 : 64,
+          maxZoom: 7,
+          duration: 400,
+        });
+      }
+    })();
+
+    return () => {
+      disposed = true;
+      previous.forEach(({ marker, root }) => {
+        marker.remove();
+        queueMicrotask(() => root.unmount());
+      });
+    };
+    // renderMarker is intentionally omitted: it changes on every hover/select,
+    // and re-running the build on those would defeat the whole point. The
+    // in-place update effect below carries state changes into existing roots.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clusters, mapReady, inset]);
+
+  // UPDATE marker visual state in place — re-render each existing root with the
+  // current selected/hovered treatment, without recreating any MapLibre marker.
+  useEffect(() => {
+    if (!mapReady) return;
+    for (const { cluster, root } of markersRef.current) {
+      renderMarker(cluster, root);
+    }
+  }, [mapReady, renderMarker]);
+
+  // Close the popover if its cluster no longer exists after a filter change.
+  useEffect(() => {
+    if (
+      pointerClusterKey &&
+      !clusters.some((c) => c.key === pointerClusterKey)
+    ) {
+      setPointerClusterKey(null);
+      setPopoverTarget(null);
+    }
+  }, [clusters, pointerClusterKey]);
+
+  const offMapCount = offMapExceptions.length;
 
   return (
     <div
       className={cn(
-        "relative flex h-full flex-col overflow-hidden rounded-lg border border-border-subtle bg-surface-raised",
+        "relative flex h-full min-w-0 flex-col overflow-hidden bg-surface-raised border border-border-subtle rounded-lg",
         className,
       )}
     >
-      <div className="flex shrink-0 items-center justify-between border-b border-border-subtle px-4 py-3">
-        <p className="text-label-l font-medium text-fg-primary">Exception map</p>
-        {noGeoCount > 0 ? (
-          <p className="text-caption text-fg-muted">{noGeoCount} without location data</p>
+      <div className="relative min-h-0 flex-1">
+        {/*
+          The layout slot (absolute inset-0) lives on this WRAPPER, never on the
+          MapLibre container itself: maplibre-gl.css forces `position: relative`
+          on `.maplibregl-map`, which collapses an `absolute`/`inset-0` container
+          to 0×0. The inner ref div is sized `h-full w-full` so MapLibre always
+          gets a definite box (agentic-spar BaseMapCanvas pattern).
+        */}
+        <div
+          className="absolute inset-0"
+          role="img"
+          aria-label="Map showing geographic clusters of active exceptions. A list equivalent is always available in the feed pane to the left."
+        >
+          <div ref={containerRef} className="h-full w-full" />
+        </div>
+
+        {mapError ? (
+          <div className="absolute inset-0 flex items-center justify-center bg-surface-sunken p-6 text-center">
+            <p className="text-body-s text-fg-muted">
+              The map could not load. Every plotted exception is also in the
+              feed list to the left.
+            </p>
+          </div>
+        ) : null}
+
+        {!mapReady && !mapError ? (
+          <div className="absolute inset-0 flex items-center justify-center bg-surface-sunken">
+            <span
+              className="size-6 animate-spin rounded-full border-2 border-border-subtle border-t-primary-700"
+              aria-hidden="true"
+            />
+            <span className="sr-only">Loading map</span>
+          </div>
+        ) : null}
+
+        {/* No-geodata corner indicator (FR-52). Exceptions whose warehouse has
+            no coordinates never plot, so they are surfaced here with a link that
+            snaps the feed to them, rather than being silently dropped. Hidden in
+            the compact inset. */}
+        {!inset && offMapCount > 0 && !mapError ? (
+          <button
+            type="button"
+            onClick={onShowOffMap}
+            className="absolute bottom-3 left-3 z-10 inline-flex items-center gap-2 rounded-lg border border-border-subtle bg-surface-overlay/95 px-3 py-2 text-left shadow-md backdrop-blur transition-colors hover:bg-option-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+          >
+            <MapPinOff className="size-4 shrink-0 text-fg-muted" aria-hidden="true" />
+            <span className="text-caption text-fg-secondary">
+              <span className="font-semibold text-fg-primary">
+                {offMapCount}
+              </span>{" "}
+              {offMapCount === 1 ? "exception" : "exceptions"} not on map,{" "}
+              <span className="font-medium text-link">show in feed</span>
+            </span>
+          </button>
         ) : null}
       </div>
 
-      <div
-        className="relative min-h-0 flex-1 bg-[repeating-linear-gradient(0deg,var(--color-surface-sunken)_0,var(--color-surface-sunken)_1px,transparent_1px,transparent_32px),repeating-linear-gradient(90deg,var(--color-surface-sunken)_0,var(--color-surface-sunken)_1px,transparent_1px,transparent_32px)]"
-        role="img"
-        aria-label="Map showing geographic clusters of active exceptions. A list equivalent is always available in the feed pane to the left."
-      >
-        {clusters.map((cluster) => {
-          const isMulti = cluster.exceptions.length > 1;
-          const topTier = cluster.exceptions.reduce<ExceptionRecord["priorityTier"]>((acc, e) => {
-            return e.priorityTier < acc ? e.priorityTier : acc;
-          }, "T4");
-          const isSelected = cluster.exceptions.some((e) => e.id === selectedId);
-
-          return (
-            <button
-              key={cluster.key}
-              type="button"
-              style={{ left: `${cluster.x}%`, top: `${cluster.y}%` }}
-              onClick={() => (isMulti ? setExpandedClusterKey(cluster.key) : onSelect(cluster.exceptions[0].id))}
-              className={cn(
-                "absolute flex -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full shadow-md transition-transform",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2",
-                "hover:scale-110",
-                isMulti ? "size-9 text-label-s font-semibold text-fg-on-primary" : "size-4",
-                isSelected && "ring-2 ring-focus-ring ring-offset-2",
-                TIER_DOT_CLASSES[topTier],
-              )}
-              aria-label={
-                isMulti
-                  ? `${cluster.exceptions.length} exceptions near ${cluster.exceptions[0].location}, expand to view`
-                  : `${cluster.exceptions[0].headline}, ${cluster.exceptions[0].location}`
-              }
-            >
-              {isMulti ? cluster.exceptions.length : null}
-            </button>
-          );
-        })}
-      </div>
-
-      {expandedCluster ? (
-        <div
-          role="dialog"
-          aria-label={`${expandedCluster.exceptions.length} exceptions in this cluster`}
-          className="absolute inset-x-3 bottom-3 z-10 max-h-64 overflow-y-auto rounded-lg border border-border-strong bg-surface-overlay p-3 shadow-lg motion-safe:animate-[empty-state-rise-in_180ms_ease-out_both]"
-        >
-          <div className="mb-2 flex items-center justify-between">
-            <p className="text-label-l font-medium text-fg-primary">
-              {expandedCluster.exceptions.length} exceptions at {expandedCluster.exceptions[0].location}
-            </p>
-            <Button
-              iconOnly
-              variant="ghost"
-              size="sm"
-              icon={<X />}
-              aria-label="Close cluster list"
-              onClick={() => setExpandedClusterKey(null)}
-            />
-          </div>
-          <ul className="flex flex-col gap-1">
-            {expandedCluster.exceptions.map((exception) => (
-              <li key={exception.id}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    onSelect(exception.id);
-                    setExpandedClusterKey(null);
-                  }}
-                  className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left transition-colors hover:bg-option-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-inset"
-                >
-                  <PriorityTierBadge tier={exception.priorityTier} />
-                  <span className="min-w-0 flex-1 truncate text-body-s text-fg-primary">{exception.headline}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
+      {/* Portalled hover preview — only outside inset mode. */}
+      {!inset && popoverTarget && pointerClusterKey ? (
+        <ExceptionHoverPopover
+          target={popoverTarget}
+          nowMs={nowMsLocal}
+          onOpenException={(id) => {
+            setPointerClusterKey(null);
+            setPopoverTarget(null);
+            onSelect(id);
+          }}
+          onViewSite={(warehouseId) => {
+            setPointerClusterKey(null);
+            setPopoverTarget(null);
+            onViewSite?.(warehouseId);
+          }}
+          onPointerEnter={() => {
+            /* keep open while hovering the surface */
+          }}
+          onPointerLeave={() => {
+            setPointerClusterKey(null);
+            setPopoverTarget(null);
+            onHoverChange?.(null);
+          }}
+        />
       ) : null}
     </div>
   );

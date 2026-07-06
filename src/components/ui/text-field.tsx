@@ -7,8 +7,10 @@ import { Button } from "./button";
 
 export interface TextFieldProps
   extends Omit<InputHTMLAttributes<HTMLInputElement>, "prefix" | "size"> {
-  /** Visible label — never rely on placeholder text alone. */
-  label: string;
+  /** Visible label — never rely on placeholder text alone. Optional only so a consumer can suppress it in favor of an `aria-label`. */
+  label?: string;
+  /** Opt-in override for the Field label styling (e.g. small-caps filter labels). */
+  labelClassName?: string;
   helperText?: string;
   /** Overrides helperText when status is invalid/warning/success. */
   validationText?: string;
@@ -21,6 +23,15 @@ export interface TextFieldProps
   /** Shows a live character counter against `maxLength`. */
   showCharacterCount?: boolean;
   containerClassName?: string;
+  /**
+   * Opt-in escape hatch for the input ROW (the bordered/filled box that wraps
+   * the `<input>`), merged AFTER the default `bg-surface-raised` /
+   * `border-border-subtle` treatment so a caller can restyle the field's
+   * surface — e.g. the Copilot composer's translucent AI-glass fill — without
+   * forking the component or affecting any other TextField. Default usage is
+   * unchanged (undefined → no extra classes).
+   */
+  inputContainerClassName?: string;
 }
 
 /**
@@ -31,6 +42,7 @@ export interface TextFieldProps
 export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function TextField(
   {
     label,
+    labelClassName,
     helperText,
     validationText,
     status = "default",
@@ -47,6 +59,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
     id,
     className,
     containerClassName,
+    inputContainerClassName,
     ...props
   },
   ref,
@@ -61,6 +74,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
   return (
     <Field
       label={label}
+      labelClassName={labelClassName}
       htmlFor={inputId}
       helperText={helperText}
       validationText={validationText}
@@ -83,6 +97,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
               status === "success" && "border-success-border",
               disabled && "border-border-disabled bg-surface-disabled text-fg-disabled",
               readOnly && !disabled && "bg-surface-sunken",
+              inputContainerClassName,
             )}
           >
             {prefix ? (
@@ -102,7 +117,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
               aria-describedby={describedBy}
               aria-invalid={status === "invalid" || undefined}
               className={cn(
-                "h-full min-w-0 flex-1 bg-transparent text-body-m text-fg-primary outline-none placeholder:text-fg-muted",
+                "h-full min-w-0 flex-1 bg-transparent text-body-m text-fg-primary outline-none placeholder:text-body-s placeholder:text-fg-muted",
                 "disabled:cursor-not-allowed disabled:text-fg-disabled",
                 className,
               )}

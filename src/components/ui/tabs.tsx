@@ -2,6 +2,7 @@
 
 import { Children, cloneElement, isValidElement, useId, useRef } from "react";
 import type { KeyboardEvent, ReactElement, ReactNode } from "react";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 export type TabsSize = "sm" | "md" | "lg";
@@ -12,6 +13,14 @@ export interface TabItem {
   label: string;
   icon?: ReactNode;
   disabled?: boolean;
+  /**
+   * Optional supplementary count rendered as a small neutral Badge after the
+   * label (e.g. queue totals). Purely additive — existing callers are
+   * unaffected. The count is folded into the tab's accessible name so screen
+   * readers announce "Pending, 8 items" rather than treating the badge as
+   * separate decorative text.
+   */
+  count?: number;
 }
 
 export interface TabsProps {
@@ -26,9 +35,9 @@ export interface TabsProps {
 }
 
 const SIZE_TAB_CLASSES: Record<TabsSize, string> = {
-  sm: "h-8 gap-1.5 px-2.5 text-label-s",
-  md: "h-10 gap-2 px-3 text-label-m",
-  lg: "h-11 gap-2 px-4 text-label-l",
+  sm: "h-8 gap-1.5 px-2.5 text-label-m",
+  md: "h-10 gap-2 px-3 text-label-l",
+  lg: "h-11 gap-2 px-4 text-body-l",
 };
 
 const SIZE_ICON_CLASSES: Record<TabsSize, string> = {
@@ -98,6 +107,12 @@ export function Tabs({
           const isActive = item.value === value;
           const tabId = `${baseId}-tab-${item.value}`;
           const panelId = `${baseId}-panel-${item.value}`;
+          const hasCount = typeof item.count === "number";
+          // Fold the count into the accessible name so the visual badge can stay
+          // aria-hidden (decorative) without dropping the number for SR users.
+          const accessibleName = hasCount
+            ? `${item.label}, ${item.count} items`
+            : undefined;
 
           return (
             <button
@@ -109,6 +124,7 @@ export function Tabs({
               type="button"
               role="tab"
               aria-selected={isActive}
+              aria-label={accessibleName}
               aria-controls={panelId}
               aria-disabled={item.disabled || undefined}
               tabIndex={isActive ? 0 : -1}
@@ -141,6 +157,21 @@ export function Tabs({
                 </span>
               ) : null}
               <span>{item.label}</span>
+              {hasCount ? (
+                <span aria-hidden="true" className="ml-1.5 inline-flex">
+                  {/* Active tab's count carries a filled brand treatment
+                      (Badge `tone="brand" solid`) matching the selected-tab
+                      underline, so the current queue's total reads distinctly
+                      from the quiet neutral counts on inactive tabs. */}
+                  <Badge
+                    tone={isActive ? "brand" : "neutral"}
+                    solid={isActive}
+                    size="sm"
+                    count={item.count}
+                    className="transition-colors"
+                  />
+                </span>
+              ) : null}
             </button>
           );
         })}

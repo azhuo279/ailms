@@ -118,19 +118,25 @@ export function DataTable<T>({
 
   const columnCount = columns.length + (hasSelection ? 1 : 0) + (hasExpansion ? 1 : 0);
 
-  // "Selective Frozen-Column Hairline": the identity cluster (expand chevron +
-  // selection checkbox) is visually isolated from the scrolling data columns by
-  // a single low-contrast vertical hairline plus a cast shadow — elevation, not
-  // a darker fill, per DESIGN.md's "Structured Depth" separation language. No
-  // horizontal row dividers are drawn anywhere in the body.
-  const frozenClusterBase = "relative z-10 border-r border-border-subtle shadow-sm transition-shadow";
-  const frozenHeaderClassName = cn(frozenClusterBase, "bg-surface-sunken");
+  // Frozen identity cluster (expand chevron + selection checkbox). The
+  // "Selective Frozen-Column Hairline" treatment — a low-contrast vertical
+  // border-r plus a cast shadow, per DESIGN.md's "Structured Depth" language —
+  // was REMOVED per Starling feedback: the cluster is no longer separated from
+  // the scrolling data columns by a border or shadow. The cluster keeps only its
+  // stacking context (relative z-10) so its own bg fill stays above the body on
+  // horizontal scroll. No horizontal row dividers are drawn anywhere in the body.
+  const frozenClusterBase = "relative z-10";
+  const frozenHeaderClassName = cn(frozenClusterBase, "bg-surface");
   const frozenCellClassName = cn(frozenClusterBase, "bg-surface-raised");
 
   return (
     <div className={cn("overflow-auto rounded-lg border border-border-subtle", className)}>
-      <table className="w-full border-collapse text-body-s">
-        <thead className={cn("bg-surface-sunken", stickyHeader && "sticky top-0 z-10")}>
+      {/* w-full fills the container when columns fit; min-w-max lets intrinsic
+          column widths win when they need more room than the container, so the
+          overflow-auto wrapper scrolls horizontally instead of squishing cells.
+          No scrollbar appears when everything already fits. */}
+      <table className="w-full min-w-max border-collapse text-body-s">
+        <thead className={cn("bg-surface", stickyHeader && "sticky top-0 z-10")}>
           <tr>
             {hasExpansion ? (
               <th className={cn("w-8 px-2 py-3", !hasSelection && frozenHeaderClassName)} aria-hidden="true" />
@@ -266,7 +272,7 @@ export function DataTable<T>({
                   </tr>
                   {isExpanded && renderExpandedRow ? (
                     <tr className="bg-surface-sunken">
-                      <td colSpan={columnCount} className={cellPadding}>
+                      <td colSpan={columnCount} className="p-0">
                         {renderExpandedRow(row)}
                       </td>
                     </tr>

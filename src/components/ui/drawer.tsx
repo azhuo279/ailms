@@ -1,11 +1,33 @@
 "use client";
 
-import { useEffect, useId, useRef } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "./button";
+
+/**
+ * Enter/exit motion (animator skill, small-enter / small-exit presets). The
+ * panel slides along its docking axis; the scrim cross-fades. Enter is 250ms
+ * decelerate (arrives + settles), exit is a faster 200ms accelerate (gets out
+ * of the way) — the standard enter/exit asymmetry. Only transform + opacity
+ * animate (compositor-friendly). The reduced-motion fallback (opacity-only,
+ * no translate) lives in globals.css keyed off the `.drawer-*-anim` classes.
+ */
+const DRAWER_EXIT_MS = 200;
+// Full literal class strings (Tailwind v4 must see the complete arbitrary-value
+// utility in source to generate it — no runtime string concatenation).
+const PANEL_ANIM: Record<DrawerSide, { in: string; out: string }> = {
+  right: {
+    in: "motion-safe:animate-[drawer-panel-in-right_250ms_cubic-bezier(0,0,0.2,1)_both]",
+    out: "motion-safe:animate-[drawer-panel-out-right_200ms_cubic-bezier(0.4,0,1,1)_both]",
+  },
+  left: {
+    in: "motion-safe:animate-[drawer-panel-in-left_250ms_cubic-bezier(0,0,0.2,1)_both]",
+    out: "motion-safe:animate-[drawer-panel-out-left_200ms_cubic-bezier(0.4,0,1,1)_both]",
+  },
+};
 
 export type DrawerSide = "right" | "left";
 export type DrawerWidth = "sm" | "md" | "lg";
@@ -56,6 +78,27 @@ export function Drawer({
   const previouslyFocused = useRef<HTMLElement | null>(null);
   const titleId = useId();
 
+  // Keep the panel mounted through its exit animation: `render` stays true
+  // while `open` is false so the closing transition can play, then unmounts.
+  const [render, setRender] = useState(open);
+  const [closing, setClosing] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      setRender(true);
+      setClosing(false);
+      return;
+    }
+    if (!render) return;
+    // open flipped to false while mounted → play the exit, then unmount.
+    setClosing(true);
+    const t = window.setTimeout(() => {
+      setRender(false);
+      setClosing(false);
+    }, DRAWER_EXIT_MS);
+    return () => window.clearTimeout(t);
+  }, [open, render]);
+
   useEffect(() => {
     if (!open || persistent) return;
 
@@ -95,12 +138,24 @@ export function Drawer({
     };
   }, [open, persistent, onClose]);
 
-  if (!open) return null;
+  if (!render) return null;
+
+  const panelAnim = PANEL_ANIM[side];
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex">
       {!persistent ? (
-        <div className="absolute inset-0 bg-neutral-950/40" onClick={onClose} aria-hidden="true" />
+        <div
+          className={cn(
+            "absolute inset-0 bg-neutral-950/40 motion-safe:will-change-[opacity] drawer-scrim-anim",
+            closing
+              ? "motion-safe:animate-[drawer-scrim-out_200ms_ease-in_both]"
+              : "motion-safe:animate-[drawer-scrim-in_250ms_ease-out_both]",
+          )}
+          data-state={closing ? "closing" : "open"}
+          onClick={onClose}
+          aria-hidden="true"
+        />
       ) : null}
       <div
         ref={panelRef}
@@ -108,8 +163,11 @@ export function Drawer({
         aria-modal={!persistent}
         aria-labelledby={titleId}
         tabIndex={-1}
+        data-state={closing ? "closing" : "open"}
         className={cn(
           "relative flex h-full flex-col bg-surface-overlay shadow-lg outline-none",
+          "motion-safe:will-change-transform drawer-panel-anim",
+          closing ? panelAnim.out : panelAnim.in,
           side === "right" ? "ml-auto" : "mr-auto",
           WIDTH_CLASSES[width],
           className,

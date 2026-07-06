@@ -1,0 +1,628 @@
+{
+  "zoneLabel": "South Central zone",
+  "warehouseCount": 11,
+  "generatedAt": "2026-07-06T08:05:00Z",
+  "updatedLabel": "2 min ago",
+  "zoneNarrative": {
+    "body": "**MTTR is trending down zone-wide (2.4 h, 18 min better than last week)**, but **Nogales Port DC** is the drag. Its MTTR climbed **+41 min**, escalation runs **2.3x the zone median**, and AI acceptance there fell to **58%** concentrated on **Customs Hold** exceptions.",
+    "deepLinkLabel": "Open Nogales Port DC breakdown",
+    "deepLinkWarehouseId": "NOG-P"
+  },
+  "zoneKpis": [
+    {
+      "id": "mttr",
+      "label": "MTTR",
+      "value": "2.4 h",
+      "trendNarrative": "18 min faster than last week",
+      "direction": "down",
+      "lowerIsBetter": true,
+      "weeklyBuckets": [
+        { "heightPercent": 70, "label": "Wk 1" },
+        { "heightPercent": 82, "label": "Wk 2" },
+        { "heightPercent": 64, "label": "Wk 3" },
+        { "heightPercent": 75, "label": "Wk 4" },
+        { "heightPercent": 58, "label": "Wk 5" },
+        { "heightPercent": 48, "label": "Wk 6" }
+      ]
+    },
+    {
+      "id": "triageTime",
+      "label": "Alert triage time",
+      "value": "6.1 min",
+      "trendNarrative": "0.9 min faster than last week",
+      "direction": "down",
+      "lowerIsBetter": true,
+      "weeklyBuckets": [
+        { "heightPercent": 80, "label": "Wk 1" },
+        { "heightPercent": 72, "label": "Wk 2" },
+        { "heightPercent": 66, "label": "Wk 3" },
+        { "heightPercent": 70, "label": "Wk 4" },
+        { "heightPercent": 62, "label": "Wk 5" },
+        { "heightPercent": 55, "label": "Wk 6" }
+      ]
+    },
+    {
+      "id": "acceptanceRate",
+      "label": "AI acceptance rate",
+      "value": "74%",
+      "trendNarrative": "3 pts lower than last week",
+      "direction": "down",
+      "lowerIsBetter": false,
+      "weeklyBuckets": [
+        { "heightPercent": 78, "label": "Wk 1" },
+        { "heightPercent": 84, "label": "Wk 2" },
+        { "heightPercent": 82, "label": "Wk 3" },
+        { "heightPercent": 80, "label": "Wk 4" },
+        { "heightPercent": 77, "label": "Wk 5" },
+        { "heightPercent": 72, "label": "Wk 6" }
+      ]
+    },
+    {
+      "id": "escalationRate",
+      "label": "Escalation rate",
+      "value": "12%",
+      "trendNarrative": "2 pts higher than last week",
+      "direction": "up",
+      "lowerIsBetter": true,
+      "weeklyBuckets": [
+        { "heightPercent": 50, "label": "Wk 1" },
+        { "heightPercent": 55, "label": "Wk 2" },
+        { "heightPercent": 52, "label": "Wk 3" },
+        { "heightPercent": 60, "label": "Wk 4" },
+        { "heightPercent": 64, "label": "Wk 5" },
+        { "heightPercent": 72, "label": "Wk 6" }
+      ]
+    },
+    {
+      "id": "overrideFrequency",
+      "label": "Override frequency",
+      "value": "9%",
+      "trendNarrative": "unchanged from last week",
+      "direction": "flat",
+      "lowerIsBetter": true,
+      "weeklyBuckets": [
+        { "heightPercent": 60, "label": "Wk 1" },
+        { "heightPercent": 58, "label": "Wk 2" },
+        { "heightPercent": 61, "label": "Wk 3" },
+        { "heightPercent": 59, "label": "Wk 4" },
+        { "heightPercent": 60, "label": "Wk 5" },
+        { "heightPercent": 60, "label": "Wk 6" }
+      ]
+    },
+    {
+      "id": "manualEntryRate",
+      "label": "Manual-entry rate",
+      "value": "5%",
+      "trendNarrative": "1 pt lower than last week",
+      "direction": "down",
+      "lowerIsBetter": true,
+      "weeklyBuckets": [
+        { "heightPercent": 70, "label": "Wk 1" },
+        { "heightPercent": 66, "label": "Wk 2" },
+        { "heightPercent": 60, "label": "Wk 3" },
+        { "heightPercent": 58, "label": "Wk 4" },
+        { "heightPercent": 52, "label": "Wk 5" },
+        { "heightPercent": 44, "label": "Wk 6" }
+      ]
+    }
+  ],
+  "insights": [
+    {
+      "id": "INS-01",
+      "rank": 1,
+      "category": "Escalation spike",
+      "severity": "needs-attention",
+      "headline": "**Nogales Port DC** is the zone drag, with escalation running **2.3x the zone median**.",
+      "narrative": "**Nogales Port DC MTTR climbed +41 min** while the zone fell. Escalation there runs **2.3x the zone median** and concentrates on **Customs Hold** work, where the AI ETA and the customs desk disagree. Triage lag spikes **14:00-18:00 CT**, so the afternoon shift carries most of the breach risk.",
+      "metric": "2.3x zone median escalation",
+      "warehouseName": "Nogales Port DC",
+      "updatedLabel": "2 min ago",
+      "isLead": true
+    },
+    {
+      "id": "INS-02",
+      "rank": 2,
+      "category": "Acceptance drop",
+      "severity": "needs-attention",
+      "headline": "AI acceptance at **Nogales Port DC** fell to **58%**, concentrated on **Customs Hold**.",
+      "narrative": "Acceptance dropped to **58%** at Nogales, well below the zone **74%**. Nearly all of the gap sits on **Customs Hold** exceptions from **BorderIQ**. Carrier Delay acceptance recovers, so this is a **trust gap on cross-border holds**, not a broad rejection of the AI.",
+      "metric": "58% acceptance vs 74% zone",
+      "warehouseName": "Nogales Port DC",
+      "updatedLabel": "4 min ago",
+      "isLead": false
+    },
+    {
+      "id": "INS-03",
+      "rank": 3,
+      "category": "Customs Hold",
+      "severity": "watch",
+      "headline": "**Customs Hold** is the top model-gap category, corrected on **41%** of actions.",
+      "narrative": "Across the zone, **Customs Hold** carries the highest correction rate at **41%** modify-plus-reject, and the model flags it **low confidence**. This is the single category most worth a review, since it also drives the acceptance drop at the two border sites.",
+      "metric": "41% corrected, low confidence",
+      "updatedLabel": "6 min ago",
+      "isLead": false
+    },
+    {
+      "id": "INS-04",
+      "rank": 4,
+      "category": "Acceptance drop",
+      "severity": "watch",
+      "headline": "**Otay Mesa Border DC** acceptance is slipping as cross-border volume rises.",
+      "narrative": "**Otay Mesa acceptance sits at 69%** and is trending down as cross-border volume rises. Triage is fast at **5.8 min**, so the gap is **trust in the recommendation, not response speed**. It mirrors the Nogales pattern on a smaller scale and is worth watching before it tips.",
+      "metric": "69% acceptance, triage 5.8 min",
+      "warehouseName": "Otay Mesa Border DC",
+      "updatedLabel": "9 min ago",
+      "isLead": false
+    },
+    {
+      "id": "INS-05",
+      "rank": 5,
+      "category": "Dock Congestion",
+      "severity": "watch",
+      "headline": "**Dock Congestion** drives most afternoon escalations at **Amarillo Relay**.",
+      "narrative": "At **Amarillo Relay**, throughput is steady but **overflow windows push a handful of loads past the breach line each afternoon**. The escalations here are **Dock Congestion**, not a model or acceptance problem, so the fix is scheduling rather than AI trust.",
+      "metric": "5 open Dock Congestion exceptions",
+      "warehouseName": "Amarillo Relay",
+      "updatedLabel": "14 min ago",
+      "isLead": false
+    },
+    {
+      "id": "INS-06",
+      "rank": 6,
+      "category": "Zone trend",
+      "severity": "on-track",
+      "headline": "Zone **MTTR is down to 2.4 h**, **18 min better** than last week outside the border sites.",
+      "narrative": "Setting the two border DCs aside, the zone is **healthy and improving**. **MTTR fell to 2.4 h**, **18 min better than last week**, and manual-entry rate keeps dropping. **Laredo Cross-Dock and Dallas South** are strong reference patterns for the trailing sites.",
+      "metric": "MTTR 2.4 h, 18 min faster",
+      "updatedLabel": "2 min ago",
+      "isLead": false
+    }
+  ],
+  "warehouses": [
+    {
+      "id": "NOG-P",
+      "name": "Nogales Port DC",
+      "location": "Nogales, AZ",
+      "rank": 1,
+      "status": "needs-attention",
+      "cells": {
+        "mttr": { "value": "3.8 h", "raw": 3.8, "heat": "unfavorable" },
+        "triageTime": { "value": "9.4 min", "raw": 9.4, "heat": "watch" },
+        "acceptanceRate": { "value": "58%", "raw": 58, "heat": "unfavorable" },
+        "escalationRate": { "value": "27%", "raw": 27, "heat": "unfavorable" },
+        "overrideFrequency": { "value": "16%", "raw": 16, "heat": "unfavorable" },
+        "manualEntryRate": { "value": "11%", "raw": 11, "heat": "watch" }
+      },
+      "detail": {
+        "aiDiagnosis": "**Overrides cluster on Customs Hold (BorderIQ)**, where the AI ETA and the customs desk disagree. **Triage lag spikes 14:00-18:00 CT.** Acceptance recovers on Carrier Delay but stays low on cross-border holds.",
+        "exceptionCounts": [
+          { "type": "Carrier Delay", "count": 4 },
+          { "type": "Customs Hold", "count": 9 },
+          { "type": "Dock Congestion", "count": 2 },
+          { "type": "Manual", "count": 3 }
+        ],
+        "openT1Count": 3,
+        "topTier": "T1"
+      }
+    },
+    {
+      "id": "OTM-B",
+      "name": "Otay Mesa Border DC",
+      "location": "San Diego, CA",
+      "rank": 2,
+      "status": "watch",
+      "cells": {
+        "mttr": { "value": "3.1 h", "raw": 3.1, "heat": "watch" },
+        "triageTime": { "value": "5.8 min", "raw": 5.8, "heat": "favorable" },
+        "acceptanceRate": { "value": "69%", "raw": 69, "heat": "watch" },
+        "escalationRate": { "value": "18%", "raw": 18, "heat": "watch" },
+        "overrideFrequency": { "value": "12%", "raw": 12, "heat": "watch" },
+        "manualEntryRate": { "value": "7%", "raw": 7, "heat": "neutral" }
+      },
+      "detail": {
+        "aiDiagnosis": "**Acceptance is slipping on Customs Hold** as cross-border volume rises. Triage is fast, so the gap is trust in the recommendation, **not response speed.**",
+        "exceptionCounts": [
+          { "type": "Carrier Delay", "count": 3 },
+          { "type": "Customs Hold", "count": 6 },
+          { "type": "Inventory Discrepancy", "count": 2 }
+        ],
+        "openT1Count": 1,
+        "topTier": "T2"
+      }
+    },
+    {
+      "id": "AMA-R",
+      "name": "Amarillo Relay",
+      "location": "Amarillo, TX",
+      "rank": 3,
+      "status": "watch",
+      "cells": {
+        "mttr": { "value": "2.9 h", "raw": 2.9, "heat": "watch" },
+        "triageTime": { "value": "7.2 min", "raw": 7.2, "heat": "watch" },
+        "acceptanceRate": { "value": "71%", "raw": 71, "heat": "watch" },
+        "escalationRate": { "value": "15%", "raw": 15, "heat": "watch" },
+        "overrideFrequency": { "value": "10%", "raw": 10, "heat": "neutral" },
+        "manualEntryRate": { "value": "6%", "raw": 6, "heat": "neutral" }
+      },
+      "detail": {
+        "aiDiagnosis": "**Dock Congestion drives most of the escalations here.** Relay throughput is steady, but overflow windows push a handful of loads past the breach line each afternoon.",
+        "exceptionCounts": [
+          { "type": "Dock Congestion", "count": 5 },
+          { "type": "Carrier Delay", "count": 2 },
+          { "type": "Manual", "count": 2 }
+        ],
+        "openT1Count": 0,
+        "topTier": "T3"
+      }
+    },
+    {
+      "id": "REN-W",
+      "name": "Reno West DC",
+      "location": "Reno, NV",
+      "rank": 4,
+      "status": "watch",
+      "cells": {
+        "mttr": { "value": "2.8 h", "raw": 2.8, "heat": "watch" },
+        "triageTime": { "value": "6.9 min", "raw": 6.9, "heat": "watch" },
+        "acceptanceRate": { "value": "73%", "raw": 73, "heat": "watch" },
+        "escalationRate": { "value": "13%", "raw": 13, "heat": "neutral" },
+        "overrideFrequency": { "value": "9%", "raw": 9, "heat": "neutral" },
+        "manualEntryRate": { "value": "6%", "raw": 6, "heat": "neutral" }
+      },
+      "detail": {
+        "aiDiagnosis": "**Inventory Discrepancy is the recurring theme.** Nexus WMS counts and the floor disagree on a few SKUs, adding a manual reconciliation step before resolution.",
+        "exceptionCounts": [
+          { "type": "Inventory Discrepancy", "count": 4 },
+          { "type": "Carrier Delay", "count": 2 }
+        ],
+        "openT1Count": 0,
+        "topTier": "T3"
+      }
+    },
+    {
+      "id": "ELK-R",
+      "name": "Elkhart Receiving",
+      "location": "Elkhart, IN",
+      "rank": 5,
+      "status": "on-track",
+      "cells": {
+        "mttr": { "value": "2.5 h", "raw": 2.5, "heat": "neutral" },
+        "triageTime": { "value": "5.9 min", "raw": 5.9, "heat": "favorable" },
+        "acceptanceRate": { "value": "79%", "raw": 79, "heat": "neutral" },
+        "escalationRate": { "value": "11%", "raw": 11, "heat": "neutral" },
+        "overrideFrequency": { "value": "8%", "raw": 8, "heat": "neutral" },
+        "manualEntryRate": { "value": "5%", "raw": 5, "heat": "favorable" }
+      },
+      "detail": {
+        "aiDiagnosis": "**On target across the board.** A small Carrier Delay backlog clears within the shift and rarely escalates.",
+        "exceptionCounts": [
+          { "type": "Carrier Delay", "count": 3 },
+          { "type": "Manual", "count": 1 }
+        ],
+        "openT1Count": 0,
+        "topTier": "T4"
+      }
+    },
+    {
+      "id": "JOL-R",
+      "name": "Joliet Rail Yard",
+      "location": "Joliet, IL",
+      "rank": 6,
+      "status": "on-track",
+      "cells": {
+        "mttr": { "value": "2.4 h", "raw": 2.4, "heat": "neutral" },
+        "triageTime": { "value": "5.6 min", "raw": 5.6, "heat": "favorable" },
+        "acceptanceRate": { "value": "81%", "raw": 81, "heat": "favorable" },
+        "escalationRate": { "value": "10%", "raw": 10, "heat": "neutral" },
+        "overrideFrequency": { "value": "8%", "raw": 8, "heat": "neutral" },
+        "manualEntryRate": { "value": "5%", "raw": 5, "heat": "favorable" }
+      },
+      "detail": {
+        "aiDiagnosis": "**Rail handoffs are running clean.** Acceptance is high and escalations are rare, so the AI recommendation is trusted here.",
+        "exceptionCounts": [
+          { "type": "Carrier Delay", "count": 2 },
+          { "type": "Dock Congestion", "count": 1 }
+        ],
+        "openT1Count": 0,
+        "topTier": "T4"
+      }
+    },
+    {
+      "id": "CBF-D",
+      "name": "Council Bluffs DC",
+      "location": "Council Bluffs, IA",
+      "rank": 7,
+      "status": "on-track",
+      "cells": {
+        "mttr": { "value": "2.3 h", "raw": 2.3, "heat": "favorable" },
+        "triageTime": { "value": "5.3 min", "raw": 5.3, "heat": "favorable" },
+        "acceptanceRate": { "value": "82%", "raw": 82, "heat": "favorable" },
+        "escalationRate": { "value": "9%", "raw": 9, "heat": "favorable" },
+        "overrideFrequency": { "value": "7%", "raw": 7, "heat": "favorable" },
+        "manualEntryRate": { "value": "5%", "raw": 5, "heat": "favorable" }
+      },
+      "detail": {
+        "aiDiagnosis": "**Consistently ahead of target.** No standout exception type. This warehouse is a good reference pattern for the trailing sites.",
+        "exceptionCounts": [
+          { "type": "Carrier Delay", "count": 1 },
+          { "type": "Inventory Discrepancy", "count": 1 }
+        ],
+        "openT1Count": 0,
+        "topTier": "T4"
+      }
+    },
+    {
+      "id": "WFH-H",
+      "name": "Wichita Falls Hub",
+      "location": "Wichita Falls, TX",
+      "rank": 8,
+      "status": "on-track",
+      "cells": {
+        "mttr": { "value": "2.2 h", "raw": 2.2, "heat": "favorable" },
+        "triageTime": { "value": "5.1 min", "raw": 5.1, "heat": "favorable" },
+        "acceptanceRate": { "value": "84%", "raw": 84, "heat": "favorable" },
+        "escalationRate": { "value": "9%", "raw": 9, "heat": "favorable" },
+        "overrideFrequency": { "value": "7%", "raw": 7, "heat": "favorable" },
+        "manualEntryRate": { "value": "4%", "raw": 4, "heat": "favorable" }
+      },
+      "detail": {
+        "aiDiagnosis": "**Strong all-round read.** Fast triage and high acceptance keep escalations low even during peak inbound.",
+        "exceptionCounts": [
+          { "type": "Carrier Delay", "count": 2 }
+        ],
+        "openT1Count": 0,
+        "topTier": "T4"
+      }
+    },
+    {
+      "id": "DAL-S",
+      "name": "Dallas South DC",
+      "location": "Dallas, TX",
+      "rank": 9,
+      "status": "on-track",
+      "cells": {
+        "mttr": { "value": "2.1 h", "raw": 2.1, "heat": "favorable" },
+        "triageTime": { "value": "4.8 min", "raw": 4.8, "heat": "favorable" },
+        "acceptanceRate": { "value": "85%", "raw": 85, "heat": "favorable" },
+        "escalationRate": { "value": "8%", "raw": 8, "heat": "favorable" },
+        "overrideFrequency": { "value": "6%", "raw": 6, "heat": "favorable" },
+        "manualEntryRate": { "value": "4%", "raw": 4, "heat": "favorable" }
+      },
+      "detail": {
+        "aiDiagnosis": "**Best-in-zone acceptance.** The AI recommendation is trusted and acted on quickly, so few exceptions ever reach escalation.",
+        "exceptionCounts": [
+          { "type": "Carrier Delay", "count": 1 },
+          { "type": "Manual", "count": 1 }
+        ],
+        "openT1Count": 0,
+        "topTier": "T4"
+      }
+    },
+    {
+      "id": "MEM-G",
+      "name": "Memphis Gateway",
+      "location": "Memphis, TN",
+      "rank": 10,
+      "status": "on-track",
+      "cells": {
+        "mttr": { "value": "2.0 h", "raw": 2.0, "heat": "favorable" },
+        "triageTime": { "value": "4.6 min", "raw": 4.6, "heat": "favorable" },
+        "acceptanceRate": { "value": "85%", "raw": 85, "heat": "favorable" },
+        "escalationRate": { "value": "8%", "raw": 8, "heat": "favorable" },
+        "overrideFrequency": { "value": "6%", "raw": 6, "heat": "favorable" },
+        "manualEntryRate": { "value": "4%", "raw": 4, "heat": "favorable" }
+      },
+      "detail": {
+        "aiDiagnosis": "**Gateway hub is running well.** High throughput with fast resolution and rare escalations.",
+        "exceptionCounts": [
+          { "type": "Carrier Delay", "count": 2 },
+          { "type": "Dock Congestion", "count": 1 }
+        ],
+        "openT1Count": 0,
+        "topTier": "T4"
+      }
+    },
+    {
+      "id": "LAR-C",
+      "name": "Laredo Cross-Dock",
+      "location": "Laredo, TX",
+      "rank": 11,
+      "status": "on-track",
+      "cells": {
+        "mttr": { "value": "1.9 h", "raw": 1.9, "heat": "favorable" },
+        "triageTime": { "value": "4.2 min", "raw": 4.2, "heat": "favorable" },
+        "acceptanceRate": { "value": "88%", "raw": 88, "heat": "favorable" },
+        "escalationRate": { "value": "7%", "raw": 7, "heat": "favorable" },
+        "overrideFrequency": { "value": "5%", "raw": 5, "heat": "favorable" },
+        "manualEntryRate": { "value": "3%", "raw": 3, "heat": "favorable" }
+      },
+      "detail": {
+        "aiDiagnosis": "**Top of the zone.** Fastest resolution and highest acceptance, even at high cross-dock volume.",
+        "exceptionCounts": [
+          { "type": "Carrier Delay", "count": 1 }
+        ],
+        "openT1Count": 0,
+        "topTier": "T4"
+      }
+    }
+  ],
+  "adoption": {
+    "managerCount": 38,
+    "summary": {
+      "acceptedPct": 71,
+      "acceptedTrend": "4 pts higher than last quarter",
+      "modifiedPct": 18,
+      "modifiedTrend": "unchanged from last quarter",
+      "rejectedPct": 11,
+      "rejectedTrend": "2 pts lower than last quarter"
+    },
+    "trend": [
+      { "period": "Wk 1", "accepted": 60, "modified": 24, "rejected": 16 },
+      { "period": "Wk 2", "accepted": 66, "modified": 20, "rejected": 14 },
+      { "period": "Wk 3", "accepted": 70, "modified": 18, "rejected": 12 },
+      { "period": "Wk 4", "accepted": 72, "modified": 17, "rejected": 11 },
+      { "period": "Wk 5", "accepted": 71, "modified": 18, "rejected": 11 }
+    ],
+    "modelGaps": [
+      { "type": "Customs Hold", "correctedPct": 41, "isLowConfidence": true },
+      { "type": "Inventory Discrepancy", "correctedPct": 28, "isLowConfidence": true },
+      { "type": "Dock Congestion", "correctedPct": 19, "isLowConfidence": false },
+      { "type": "Carrier Delay", "correctedPct": 12, "isLowConfidence": false },
+      { "type": "Manual", "correctedPct": 6, "isLowConfidence": false }
+    ],
+    "leaderboard": [
+      {
+        "rank": 1,
+        "name": "K. Mensah",
+        "volume": 1204,
+        "acceptedPct": 83,
+        "modifiedPct": 12,
+        "rejectedPct": 5,
+        "trajectory": "rising",
+        "tier": "superuser",
+        "isSelf": false,
+        "isTopAdopter": true,
+        "weeklyBuckets": [
+          { "heightPercent": 68, "label": "Wk 1" },
+          { "heightPercent": 72, "label": "Wk 2" },
+          { "heightPercent": 78, "label": "Wk 3" },
+          { "heightPercent": 80, "label": "Wk 4" },
+          { "heightPercent": 88, "label": "Wk 5" }
+        ]
+      },
+      {
+        "rank": 2,
+        "name": "L. Ferreira",
+        "volume": 1097,
+        "acceptedPct": 80,
+        "modifiedPct": 14,
+        "rejectedPct": 6,
+        "trajectory": "rising",
+        "tier": "superuser",
+        "isSelf": false,
+        "isTopAdopter": true,
+        "weeklyBuckets": [
+          { "heightPercent": 64, "label": "Wk 1" },
+          { "heightPercent": 70, "label": "Wk 2" },
+          { "heightPercent": 74, "label": "Wk 3" },
+          { "heightPercent": 78, "label": "Wk 4" },
+          { "heightPercent": 82, "label": "Wk 5" }
+        ]
+      },
+      {
+        "rank": 3,
+        "name": "R. Alvarez (you)",
+        "volume": 982,
+        "acceptedPct": 78,
+        "modifiedPct": 15,
+        "rejectedPct": 7,
+        "trajectory": "rising",
+        "tier": "superuser",
+        "isSelf": true,
+        "isTopAdopter": false,
+        "weeklyBuckets": [
+          { "heightPercent": 60, "label": "Wk 1" },
+          { "heightPercent": 66, "label": "Wk 2" },
+          { "heightPercent": 70, "label": "Wk 3" },
+          { "heightPercent": 74, "label": "Wk 4" },
+          { "heightPercent": 78, "label": "Wk 5" }
+        ]
+      },
+      {
+        "rank": 4,
+        "name": "P. Nakamura",
+        "volume": 874,
+        "acceptedPct": 76,
+        "modifiedPct": 16,
+        "rejectedPct": 8,
+        "trajectory": "steady",
+        "tier": "superuser",
+        "isSelf": false,
+        "isTopAdopter": false,
+        "weeklyBuckets": [
+          { "heightPercent": 72, "label": "Wk 1" },
+          { "heightPercent": 74, "label": "Wk 2" },
+          { "heightPercent": 73, "label": "Wk 3" },
+          { "heightPercent": 76, "label": "Wk 4" },
+          { "heightPercent": 76, "label": "Wk 5" }
+        ]
+      },
+      {
+        "rank": 5,
+        "name": "S. Adeyemi",
+        "volume": 812,
+        "acceptedPct": 74,
+        "modifiedPct": 17,
+        "rejectedPct": 9,
+        "trajectory": "steady",
+        "tier": "superuser",
+        "isSelf": false,
+        "isTopAdopter": false,
+        "weeklyBuckets": [
+          { "heightPercent": 70, "label": "Wk 1" },
+          { "heightPercent": 72, "label": "Wk 2" },
+          { "heightPercent": 71, "label": "Wk 3" },
+          { "heightPercent": 73, "label": "Wk 4" },
+          { "heightPercent": 74, "label": "Wk 5" }
+        ]
+      },
+      {
+        "rank": 6,
+        "name": "M. Kowalski",
+        "volume": 601,
+        "acceptedPct": 67,
+        "modifiedPct": 18,
+        "rejectedPct": 15,
+        "trajectory": "falling",
+        "tier": "trailing",
+        "isSelf": false,
+        "isTopAdopter": false,
+        "weeklyBuckets": [
+          { "heightPercent": 74, "label": "Wk 1" },
+          { "heightPercent": 72, "label": "Wk 2" },
+          { "heightPercent": 70, "label": "Wk 3" },
+          { "heightPercent": 68, "label": "Wk 4" },
+          { "heightPercent": 67, "label": "Wk 5" }
+        ]
+      },
+      {
+        "rank": 7,
+        "name": "D. Novak",
+        "volume": 412,
+        "acceptedPct": 61,
+        "modifiedPct": 17,
+        "rejectedPct": 22,
+        "trajectory": "falling",
+        "tier": "trailing",
+        "isSelf": false,
+        "isTopAdopter": false,
+        "weeklyBuckets": [
+          { "heightPercent": 70, "label": "Wk 1" },
+          { "heightPercent": 68, "label": "Wk 2" },
+          { "heightPercent": 65, "label": "Wk 3" },
+          { "heightPercent": 63, "label": "Wk 4" },
+          { "heightPercent": 61, "label": "Wk 5" }
+        ]
+      },
+      {
+        "rank": 8,
+        "name": "J. Okafor",
+        "volume": 388,
+        "acceptedPct": 58,
+        "modifiedPct": 16,
+        "rejectedPct": 26,
+        "trajectory": "falling",
+        "tier": "trailing",
+        "isSelf": false,
+        "isTopAdopter": false,
+        "weeklyBuckets": [
+          { "heightPercent": 68, "label": "Wk 1" },
+          { "heightPercent": 65, "label": "Wk 2" },
+          { "heightPercent": 62, "label": "Wk 3" },
+          { "heightPercent": 60, "label": "Wk 4" },
+          { "heightPercent": 58, "label": "Wk 5" }
+        ]
+      }
+    ]
+  }
+}

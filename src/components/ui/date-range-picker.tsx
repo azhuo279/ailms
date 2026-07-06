@@ -18,6 +18,8 @@ export interface DateRangePickerProps {
   disabled?: boolean;
   readOnly?: boolean;
   label: string;
+  /** Opt-in override for the Field label styling (e.g. small-caps filter labels). */
+  labelClassName?: string;
   helperText?: string;
   status?: FieldStatus;
   validationText?: string;
@@ -117,6 +119,7 @@ export function DateRangePicker({
   disabled = false,
   readOnly = false,
   label,
+  labelClassName,
   helperText,
   status = "default",
   validationText,
@@ -129,7 +132,7 @@ export function DateRangePicker({
   const [viewMonth, setViewMonth] = useState<Date>(() => startOfDay(value.start ?? new Date()));
   const [draftStart, setDraftStart] = useState<Date | null>(value.start);
   const [hoverDate, setHoverDate] = useState<Date | null>(null);
-  const [rect, setRect] = useState<{ top: number; left: number; width: number } | null>(null);
+  const [rect, setRect] = useState<{ top: number; right: number } | null>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -142,7 +145,7 @@ export function DateRangePicker({
     const el = triggerRef.current;
     if (!el) return;
     const r = el.getBoundingClientRect();
-    setRect({ top: r.bottom, left: r.left, width: r.width });
+    setRect({ top: r.bottom, right: window.innerWidth - r.right });
   };
 
   useLayoutEffect(() => {
@@ -226,14 +229,23 @@ export function DateRangePicker({
   const rangeStart = value.start;
   const rangeEnd = value.end ?? (draftStart ? hoverDate : null);
 
-  const renderGrid = (monthDate: Date, monthDays: Date[]) => (
+  const renderGrid = (
+    monthDate: Date,
+    monthDays: Date[],
+    navBefore?: React.ReactNode,
+    navAfter?: React.ReactNode,
+  ) => (
     <div>
-      <p className="pb-1 text-center text-label-l font-medium text-fg-primary">
-        {MONTH_YEAR_FORMATTER.format(monthDate)}
-      </p>
+      <div className="flex items-center justify-between gap-2 pb-1">
+        <div className="flex size-8 shrink-0 items-center justify-center">{navBefore}</div>
+        <p className="text-center text-label-l font-medium text-fg-primary">
+          {MONTH_YEAR_FORMATTER.format(monthDate)}
+        </p>
+        <div className="flex size-8 shrink-0 items-center justify-center">{navAfter}</div>
+      </div>
       <div className="grid grid-cols-7 gap-1 pb-1">
         {WEEKDAY_LABELS.map((wd) => (
-          <span key={wd} className="flex h-8 items-center justify-center text-caption text-fg-muted">
+          <span key={wd} className="flex size-8 items-center justify-center text-caption text-fg-muted">
             {wd}
           </span>
         ))}
@@ -254,7 +266,7 @@ export function DateRangePicker({
               onClick={() => pickDay(d)}
               onMouseEnter={() => setHoverDate(d)}
               className={cn(
-                "flex h-8 items-center justify-center rounded-md text-body-s text-fg-primary transition-colors",
+                "flex size-8 items-center justify-center rounded-md text-body-s text-fg-primary transition-colors",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring",
                 outsideMonth && "text-fg-muted",
                 inRange && !isStart && !isEnd && "bg-option-hover",
@@ -273,7 +285,8 @@ export function DateRangePicker({
   return (
     <Field
       label={label}
-      helperText={helperText ?? "Format: MM/DD/YYYY"}
+      labelClassName={labelClassName}
+      helperText={helperText}
       validationText={validationText}
       status={status}
       required={required}
@@ -319,7 +332,7 @@ export function DateRangePicker({
                   ref={panelRef}
                   role="dialog"
                   aria-label="Choose date range"
-                  style={{ position: "fixed", top: rect.top, left: rect.left, width: "max-content" }}
+                  style={{ position: "fixed", top: rect.top, right: rect.right, width: "max-content" }}
                   className="z-50 mt-1 flex gap-4 rounded-md border border-border-subtle bg-surface-overlay p-3 shadow-lg"
                 >
                   {showPresets ? (
@@ -347,8 +360,10 @@ export function DateRangePicker({
                       </Button>
                     </div>
                   ) : null}
-                  <div className="flex flex-col gap-2">
-                    <div className="flex items-center justify-between gap-2">
+                  <div className="flex gap-4">
+                    {renderGrid(
+                      viewMonth,
+                      days,
                       <Button
                         iconOnly
                         aria-label="Previous month"
@@ -356,10 +371,12 @@ export function DateRangePicker({
                         size="sm"
                         variant="ghost"
                         onClick={() => goToMonth(-1)}
-                      />
-                      <span className="text-caption text-fg-muted">
-                        Start: {formatDate(value.start)} &nbsp; End: {formatDate(value.end)}
-                      </span>
+                      />,
+                    )}
+                    {renderGrid(
+                      secondMonth,
+                      secondDays,
+                      undefined,
                       <Button
                         iconOnly
                         aria-label="Next month"
@@ -367,12 +384,8 @@ export function DateRangePicker({
                         size="sm"
                         variant="ghost"
                         onClick={() => goToMonth(1)}
-                      />
-                    </div>
-                    <div className="flex gap-4">
-                      {renderGrid(viewMonth, days)}
-                      {renderGrid(secondMonth, secondDays)}
-                    </div>
+                      />,
+                    )}
                   </div>
                 </div>,
                 document.body,

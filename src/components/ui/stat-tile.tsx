@@ -210,7 +210,7 @@ function StatTileSparkline({ buckets, favorable, unfavorable }: StatTileSparklin
 
   return (
     <div
-      className="flex h-7 items-end gap-0.5 overflow-hidden rounded-b-lg"
+      className="flex h-7 items-end gap-1 overflow-hidden rounded-b-lg px-2"
       role="img"
       aria-label={`Trend over the last ${buckets.length} periods`}
     >
@@ -252,14 +252,14 @@ function StatTileComparisonHeadline({ comparisonBar }: StatTileComparisonHeadlin
 
   return (
     <div className="mt-1">
-      <p className="text-body-s font-bold tabular-nums text-fg-primary">
+      <p className="text-heading-l tabular-nums text-fg-primary">
         {plannedLabel}
         {"–"}
         <span className="text-ai-fg">{predictedLabel}</span>
       </p>
       <p
         className={cn(
-          "mt-0.5 text-caption",
+          "mt-1 text-body-s",
           state === "unfavorable" && "text-severity-fg",
           state === "favorable" && "text-success-fg",
           state === "ontime" && "text-fg-muted",

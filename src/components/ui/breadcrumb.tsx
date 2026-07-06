@@ -9,6 +9,12 @@ export interface BreadcrumbItem {
   label: string;
   /** Omit on the current (last) item — it renders as plain text, not a link. */
   href?: string;
+  /**
+   * Client-side handler for crumbs that navigate in-app without a route change
+   * (e.g. clearing a selection to return to a split-view root). Renders the
+   * crumb as a button. Ignored when `href` is set or on the current item.
+   */
+  onClick?: () => void;
   /** Overrides the default truncation width for this item's label. */
   maxWidthClassName?: string;
 }
@@ -51,6 +57,20 @@ function CrumbLink({
     "truncate",
     item.maxWidthClassName ?? "max-w-[12rem]",
   );
+
+  const interactiveClasses = cn(
+    labelClasses,
+    "rounded-sm text-fg-secondary transition-colors hover:text-fg-primary hover:underline",
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-1",
+  );
+
+  if (!isCurrent && !item.href && item.onClick) {
+    return (
+      <button type="button" onClick={item.onClick} title={item.label} className={interactiveClasses}>
+        {item.label}
+      </button>
+    );
+  }
 
   if (isCurrent || !item.href) {
     return (

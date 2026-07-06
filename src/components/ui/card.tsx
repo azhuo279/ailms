@@ -1,11 +1,12 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
-export type CardPadding = "compact" | "default";
+export type CardPadding = "compact" | "default" | "spacious";
 
 const PADDING_CLASSES: Record<CardPadding, string> = {
   compact: "p-3",
   default: "p-4",
+  spacious: "p-5",
 };
 
 export interface CardProps {
@@ -63,16 +64,24 @@ export interface CardHeaderProps {
   media?: ReactNode;
   /** Trailing actions — icon buttons, a Menu trigger. */
   actions?: ReactNode;
+  /**
+   * Opt-in escape hatch for the title `<h3>`, merged AFTER the base classes so it can override
+   * them. The default title is single-line (`truncate`) at `text-heading-l`; pass this to let a
+   * specific surface wrap or resize the title without changing that shared default. To let the
+   * title wrap to two lines, defeat the base `truncate` (overflow-hidden + text-ellipsis +
+   * whitespace-nowrap) with `line-clamp-2 whitespace-normal` and set a smaller type token.
+   */
+  titleClassName?: string;
   className?: string;
 }
 
 /** Card's header row: optional media, title/description stack, trailing actions. */
-export function CardHeader({ children, title, description, media, actions, className }: CardHeaderProps) {
+export function CardHeader({ children, title, description, media, actions, titleClassName, className }: CardHeaderProps) {
   return (
     <div className={cn("flex items-start gap-3", className)}>
       {media ? <span className="flex shrink-0 items-center text-fg-secondary" aria-hidden="true">{media}</span> : null}
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        {title ? <h3 className="truncate text-heading-l font-semibold text-fg-primary">{title}</h3> : null}
+        {title ? <h3 className={cn("truncate text-heading-l font-semibold text-fg-primary", titleClassName)}>{title}</h3> : null}
         {description ? <p className="text-body-s text-fg-muted">{description}</p> : null}
         {children}
       </div>

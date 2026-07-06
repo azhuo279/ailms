@@ -18,10 +18,26 @@ const TIER_CONFIG: Record<
   PriorityTier,
   { label: string; icon: typeof AlertCircle; className: string }
 > = {
-  T1: { label: "Critical priority", icon: AlertCircle, className: "bg-severity-surface text-severity-fg" },
-  T2: { label: "High priority", icon: ArrowUpCircle, className: "bg-severity-surface/60 text-severity-fg" },
-  T3: { label: "Medium priority", icon: CircleDot, className: "bg-warning-surface text-warning-fg" },
-  T4: { label: "Low priority", icon: Circle, className: "bg-surface-sunken text-fg-secondary" },
+  T1: {
+    label: "Critical",
+    icon: AlertCircle,
+    className: "bg-severity-surface text-severity-fg",
+  },
+  T2: {
+    label: "High",
+    icon: ArrowUpCircle,
+    className: "bg-severity-surface/60 text-severity-fg",
+  },
+  T3: {
+    label: "Medium",
+    icon: CircleDot,
+    className: "bg-warning-surface text-warning-fg",
+  },
+  T4: {
+    label: "Low",
+    icon: Circle,
+    className: "bg-surface-sunken text-fg-secondary",
+  },
 };
 
 export interface PriorityTierBadgeProps {

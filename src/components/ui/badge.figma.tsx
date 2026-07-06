@@ -9,6 +9,7 @@ figma.connect(
       label: figma.string("label"),
       tone: figma.enum("Tone", {
         neutral: "neutral",
+        brand: "brand",
         success: "success",
         warning: "warning",
         danger: "danger",
@@ -17,7 +18,12 @@ figma.connect(
         delayed: "delayed",
         pending: "pending",
       }),
+      solid: figma.boolean("solid"),
     },
-    example: ({ label, tone }) => <Badge tone={tone}>{label}</Badge>,
+    example: ({ label, tone, solid }) => (
+      <Badge tone={tone} solid={solid}>
+        {label}
+      </Badge>
+    ),
   },
 );

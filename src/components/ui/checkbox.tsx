@@ -5,8 +5,10 @@ import { cn } from "@/lib/utils";
 
 export type CheckboxSize = "sm" | "md" | "lg";
 
-export interface CheckboxProps
-  extends Omit<InputHTMLAttributes<HTMLInputElement>, "type" | "checked" | "onChange" | "size"> {
+export interface CheckboxProps extends Omit<
+  InputHTMLAttributes<HTMLInputElement>,
+  "type" | "checked" | "onChange" | "size"
+> {
   checked?: boolean;
   /** Renders the dash mark and sets the native indeterminate property. */
   indeterminate?: boolean;
@@ -52,91 +54,97 @@ const LABEL_TEXT_CLASSES: Record<CheckboxSize, string> = {
  * selection logic exists. Built on a real, visually-hidden input so it stays
  * fully keyboard-operable and accessible.
  */
-export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(function Checkbox(
-  {
-    checked = false,
-    indeterminate = false,
-    onChange,
-    label,
-    size = "md",
-    disabled = false,
-    invalid = false,
-    id,
-    className,
-    ...props
-  },
-  ref,
-) {
-  const internalRef = useRef<HTMLInputElement>(null);
+export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
+  function Checkbox(
+    {
+      checked = false,
+      indeterminate = false,
+      onChange,
+      label,
+      size = "md",
+      disabled = false,
+      invalid = false,
+      id,
+      className,
+      ...props
+    },
+    ref,
+  ) {
+    const internalRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    internalRef.current!.indeterminate = indeterminate;
-  }, [indeterminate]);
+    useEffect(() => {
+      internalRef.current!.indeterminate = indeterminate;
+    }, [indeterminate]);
 
-  return (
-    <label
-      className={cn(
-        "inline-flex items-center gap-2",
-        disabled ? "cursor-not-allowed" : "cursor-pointer",
-        className,
-      )}
-    >
-      <span
+    return (
+      <label
         className={cn(
-          "relative inline-flex shrink-0 items-center justify-center",
-          BOX_SIZE_CLASSES[size],
-          HIT_AREA_CLASSES[size],
+          "inline-flex items-center gap-2",
+          disabled ? "cursor-not-allowed" : "cursor-pointer",
+          className,
         )}
       >
-        <input
-          ref={(node) => {
-            internalRef.current = node;
-            if (typeof ref === "function") ref(node);
-            else if (ref) ref.current = node;
-          }}
-          id={id}
-          type="checkbox"
-          role="checkbox"
-          checked={checked}
-          aria-checked={indeterminate ? "mixed" : checked}
-          aria-invalid={invalid || undefined}
-          disabled={disabled}
-          onChange={(e) => onChange?.(e.target.checked)}
-          className="peer sr-only"
-          {...props}
-        />
         <span
-          aria-hidden="true"
           className={cn(
-            "flex shrink-0 items-center justify-center rounded border transition-colors",
+            "relative inline-flex shrink-0 items-center justify-center",
             BOX_SIZE_CLASSES[size],
-            "peer-focus-visible:ring-2 peer-focus-visible:ring-focus-ring peer-focus-visible:ring-offset-2",
-            checked || indeterminate
-              ? "border-checked bg-checked text-fg-on-primary"
-              : "border-border-strong bg-surface-raised",
-            invalid && !disabled && "border-danger-border",
-            disabled && "border-border-disabled bg-surface-disabled text-fg-disabled",
+            HIT_AREA_CLASSES[size],
           )}
         >
-          {indeterminate ? (
-            <Minus className={ICON_SIZE_CLASSES[size]} strokeWidth={3} />
-          ) : checked ? (
-            <Check className={ICON_SIZE_CLASSES[size]} strokeWidth={3} />
-          ) : null}
+          <input
+            ref={(node) => {
+              internalRef.current = node;
+              if (typeof ref === "function") ref(node);
+              else if (ref) ref.current = node;
+            }}
+            id={id}
+            type="checkbox"
+            role="checkbox"
+            checked={checked}
+            aria-checked={indeterminate ? "mixed" : checked}
+            aria-invalid={invalid || undefined}
+            disabled={disabled}
+            onChange={(e) => onChange?.(e.target.checked)}
+            className="peer sr-only"
+            {...props}
+          />
+          <span
+            aria-hidden="true"
+            className={cn(
+              "flex shrink-0 items-center justify-center rounded border transition-colors",
+              BOX_SIZE_CLASSES[size],
+              "peer-focus-visible:ring-2 peer-focus-visible:ring-focus-ring peer-focus-visible:ring-offset-2",
+              checked || indeterminate
+                ? "border-checked bg-checked text-fg-on-primary"
+                : "border-border-strong bg-surface-raised",
+              invalid && !disabled && "border-danger-border",
+              disabled &&
+                "border-border-disabled bg-surface-disabled text-fg-disabled",
+            )}
+          >
+            {indeterminate ? (
+              <Minus className={ICON_SIZE_CLASSES[size]} strokeWidth={3} />
+            ) : checked ? (
+              <Check className={ICON_SIZE_CLASSES[size]} strokeWidth={3} />
+            ) : null}
+          </span>
         </span>
-      </span>
-      {label ? (
-        <span
-          className={cn(
-            LABEL_TEXT_CLASSES[size],
-            "text-fg-primary",
-            disabled && "text-fg-disabled",
-            invalid && !disabled && "text-danger-fg",
-          )}
-        >
-          {label}
-        </span>
-      ) : null}
-    </label>
-  );
-});
+        {label ? (
+          <span
+            className={cn(
+              LABEL_TEXT_CLASSES[size],
+              // min-w-0 lets the label shrink inside a constrained flex row instead
+              // of forcing the row wider than its container; break-words keeps a long
+              // single label wrapping within bounds rather than overflowing.
+              "min-w-0 break-words text-fg-primary",
+              disabled && "text-fg-disabled",
+              invalid && !disabled && "text-danger-fg",
+            )}
+          >
+            {label}
+          </span>
+        ) : null}
+      </label>
+    );
+  },
+);

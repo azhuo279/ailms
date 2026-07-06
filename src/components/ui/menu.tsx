@@ -22,10 +22,18 @@ export interface MenuProps {
 }
 
 interface MenuPosition {
-  top: number;
+  /** Distance from the top of the viewport when the menu drops down. */
+  top?: number;
+  /** Distance from the bottom of the viewport when the menu flips up. */
+  bottom?: number;
   left: number;
   minWidth: number;
 }
+
+/** Gap between the trigger and the menu surface. */
+const MENU_GAP = 4;
+/** Space we reserve below the trigger before flipping the menu upward. */
+const FLIP_THRESHOLD = 240;
 
 /**
  * Canonical Menu — a temporary surface of actions or options opened from a
@@ -42,15 +50,37 @@ export function Menu({ trigger, children, align = "start", className }: MenuProp
     const el = triggerRef.current;
     if (!el) return;
     const rect = el.getBoundingClientRect();
-    setPosition({
-      top: rect.bottom + 4,
-      left: align === "end" ? rect.right : rect.left,
-      minWidth: rect.width,
-    });
+    const left = align === "end" ? rect.right : rect.left;
+    const minWidth = rect.width;
+
+    // Flip upward when there isn't enough room below the trigger — prefer the
+    // rendered menu height once available, otherwise fall back to a threshold.
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const menuHeight = menuRef.current?.offsetHeight ?? 0;
+    const needed = menuHeight ? menuHeight + MENU_GAP : FLIP_THRESHOLD;
+    const flipUp = spaceBelow < needed && rect.top > spaceBelow;
+
+    setPosition(
+      flipUp
+        ? {
+            bottom: window.innerHeight - rect.top + MENU_GAP,
+            left,
+            minWidth,
+          }
+        : {
+            top: rect.bottom + MENU_GAP,
+            left,
+            minWidth,
+          },
+    );
   };
 
   useLayoutEffect(() => {
-    if (open) updatePosition();
+    if (!open) return;
+    // First pass positions using the flip threshold; a second pass runs once
+    // the menu has rendered so the decision can use its measured height.
+    updatePosition();
+    requestAnimationFrame(updatePosition);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
@@ -116,6 +146,7 @@ export function Menu({ trigger, children, align = "start", className }: MenuProp
               style={{
                 position: "fixed",
                 top: position.top,
+                bottom: position.bottom,
                 left: align === "end" ? undefined : position.left,
                 right: align === "end" ? window.innerWidth - position.left : undefined,
                 minWidth: position.minWidth,

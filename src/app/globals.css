@@ -27,6 +27,7 @@
   /* ============================= Primitives ============================= */
 
   /* neutral — hue 258, cool gray (canvas / surface / text / border) */
+  --color-neutral-0: oklch(1 0 0); /* pure white — lightest elevated surface */
   --color-neutral-50: oklch(0.98 0.006 258);
   --color-neutral-100: oklch(0.95 0.006 258);
   --color-neutral-200: oklch(0.94 0.008 258);
@@ -106,11 +107,18 @@
 
   /* ============================= Semantic ============================= */
 
-  /* Surfaces */
-  --color-surface: var(--color-neutral-200);
-  --color-surface-raised: var(--color-neutral-50);
+  /*
+   * Surfaces — inverted elevation depth (darkest chrome → lighter canvas →
+   * lightest elevated). The outer app shell + sidebar chrome sits on the
+   * darker `surface-shell`; the page canvas (`surface`) is a step lighter and
+   * inset within it; elevated components (cards, inputs, overlays) sit on the
+   * lightest `surface-raised` (pure white) so they still read above the canvas.
+   */
+  --color-surface-shell: var(--color-neutral-200);
+  --color-surface: var(--color-neutral-50);
+  --color-surface-raised: var(--color-neutral-0);
   --color-surface-sunken: var(--color-neutral-300);
-  --color-surface-overlay: var(--color-neutral-50);
+  --color-surface-overlay: var(--color-neutral-0);
 
   /* Foreground / text */
   --color-fg-primary: var(--color-neutral-900);
@@ -119,7 +127,7 @@
   --color-fg-on-primary: var(--color-neutral-50);
 
   /* Borders */
-  --color-border-subtle: var(--color-neutral-300);
+  --color-border-subtle: var(--color-neutral-200);
   --color-border-strong: var(--color-neutral-400);
 
   /* Buttons / links / focus / nav (primary role) */
@@ -144,6 +152,34 @@
   --color-ai-border: var(--color-ai-500);
   --color-ai-fg: var(--color-ai-700);
   --color-ai-emphasis: var(--color-ai-600);
+
+  /*
+   * AI glass-card tokens (DESIGN.md §3/§5) — the frosted-glass treatment for
+   * containerized AI surfaces (recommendation/summary cards, reasoning panels),
+   * the highest-elevation layer on any screen. Consumed by the `.ai-card`
+   * utility class below, not applied à la carte:
+   *   - ai-card        the glass body — a near-WHITE fill with only a whisper
+   *                    of teal (literal oklch(0.98 0.008 190), brighter than
+   *                    ai-50). NOT an alias of a primitive step: even ai-50
+   *                    (0.97) reads as a visible teal tint, but the reference
+   *                    body is essentially white — teal identity comes from the
+   *                    bloom, border, and text, not the fill. The card must read
+   *                    as bright white glass, not a teal panel.
+   *   - ai-card-inset  the bloom highlight color (literal oklch(0.995 0.006
+   *                    190), near-pure-white, faint teal cast). Role: the bright
+   *                    core of the radial-gradient FACE bloom on .ai-card (and
+   *                    the crisp top-highlight line). Box-shadow inset only
+   *                    paints the card EDGES, so it can't render a bloom across
+   *                    the face — that job moved to a radial-gradient background
+   *                    layer; this token is its highlight color. Not a fill token.
+   *   - ai-card-border faint teal hairline: ai-300 at 40% opacity. Carries an
+   *                    opacity modifier baked in (no plain Tailwind border-*
+   *                    utility), so it's a literal oklch(.79 .05 190 / .4)
+   *                    rather than an alias of --color-ai-300.
+   */
+  --color-ai-card: oklch(0.98 0.008 190);
+  --color-ai-card-inset: oklch(0.995 0.006 190);
+  --color-ai-card-border: oklch(0.79 0.05 190 / 0.4);
 
   /* Severity surfaces (reserved) */
   --color-severity-surface: var(--color-severity-50);
@@ -316,6 +352,55 @@
 }
 
 /*
+ * AI glass card (DESIGN.md §5 "AI surface elevation") — the frosted-glass
+ * treatment for containerized AI surfaces (recommendation/summary cards,
+ * reasoning panels), layer 3 of the elevation stack (above operational cards,
+ * below modals). Applied as a utility class rather than @theme tokens because
+ * it's a multi-layer box-shadow + backdrop-filter recipe, not a single value.
+ *
+ *   fill    near-white glass body (var(--color-ai-card), oklch(0.98 0.008 190))
+ *           — reads as white, not a teal tint.
+ *   bloom   a RADIAL-GRADIENT FACE bloom layered OVER the fill via `background`.
+ *           This is the fix for the "flat even box" read: box-shadow inset only
+ *           paints the card EDGES, so it can't render light across the card FACE
+ *           — a gradient can. A bright near-white core (var(--color-ai-card-
+ *           inset)) originates upper-left (15% 0%) and fades to transparent by
+ *           ~55%, so light visibly blooms across the face and falls off into the
+ *           near-white body (per the reference: bright upper-left bloom → soft
+ *           near-white).
+ *   border  1px ai-300 @ 40% (via --color-ai-card-border)
+ *   radius  rounded-xl (0.75rem) — one step up from standard rounded-lg cards
+ *   shadow  three layers — the interior bloom moved to the gradient above, so
+ *           box-shadow only carries the edge/elevation work now:
+ *             1. crisp top highlight line — inset near-white @ .95 (0 1px 0),
+ *                the glass top edge
+ *             2. outer ai-500 halo @ .10 (0 4px 24px) — subtle outer glow
+ *             3. outer ai-700 contact shadow @ .08 (0 1px 4px) — grounds the card
+ *           Highlight/bloom near-white equals var(--color-ai-card-inset); alpha
+ *           layers are literal oklch (§5) since CSS var + per-layer alpha
+ *           compositing is awkward.
+ *   glass   backdrop-filter: blur(8px) — code-only enhancement, degrades
+ *           gracefully (fill unchanged) where unsupported.
+ */
+.ai-card {
+  background:
+    radial-gradient(
+      120% 120% at 15% 0%,
+      oklch(0.995 0.006 190 / 0.9) 0%,
+      oklch(0.99 0.006 190 / 0) 55%
+    ),
+    var(--color-ai-card);
+  border: 1px solid var(--color-ai-card-border);
+  border-radius: 0.75rem;
+  box-shadow:
+    inset 0 1px 0 0 oklch(0.99 0.008 190 / 0.95),
+    0 4px 24px 0 oklch(0.63 0.11 190 / 0.1),
+    0 1px 4px 0 oklch(0.44 0.104 190 / 0.08);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/*
  * Phase 4 addition — indeterminate Progress Indicator sweep. Tailwind v4
  * ships no built-in equivalent to `animate-pulse`/`animate-spin` for a
  * sliding bar, so this keyframe is added directly (referenced via the
@@ -400,15 +485,195 @@
  * 0%/100% opacity is 0.15 to match the static halo's base Tailwind class (`opacity-15`) in
  * stat-tile.tsx exactly — the reduced-motion resting frame and the animated cycle's resting
  * frame must render identically, so both sides use this same stock Tailwind scale step.
+ *
+ * Animates the standalone `scale` property only (not `transform`). The halo is centered over
+ * the predicted marker by Tailwind v4's `-translate-x-1/2 -translate-y-1/2`, which v4 compiles
+ * to the standalone `translate` CSS property (translate: -50% -50%), NOT to `transform`.
+ * Animating `transform` here would compose ON TOP OF that `translate` property and shift the
+ * halo a full extra -50%/-50% off the marker for the whole pulse. Driving `scale` alone leaves
+ * the centering `translate` property intact, so the halo pulses in place, exactly over the
+ * marker.
  */
 @keyframes cbar-pulse {
   0%,
   100% {
     opacity: 0.15;
-    transform: translate(-50%, -50%) scale(1);
+    scale: 1;
   }
   50% {
     opacity: 0.3;
-    transform: translate(-50%, -50%) scale(1.18);
+    scale: 1.18;
+  }
+}
+
+/*
+ * Map marker hover halo (workspace triage instrument, refined via the animator
+ * skill). When a feed card is hovered, its map pin lifts (scale, via a Tailwind
+ * utility) and this ambient halo pulses so the eye finds the linked pin. It is a
+ * peripheral "this is the one" cue, NOT an alarm or a loading spinner, so it
+ * stays slow (2s) and low-amplitude (opacity 0.2 -> 0.28, scale 1 -> 1.25) with
+ * ease-in-out — the same ambient cadence as `cbar-pulse`, not a fast attention
+ * grab. Gated by Tailwind's `motion-safe:` variant in
+ * exception-map-cluster-marker.tsx: under `prefers-reduced-motion: reduce` the
+ * halo is still rendered (the pin's scale + halo presence remain the non-motion
+ * cue) but never receives this loop, resting at its base opacity. Animates only
+ * opacity + transform (compositor-friendly).
+ */
+@keyframes marker-hover-pulse {
+  0%,
+  100% {
+    opacity: 0.2;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.28;
+    transform: scale(1.25);
+  }
+}
+
+/*
+ * Drawer enter/exit (canonical Drawer primitive). A side sheet appears from and
+ * leaves toward its docking edge, so the panel translates on the X axis while
+ * the scrim cross-fades. Specs from the animator skill's preset table:
+ *   - panel enter  small-enter, 250ms decelerate cubic-bezier(0,0,0.2,1) —
+ *                  translateX(100%|-100%) -> 0 + fade in. It arrives and settles.
+ *   - panel exit   small-exit, 200ms accelerate cubic-bezier(0.4,0,1,1) —
+ *                  0 -> translateX(100%|-100%) + fade out. Exits faster than the
+ *                  enter and gets out of the way (enter/exit asymmetry).
+ *   - scrim        opacity 0 <-> 1 over the same durations, ease-out/ease-in.
+ * Animates only transform + opacity (compositor-friendly). The `-left` variants
+ * mirror the axis for a left-docked drawer. Under prefers-reduced-motion the
+ * spatial slide is dropped and only a brief opacity fade remains (the panel
+ * still appears/disappears, so the meaning — a surface opened/closed — is
+ * preserved without vestibular-trigger translation); handled by the
+ * motion-reduce block below rather than deleting the animation outright.
+ */
+@keyframes drawer-scrim-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes drawer-scrim-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes drawer-panel-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes drawer-panel-out-right {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+@keyframes drawer-panel-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes drawer-panel-out-left {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+}
+
+/*
+ * Reduced-motion path for every Drawer keyframe above. The panel/scrim still
+ * change state (so nothing silently disappears), but as a fast opacity-only
+ * fade with no translation — spatial motion is the vestibular trigger, the
+ * fade carries the "opened/closed" meaning.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .drawer-scrim-anim,
+  .drawer-panel-anim {
+    animation-name: drawer-scrim-in;
+    animation-duration: 1ms;
+    transform: none !important;
+  }
+  .drawer-scrim-anim[data-state="closing"],
+  .drawer-panel-anim[data-state="closing"] {
+    animation-name: drawer-scrim-out;
+    animation-duration: 1ms;
+  }
+}
+
+/*
+ * Zone Insights Drawer — batched-update FLIP layer (`zone-insights-drawer.tsx`).
+ * Queued background changes (new insight, resolved insight, in-tier re-rank)
+ * apply all at once when the user clicks "View updates," never live, per the
+ * inventor brief's liveness-without-chaos synthesis. Timings mirror the
+ * canonical Drawer's enter/exit asymmetry one level down (small-enter /
+ * small-exit presets, same easing curves) so the two motion layers read as one
+ * system:
+ *   - card enter   260ms decelerate cubic-bezier(0,0,0.2,1) — fade + slight
+ *                  rise, matches the empty-state-rise-in "arrives and settles" feel.
+ *   - card exit    220ms accelerate cubic-bezier(0.4,0,1,1) — fade + collapse
+ *                  (height/margin to 0), a deliberate resolved-and-removed cue,
+ *                  never an instant disappearance.
+ *   - card move    280ms decelerate cubic-bezier(0,0,0.2,1), transform only —
+ *                  the FLIP position delta (old rect -> new rect), bounded to
+ *                  reordering within the same severity tier.
+ * Animates only opacity/transform/max-height (compositor-friendly, no layout
+ * thrash beyond the deliberate height collapse on exit). Under
+ * prefers-reduced-motion, entering/exiting cards resolve straight to their end
+ * state via `motion-safe:` gating in the component, and reordered cards skip
+ * the FLIP transform entirely (position updates with no animated delta).
+ */
+@keyframes insight-card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes insight-card-exit {
+  from {
+    opacity: 1;
+    max-height: 320px;
+  }
+  to {
+    opacity: 0;
+    max-height: 0;
+    margin-bottom: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    transform: scale(0.97);
   }
 }

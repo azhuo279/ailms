@@ -18,9 +18,10 @@ const meta: Meta<typeof Badge> = {
   argTypes: {
     tone: {
       control: "select",
-      options: ["neutral", "success", "warning", "danger", "intransit", "delivered", "delayed", "pending"],
+      options: ["neutral", "brand", "success", "warning", "danger", "intransit", "delivered", "delayed", "pending"],
     },
     size: { control: "select", options: ["sm", "md"] },
+    solid: { control: "boolean" },
   },
 };
 
@@ -31,6 +32,9 @@ type Story = StoryObj<typeof Badge>;
 // Semantic tone axis
 // ---------------------------------------------------------------------------
 export const Neutral: Story = { args: { tone: "neutral" } };
+export const Brand: Story = { args: { tone: "brand", children: "3 new" } };
+/** Filled/solid brand emphasis — pair `tone="brand"` with `solid` for a loud count chip. */
+export const BrandSolid: Story = { args: { tone: "brand", solid: true, count: 3 } };
 export const Success: Story = { args: { tone: "success", children: "Success" } };
 export const Warning: Story = { args: { tone: "warning", children: "Warning" } };
 export const Danger: Story = { args: { tone: "danger", children: "Danger" } };
