@@ -4,6 +4,7 @@ import { createPortal } from "react-dom";
 import { ArrowUpRight, Clock, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tag } from "@/components/ui/tag";
+import { MessageBar, type MessageBarSeverity } from "@/components/ui/message-bar";
 import { PriorityTierBadge } from "@/components/ui/priority-tier-badge";
 import {
   buildPreviewFact,
@@ -43,6 +44,39 @@ const REVEAL =
 function byPriority(a: ExceptionRecord, b: ExceptionRecord): number {
   return a.priorityTier.localeCompare(b.priorityTier);
 }
+
+/**
+ * The single-preview fact block is a `MessageBar` (the canonical inline alert)
+ * colored to match the `PriorityTierBadge` above it, so the callout reads on
+ * the same ramp as the priority. Tier→ramp mirrors the badge's own mapping:
+ * T1/T2 use the reserved `severity-*` ramp (a true shipment-level exception —
+ * the sanctioned MessageBar override per its doc comment), T3 uses `warning-*`,
+ * T4 stays neutral so a low-priority fact does not read as alarming.
+ *
+ * `severity` only selects MessageBar's leading icon; the ramp itself is driven
+ * entirely by the `className` override.
+ */
+const TIER_ALERT: Record<
+  PriorityTier,
+  { severity: MessageBarSeverity; className: string }
+> = {
+  T1: {
+    severity: "error",
+    className: "border-severity-border bg-severity-surface text-severity-fg",
+  },
+  T2: {
+    severity: "error",
+    className: "border-severity-border bg-severity-surface/60 text-severity-fg",
+  },
+  T3: {
+    severity: "warning",
+    className: "border-warning-border bg-warning-surface text-warning-fg",
+  },
+  T4: {
+    severity: "info",
+    className: "border-border-subtle bg-surface-sunken text-fg-secondary",
+  },
+};
 
 export interface HoverPreviewTarget {
   /** Viewport x of the anchoring pin. */
@@ -139,6 +173,7 @@ function SinglePreview({
   const fact = buildPreviewFact(exception);
   const action = getPrimaryActionPhrase(exception);
   const detected = formatRelativeTime(exception.eventTimestamp, nowMs);
+  const alert = TIER_ALERT[exception.priorityTier];
 
   return (
     <div className="flex flex-col gap-2.5">
@@ -156,11 +191,16 @@ function SinglePreview({
         {siteCode ? ` · ${siteCode}` : null}
       </p>
 
-      {/* The single most operationally relevant fact for this type. */}
-      <div className="rounded-md bg-surface-sunken px-2.5 py-1.5">
-        <span className="text-footnote text-fg-muted">{fact.label}</span>
-        <p className="text-body-s font-medium text-fg-primary">{fact.value}</p>
-      </div>
+      {/* The single most operationally relevant fact for this type, as an
+          inline alert colored to the exception's priority tier (matches the
+          PriorityTierBadge ramp above). */}
+      <MessageBar
+        severity={alert.severity}
+        title={fact.label}
+        className={cn("px-2.5 py-2 gap-2 text-current", alert.className)}
+      >
+        <span className="font-medium text-current">{fact.value}</span>
+      </MessageBar>
 
       {/* AI one-line recommended action — verb phrase only, on the reserved ai
           ramp (this is AI-authored). No rationale, no alternatives. */}

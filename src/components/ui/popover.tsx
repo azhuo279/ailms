@@ -81,6 +81,17 @@ export function Popover({ trigger, children, align = "start", open: controlledOp
       const target = e.target as Node;
       if (triggerRef.current?.contains(target)) return;
       if (surfaceRef.current?.contains(target)) return;
+      // A nested overlay (Combobox listbox, DateRangePicker calendar, a menu,
+      // etc.) opened from inside this popover portals to document.body, so its
+      // surface is NOT a DOM descendant of `surfaceRef`. Treat a click landing
+      // inside any such portalled overlay as inside the popover — otherwise
+      // picking an option would be read as an outside click and close us.
+      if (
+        target instanceof Element &&
+        target.closest('[role="listbox"],[role="dialog"],[role="menu"],[role="grid"],[role="tree"]')
+      ) {
+        return;
+      }
       setOpen(false);
     };
     const handleEscape = (e: globalThis.KeyboardEvent) => {
