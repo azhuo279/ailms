@@ -1,12 +1,12 @@
 {
-  "zoneLabel": "South Central zone",
+  "zoneLabel": "South Texas zone",
   "warehouseCount": 11,
   "generatedAt": "2026-07-06T08:05:00Z",
   "updatedLabel": "2 min ago",
   "zoneNarrative": {
-    "body": "**MTTR is trending down zone-wide (2.4 h, 18 min better than last week)**, but **Nogales Port DC** is the drag. Its MTTR climbed **+41 min**, escalation runs **2.3x the zone median**, and AI acceptance there fell to **58%** concentrated on **Customs Hold** exceptions.",
-    "deepLinkLabel": "Open Nogales Port DC breakdown",
-    "deepLinkWarehouseId": "NOG-P"
+    "body": "**MTTR is trending down zone-wide (2.4 h, 18 min better than last week)**, but **Pharr-Reynosa Border DC** is the drag. Its MTTR climbed **+41 min**, escalation runs **2.3x the zone median**, and AI acceptance there fell to **58%** concentrated on **Customs Hold** exceptions.",
+    "deepLinkLabel": "Open Pharr-Reynosa Border DC breakdown",
+    "deepLinkWarehouseId": "PHR-B"
   },
   "zoneKpis": [
     {
@@ -17,12 +17,12 @@
       "direction": "down",
       "lowerIsBetter": true,
       "weeklyBuckets": [
-        { "heightPercent": 70, "label": "Wk 1" },
-        { "heightPercent": 82, "label": "Wk 2" },
-        { "heightPercent": 64, "label": "Wk 3" },
-        { "heightPercent": 75, "label": "Wk 4" },
-        { "heightPercent": 58, "label": "Wk 5" },
-        { "heightPercent": 48, "label": "Wk 6" }
+        { "heightPercent": 70, "label": "Wk 1", "valueLabel": "2.9 h" },
+        { "heightPercent": 82, "label": "Wk 2", "valueLabel": "3.3 h" },
+        { "heightPercent": 64, "label": "Wk 3", "valueLabel": "2.7 h" },
+        { "heightPercent": 75, "label": "Wk 4", "valueLabel": "3.0 h" },
+        { "heightPercent": 58, "label": "Wk 5", "valueLabel": "2.5 h" },
+        { "heightPercent": 48, "label": "Wk 6", "valueLabel": "2.4 h" }
       ]
     },
     {
@@ -33,12 +33,12 @@
       "direction": "down",
       "lowerIsBetter": true,
       "weeklyBuckets": [
-        { "heightPercent": 80, "label": "Wk 1" },
-        { "heightPercent": 72, "label": "Wk 2" },
-        { "heightPercent": 66, "label": "Wk 3" },
-        { "heightPercent": 70, "label": "Wk 4" },
-        { "heightPercent": 62, "label": "Wk 5" },
-        { "heightPercent": 55, "label": "Wk 6" }
+        { "heightPercent": 80, "label": "Wk 1", "valueLabel": "7.8 min" },
+        { "heightPercent": 72, "label": "Wk 2", "valueLabel": "7.1 min" },
+        { "heightPercent": 66, "label": "Wk 3", "valueLabel": "6.6 min" },
+        { "heightPercent": 70, "label": "Wk 4", "valueLabel": "6.9 min" },
+        { "heightPercent": 62, "label": "Wk 5", "valueLabel": "6.3 min" },
+        { "heightPercent": 55, "label": "Wk 6", "valueLabel": "6.1 min" }
       ]
     },
     {
@@ -49,12 +49,12 @@
       "direction": "down",
       "lowerIsBetter": false,
       "weeklyBuckets": [
-        { "heightPercent": 78, "label": "Wk 1" },
-        { "heightPercent": 84, "label": "Wk 2" },
-        { "heightPercent": 82, "label": "Wk 3" },
-        { "heightPercent": 80, "label": "Wk 4" },
-        { "heightPercent": 77, "label": "Wk 5" },
-        { "heightPercent": 72, "label": "Wk 6" }
+        { "heightPercent": 78, "label": "Wk 1", "valueLabel": "78%" },
+        { "heightPercent": 84, "label": "Wk 2", "valueLabel": "84%" },
+        { "heightPercent": 82, "label": "Wk 3", "valueLabel": "82%" },
+        { "heightPercent": 80, "label": "Wk 4", "valueLabel": "80%" },
+        { "heightPercent": 77, "label": "Wk 5", "valueLabel": "77%" },
+        { "heightPercent": 72, "label": "Wk 6", "valueLabel": "74%" }
       ]
     },
     {
@@ -65,12 +65,12 @@
       "direction": "up",
       "lowerIsBetter": true,
       "weeklyBuckets": [
-        { "heightPercent": 50, "label": "Wk 1" },
-        { "heightPercent": 55, "label": "Wk 2" },
-        { "heightPercent": 52, "label": "Wk 3" },
-        { "heightPercent": 60, "label": "Wk 4" },
-        { "heightPercent": 64, "label": "Wk 5" },
-        { "heightPercent": 72, "label": "Wk 6" }
+        { "heightPercent": 50, "label": "Wk 1", "valueLabel": "8%" },
+        { "heightPercent": 55, "label": "Wk 2", "valueLabel": "9%" },
+        { "heightPercent": 52, "label": "Wk 3", "valueLabel": "8%" },
+        { "heightPercent": 60, "label": "Wk 4", "valueLabel": "10%" },
+        { "heightPercent": 64, "label": "Wk 5", "valueLabel": "11%" },
+        { "heightPercent": 72, "label": "Wk 6", "valueLabel": "12%" }
       ]
     },
     {
@@ -81,12 +81,12 @@
       "direction": "flat",
       "lowerIsBetter": true,
       "weeklyBuckets": [
-        { "heightPercent": 60, "label": "Wk 1" },
-        { "heightPercent": 58, "label": "Wk 2" },
-        { "heightPercent": 61, "label": "Wk 3" },
-        { "heightPercent": 59, "label": "Wk 4" },
-        { "heightPercent": 60, "label": "Wk 5" },
-        { "heightPercent": 60, "label": "Wk 6" }
+        { "heightPercent": 60, "label": "Wk 1", "valueLabel": "9%" },
+        { "heightPercent": 58, "label": "Wk 2", "valueLabel": "9%" },
+        { "heightPercent": 61, "label": "Wk 3", "valueLabel": "9%" },
+        { "heightPercent": 59, "label": "Wk 4", "valueLabel": "9%" },
+        { "heightPercent": 60, "label": "Wk 5", "valueLabel": "9%" },
+        { "heightPercent": 60, "label": "Wk 6", "valueLabel": "9%" }
       ]
     },
     {
@@ -97,12 +97,12 @@
       "direction": "down",
       "lowerIsBetter": true,
       "weeklyBuckets": [
-        { "heightPercent": 70, "label": "Wk 1" },
-        { "heightPercent": 66, "label": "Wk 2" },
-        { "heightPercent": 60, "label": "Wk 3" },
-        { "heightPercent": 58, "label": "Wk 4" },
-        { "heightPercent": 52, "label": "Wk 5" },
-        { "heightPercent": 44, "label": "Wk 6" }
+        { "heightPercent": 70, "label": "Wk 1", "valueLabel": "7%" },
+        { "heightPercent": 66, "label": "Wk 2", "valueLabel": "7%" },
+        { "heightPercent": 60, "label": "Wk 3", "valueLabel": "6%" },
+        { "heightPercent": 58, "label": "Wk 4", "valueLabel": "6%" },
+        { "heightPercent": 52, "label": "Wk 5", "valueLabel": "5%" },
+        { "heightPercent": 44, "label": "Wk 6", "valueLabel": "5%" }
       ]
     }
   ],
@@ -112,10 +112,10 @@
       "rank": 1,
       "category": "Escalation spike",
       "severity": "needs-attention",
-      "headline": "**Nogales Port DC** is the zone drag, with escalation running **2.3x the zone median**.",
-      "narrative": "**Nogales Port DC MTTR climbed +41 min** while the zone fell. Escalation there runs **2.3x the zone median** and concentrates on **Customs Hold** work, where the AI ETA and the customs desk disagree. Triage lag spikes **14:00-18:00 CT**, so the afternoon shift carries most of the breach risk.",
+      "headline": "**Pharr-Reynosa Border DC** is the zone drag, with escalation running **2.3x the zone median**.",
+      "narrative": "**Pharr-Reynosa Border DC MTTR climbed +41 min** while the zone fell. Escalation there runs **2.3x the zone median** and concentrates on **Customs Hold** work, where the AI ETA and the customs desk disagree. Triage lag spikes **14:00-18:00 CT**, so the afternoon shift carries most of the breach risk.",
       "metric": "2.3x zone median escalation",
-      "warehouseName": "Nogales Port DC",
+      "warehouseName": "Pharr-Reynosa Border DC",
       "updatedLabel": "2 min ago",
       "isLead": true
     },
@@ -124,10 +124,10 @@
       "rank": 2,
       "category": "Acceptance drop",
       "severity": "needs-attention",
-      "headline": "AI acceptance at **Nogales Port DC** fell to **58%**, concentrated on **Customs Hold**.",
-      "narrative": "Acceptance dropped to **58%** at Nogales, well below the zone **74%**. Nearly all of the gap sits on **Customs Hold** exceptions from **BorderIQ**. Carrier Delay acceptance recovers, so this is a **trust gap on cross-border holds**, not a broad rejection of the AI.",
+      "headline": "AI acceptance at **Pharr-Reynosa Border DC** fell to **58%**, concentrated on **Customs Hold**.",
+      "narrative": "Acceptance dropped to **58%** at Pharr-Reynosa, well below the zone **74%**. Nearly all of the gap sits on **Customs Hold** exceptions from **BorderIQ**. Carrier Delay acceptance recovers, so this is a **trust gap on cross-border holds**, not a broad rejection of the AI.",
       "metric": "58% acceptance vs 74% zone",
-      "warehouseName": "Nogales Port DC",
+      "warehouseName": "Pharr-Reynosa Border DC",
       "updatedLabel": "4 min ago",
       "isLead": false
     },
@@ -147,10 +147,10 @@
       "rank": 4,
       "category": "Acceptance drop",
       "severity": "watch",
-      "headline": "**Otay Mesa Border DC** acceptance is slipping as cross-border volume rises.",
-      "narrative": "**Otay Mesa acceptance sits at 69%** and is trending down as cross-border volume rises. Triage is fast at **5.8 min**, so the gap is **trust in the recommendation, not response speed**. It mirrors the Nogales pattern on a smaller scale and is worth watching before it tips.",
+      "headline": "**Eagle Pass Crossing** acceptance is slipping as cross-border volume rises.",
+      "narrative": "**Eagle Pass acceptance sits at 69%** and is trending down as cross-border volume rises. Triage is fast at **5.8 min**, so the gap is **trust in the recommendation, not response speed**. It mirrors the Pharr-Reynosa pattern on a smaller scale and is worth watching before it tips.",
       "metric": "69% acceptance, triage 5.8 min",
-      "warehouseName": "Otay Mesa Border DC",
+      "warehouseName": "Eagle Pass Crossing",
       "updatedLabel": "9 min ago",
       "isLead": false
     },
@@ -159,10 +159,10 @@
       "rank": 5,
       "category": "Dock Congestion",
       "severity": "watch",
-      "headline": "**Dock Congestion** drives most afternoon escalations at **Amarillo Relay**.",
-      "narrative": "At **Amarillo Relay**, throughput is steady but **overflow windows push a handful of loads past the breach line each afternoon**. The escalations here are **Dock Congestion**, not a model or acceptance problem, so the fix is scheduling rather than AI trust.",
+      "headline": "**Dock Congestion** drives most afternoon escalations at the **San Antonio Distribution Hub**.",
+      "narrative": "At the **San Antonio Distribution Hub**, throughput is steady but **overflow windows push a handful of loads past the breach line each afternoon**. The escalations here are **Dock Congestion**, not a model or acceptance problem, so the fix is scheduling rather than AI trust.",
       "metric": "5 open Dock Congestion exceptions",
-      "warehouseName": "Amarillo Relay",
+      "warehouseName": "San Antonio Distribution Hub",
       "updatedLabel": "14 min ago",
       "isLead": false
     },
@@ -172,7 +172,7 @@
       "category": "Zone trend",
       "severity": "on-track",
       "headline": "Zone **MTTR is down to 2.4 h**, **18 min better** than last week outside the border sites.",
-      "narrative": "Setting the two border DCs aside, the zone is **healthy and improving**. **MTTR fell to 2.4 h**, **18 min better than last week**, and manual-entry rate keeps dropping. **Laredo Cross-Dock and Dallas South** are strong reference patterns for the trailing sites.",
+      "narrative": "Setting the two border DCs aside, the zone is **healthy and improving**. **MTTR fell to 2.4 h**, **18 min better than last week**, and manual-entry rate keeps dropping. **Laredo World Trade Bridge and Laredo Cross-Dock** are strong reference patterns for the trailing sites.",
       "metric": "MTTR 2.4 h, 18 min faster",
       "updatedLabel": "2 min ago",
       "isLead": false
@@ -180,9 +180,9 @@
   ],
   "warehouses": [
     {
-      "id": "NOG-P",
-      "name": "Nogales Port DC",
-      "location": "Nogales, AZ",
+      "id": "PHR-B",
+      "name": "Pharr-Reynosa Border DC",
+      "location": "Pharr, TX",
       "rank": 1,
       "status": "needs-attention",
       "cells": {
@@ -206,9 +206,9 @@
       }
     },
     {
-      "id": "OTM-B",
-      "name": "Otay Mesa Border DC",
-      "location": "San Diego, CA",
+      "id": "EGP-X",
+      "name": "Eagle Pass Crossing",
+      "location": "Eagle Pass, TX",
       "rank": 2,
       "status": "watch",
       "cells": {
@@ -231,9 +231,9 @@
       }
     },
     {
-      "id": "AMA-R",
-      "name": "Amarillo Relay",
-      "location": "Amarillo, TX",
+      "id": "SAT-HUB",
+      "name": "San Antonio Distribution Hub",
+      "location": "San Antonio, TX",
       "rank": 3,
       "status": "watch",
       "cells": {
@@ -245,7 +245,7 @@
         "manualEntryRate": { "value": "6%", "raw": 6, "heat": "neutral" }
       },
       "detail": {
-        "aiDiagnosis": "**Dock Congestion drives most of the escalations here.** Relay throughput is steady, but overflow windows push a handful of loads past the breach line each afternoon.",
+        "aiDiagnosis": "**Dock Congestion drives most of the escalations here.** Hub throughput is steady, but overflow windows push a handful of loads past the breach line each afternoon.",
         "exceptionCounts": [
           { "type": "Dock Congestion", "count": 5 },
           { "type": "Carrier Delay", "count": 2 },
@@ -256,9 +256,9 @@
       }
     },
     {
-      "id": "REN-W",
-      "name": "Reno West DC",
-      "location": "Reno, NV",
+      "id": "MCA-FTZ",
+      "name": "McAllen Foreign-Trade Zone",
+      "location": "McAllen, TX",
       "rank": 4,
       "status": "watch",
       "cells": {
@@ -280,9 +280,9 @@
       }
     },
     {
-      "id": "ELK-R",
-      "name": "Elkhart Receiving",
-      "location": "Elkhart, IN",
+      "id": "SAT-SE",
+      "name": "San Antonio Southeast DC",
+      "location": "San Antonio, TX",
       "rank": 5,
       "status": "on-track",
       "cells": {
@@ -304,9 +304,9 @@
       }
     },
     {
-      "id": "JOL-R",
-      "name": "Joliet Rail Yard",
-      "location": "Joliet, IL",
+      "id": "CRP-P",
+      "name": "Corpus Christi Port DC",
+      "location": "Corpus Christi, TX",
       "rank": 6,
       "status": "on-track",
       "cells": {
@@ -318,7 +318,7 @@
         "manualEntryRate": { "value": "5%", "raw": 5, "heat": "favorable" }
       },
       "detail": {
-        "aiDiagnosis": "**Rail handoffs are running clean.** Acceptance is high and escalations are rare, so the AI recommendation is trusted here.",
+        "aiDiagnosis": "**Port drayage is running clean.** Acceptance is high and escalations are rare, so the AI recommendation is trusted here.",
         "exceptionCounts": [
           { "type": "Carrier Delay", "count": 2 },
           { "type": "Dock Congestion", "count": 1 }
@@ -328,9 +328,9 @@
       }
     },
     {
-      "id": "CBF-D",
-      "name": "Council Bluffs DC",
-      "location": "Council Bluffs, IA",
+      "id": "SMR-FC",
+      "name": "San Marcos Fulfillment",
+      "location": "San Marcos, TX",
       "rank": 7,
       "status": "on-track",
       "cells": {
@@ -352,9 +352,9 @@
       }
     },
     {
-      "id": "WFH-H",
-      "name": "Wichita Falls Hub",
-      "location": "Wichita Falls, TX",
+      "id": "NBR-DC",
+      "name": "New Braunfels DC",
+      "location": "New Braunfels, TX",
       "rank": 8,
       "status": "on-track",
       "cells": {
@@ -366,7 +366,7 @@
         "manualEntryRate": { "value": "4%", "raw": 4, "heat": "favorable" }
       },
       "detail": {
-        "aiDiagnosis": "**Strong all-round read.** Fast triage and high acceptance keep escalations low even during peak inbound.",
+        "aiDiagnosis": "**Strong all-round read.** Fast triage and high acceptance keep escalations low even during peak inbound on the I-35 lane.",
         "exceptionCounts": [
           { "type": "Carrier Delay", "count": 2 }
         ],
@@ -375,9 +375,9 @@
       }
     },
     {
-      "id": "DAL-S",
-      "name": "Dallas South DC",
-      "location": "Dallas, TX",
+      "id": "CTX-R",
+      "name": "Cotulla Relay",
+      "location": "Cotulla, TX",
       "rank": 9,
       "status": "on-track",
       "cells": {
@@ -389,7 +389,7 @@
         "manualEntryRate": { "value": "4%", "raw": 4, "heat": "favorable" }
       },
       "detail": {
-        "aiDiagnosis": "**Best-in-zone acceptance.** The AI recommendation is trusted and acted on quickly, so few exceptions ever reach escalation.",
+        "aiDiagnosis": "**Low-volume relay running smoothly.** The handful of exceptions that surface here resolve fast and rarely escalate.",
         "exceptionCounts": [
           { "type": "Carrier Delay", "count": 1 },
           { "type": "Manual", "count": 1 }
@@ -399,13 +399,13 @@
       }
     },
     {
-      "id": "MEM-G",
-      "name": "Memphis Gateway",
-      "location": "Memphis, TN",
+      "id": "LAR-CD",
+      "name": "Laredo Cross-Dock",
+      "location": "Laredo, TX",
       "rank": 10,
       "status": "on-track",
       "cells": {
-        "mttr": { "value": "2.0 h", "raw": 2.0, "heat": "favorable" },
+        "mttr": { "value": "2.0 h", "raw": 2, "heat": "favorable" },
         "triageTime": { "value": "4.6 min", "raw": 4.6, "heat": "favorable" },
         "acceptanceRate": { "value": "85%", "raw": 85, "heat": "favorable" },
         "escalationRate": { "value": "8%", "raw": 8, "heat": "favorable" },
@@ -413,18 +413,18 @@
         "manualEntryRate": { "value": "4%", "raw": 4, "heat": "favorable" }
       },
       "detail": {
-        "aiDiagnosis": "**Gateway hub is running well.** High throughput with fast resolution and rare escalations.",
+        "aiDiagnosis": "**Cross-dock is running well.** High throughput with fast resolution, and cold-chain reefer handoffs clear inside the window.",
         "exceptionCounts": [
           { "type": "Carrier Delay", "count": 2 },
-          { "type": "Dock Congestion", "count": 1 }
+          { "type": "Customs Hold", "count": 1 }
         ],
         "openT1Count": 0,
         "topTier": "T4"
       }
     },
     {
-      "id": "LAR-C",
-      "name": "Laredo Cross-Dock",
+      "id": "LAR-WTB",
+      "name": "Laredo World Trade Bridge XD",
       "location": "Laredo, TX",
       "rank": 11,
       "status": "on-track",
@@ -437,9 +437,10 @@
         "manualEntryRate": { "value": "3%", "raw": 3, "heat": "favorable" }
       },
       "detail": {
-        "aiDiagnosis": "**Top of the zone.** Fastest resolution and highest acceptance, even at high cross-dock volume.",
+        "aiDiagnosis": "**Top of the zone.** Fastest resolution and highest acceptance, even at the highest cross-border customs volume in the zone.",
         "exceptionCounts": [
-          { "type": "Carrier Delay", "count": 1 }
+          { "type": "Carrier Delay", "count": 1 },
+          { "type": "Customs Hold", "count": 1 }
         ],
         "openT1Count": 0,
         "topTier": "T4"
@@ -471,69 +472,44 @@
       { "type": "Manual", "correctedPct": 6, "isLowConfidence": false }
     ],
     "leaderboard": [
-      {
-        "rank": 1,
-        "name": "K. Mensah",
-        "volume": 1204,
-        "acceptedPct": 83,
-        "modifiedPct": 12,
-        "rejectedPct": 5,
-        "isTopAdopter": true
-      },
-      {
-        "rank": 2,
-        "name": "L. Ferreira",
-        "volume": 1097,
-        "acceptedPct": 80,
-        "modifiedPct": 14,
-        "rejectedPct": 6,
-        "isTopAdopter": true
-      },
-      {
-        "rank": 3,
-        "name": "P. Nakamura",
-        "volume": 874,
-        "acceptedPct": 76,
-        "modifiedPct": 16,
-        "rejectedPct": 8,
-        "isTopAdopter": false
-      },
-      {
-        "rank": 4,
-        "name": "S. Adeyemi",
-        "volume": 812,
-        "acceptedPct": 74,
-        "modifiedPct": 17,
-        "rejectedPct": 9,
-        "isTopAdopter": false
-      },
-      {
-        "rank": 5,
-        "name": "M. Kowalski",
-        "volume": 601,
-        "acceptedPct": 67,
-        "modifiedPct": 18,
-        "rejectedPct": 15,
-        "isTopAdopter": false
-      },
-      {
-        "rank": 6,
-        "name": "D. Novak",
-        "volume": 412,
-        "acceptedPct": 61,
-        "modifiedPct": 17,
-        "rejectedPct": 22,
-        "isTopAdopter": false
-      },
-      {
-        "rank": 7,
-        "name": "J. Okafor",
-        "volume": 388,
-        "acceptedPct": 58,
-        "modifiedPct": 16,
-        "rejectedPct": 26,
-        "isTopAdopter": false
-      }
+      { "rank": 1, "name": "K. Mensah", "volume": 1204, "acceptedPct": 83, "modifiedPct": 12, "rejectedPct": 5, "isTopAdopter": true },
+      { "rank": 2, "name": "L. Ferreira", "volume": 1097, "acceptedPct": 80, "modifiedPct": 14, "rejectedPct": 6, "isTopAdopter": true },
+      { "rank": 3, "name": "P. Nakamura", "volume": 874, "acceptedPct": 76, "modifiedPct": 16, "rejectedPct": 8, "isTopAdopter": false },
+      { "rank": 4, "name": "S. Adeyemi", "volume": 812, "acceptedPct": 74, "modifiedPct": 17, "rejectedPct": 9, "isTopAdopter": false },
+      { "rank": 5, "name": "M. Kowalski", "volume": 601, "acceptedPct": 67, "modifiedPct": 18, "rejectedPct": 15, "isTopAdopter": false },
+      { "rank": 6, "name": "D. Novak", "volume": 412, "acceptedPct": 61, "modifiedPct": 17, "rejectedPct": 22, "isTopAdopter": false },
+      { "rank": 7, "name": "J. Okafor", "volume": 388, "acceptedPct": 58, "modifiedPct": 16, "rejectedPct": 26, "isTopAdopter": false },
+      { "rank": 8, "name": "R. Alvarez", "volume": 375, "acceptedPct": 55, "modifiedPct": 25, "rejectedPct": 20, "isTopAdopter": false },
+      { "rank": 9, "name": "T. Nguyen", "volume": 366, "acceptedPct": 54, "modifiedPct": 25, "rejectedPct": 21, "isTopAdopter": false },
+      { "rank": 10, "name": "H. Schmidt", "volume": 356, "acceptedPct": 53, "modifiedPct": 26, "rejectedPct": 21, "isTopAdopter": false },
+      { "rank": 11, "name": "A. Osei", "volume": 347, "acceptedPct": 52, "modifiedPct": 26, "rejectedPct": 22, "isTopAdopter": false },
+      { "rank": 12, "name": "C. Dubois", "volume": 338, "acceptedPct": 51, "modifiedPct": 26, "rejectedPct": 23, "isTopAdopter": false },
+      { "rank": 13, "name": "V. Petrov", "volume": 328, "acceptedPct": 50, "modifiedPct": 27, "rejectedPct": 23, "isTopAdopter": false },
+      { "rank": 14, "name": "E. Tanaka", "volume": 319, "acceptedPct": 49, "modifiedPct": 27, "rejectedPct": 24, "isTopAdopter": false },
+      { "rank": 15, "name": "F. Ibrahim", "volume": 310, "acceptedPct": 48, "modifiedPct": 27, "rejectedPct": 25, "isTopAdopter": false },
+      { "rank": 16, "name": "N. Larsson", "volume": 300, "acceptedPct": 47, "modifiedPct": 28, "rejectedPct": 25, "isTopAdopter": false },
+      { "rank": 17, "name": "G. Moreau", "volume": 291, "acceptedPct": 46, "modifiedPct": 28, "rejectedPct": 26, "isTopAdopter": false },
+      { "rank": 18, "name": "B. Okonkwo", "volume": 282, "acceptedPct": 45, "modifiedPct": 28, "rejectedPct": 27, "isTopAdopter": false },
+      { "rank": 19, "name": "W. Choi", "volume": 272, "acceptedPct": 44, "modifiedPct": 29, "rejectedPct": 27, "isTopAdopter": false },
+      { "rank": 20, "name": "I. Marchetti", "volume": 263, "acceptedPct": 43, "modifiedPct": 29, "rejectedPct": 28, "isTopAdopter": false },
+      { "rank": 21, "name": "O. Haddad", "volume": 254, "acceptedPct": 42, "modifiedPct": 29, "rejectedPct": 29, "isTopAdopter": false },
+      { "rank": 22, "name": "Y. Kimura", "volume": 244, "acceptedPct": 41, "modifiedPct": 30, "rejectedPct": 29, "isTopAdopter": false },
+      { "rank": 23, "name": "U. Volkov", "volume": 235, "acceptedPct": 40, "modifiedPct": 30, "rejectedPct": 30, "isTopAdopter": false },
+      { "rank": 24, "name": "Q. Abara", "volume": 226, "acceptedPct": 38, "modifiedPct": 31, "rejectedPct": 31, "isTopAdopter": false },
+      { "rank": 25, "name": "Z. Kaplan", "volume": 216, "acceptedPct": 37, "modifiedPct": 32, "rejectedPct": 31, "isTopAdopter": false },
+      { "rank": 26, "name": "X. Andersson", "volume": 207, "acceptedPct": 36, "modifiedPct": 32, "rejectedPct": 32, "isTopAdopter": false },
+      { "rank": 27, "name": "J. Reyes", "volume": 198, "acceptedPct": 35, "modifiedPct": 32, "rejectedPct": 33, "isTopAdopter": false },
+      { "rank": 28, "name": "K. Fitzgerald", "volume": 188, "acceptedPct": 34, "modifiedPct": 33, "rejectedPct": 33, "isTopAdopter": false },
+      { "rank": 29, "name": "L. Bianchi", "volume": 179, "acceptedPct": 33, "modifiedPct": 33, "rejectedPct": 34, "isTopAdopter": false },
+      { "rank": 30, "name": "M. Osman", "volume": 170, "acceptedPct": 32, "modifiedPct": 33, "rejectedPct": 35, "isTopAdopter": false },
+      { "rank": 31, "name": "P. Sørensen", "volume": 160, "acceptedPct": 31, "modifiedPct": 34, "rejectedPct": 35, "isTopAdopter": false },
+      { "rank": 32, "name": "S. Costa", "volume": 151, "acceptedPct": 30, "modifiedPct": 34, "rejectedPct": 36, "isTopAdopter": false },
+      { "rank": 33, "name": "D. Yusupov", "volume": 142, "acceptedPct": 29, "modifiedPct": 34, "rejectedPct": 37, "isTopAdopter": false },
+      { "rank": 34, "name": "R. Mbeki", "volume": 132, "acceptedPct": 28, "modifiedPct": 35, "rejectedPct": 37, "isTopAdopter": false },
+      { "rank": 35, "name": "T. Halvorsen", "volume": 123, "acceptedPct": 27, "modifiedPct": 35, "rejectedPct": 38, "isTopAdopter": false },
+      { "rank": 36, "name": "A. Kowalczyk", "volume": 114, "acceptedPct": 26, "modifiedPct": 35, "rejectedPct": 39, "isTopAdopter": false },
+      { "rank": 37, "name": "C. Adeboye", "volume": 104, "acceptedPct": 25, "modifiedPct": 36, "rejectedPct": 39, "isTopAdopter": false },
+      { "rank": 38, "name": "V. Rasmussen", "volume": 95, "acceptedPct": 24, "modifiedPct": 36, "rejectedPct": 40, "isTopAdopter": false }
     ]
   }
 }

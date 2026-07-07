@@ -1,8 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { Card } from "./card";
+import { Tooltip } from "./tooltip";
 
 type StatTone = "default" | "intransit" | "delivered" | "delayed" | "pending";
 
@@ -14,14 +16,21 @@ const TONE_ACCENT: Record<StatTone, string> = {
   pending: "text-status-pending",
 };
 
-/** One bucket in the weekly bar sparkline. `value` is only used to derive `heightPercent`
- *  by the caller — StatTile itself renders bars purely off `heightPercent` so callers can
- *  choose their own normalization (e.g. against a fixed axis vs. the visible max). */
+/** One bucket in the weekly bar sparkline. `heightPercent` is the only value StatTile uses
+ *  to size the bar, so callers can choose their own normalization (e.g. against a fixed
+ *  axis vs. the visible max); `valueLabel` carries the real underlying reading purely for
+ *  display in the per-bar hover tooltip. */
 export interface StatTileBucket {
   /** 0-100. Bar height as a percentage of the sparkline track. */
   heightPercent: number;
   /** Optional accessible label for this bucket, e.g. "Week of Jun 22". */
   label?: string;
+  /**
+   * The bucket's real value, formatted for display (e.g. "2.4 h", "74%"). Shown in a
+   * hover tooltip on the bar. Falls back to `label` if omitted so existing callers
+   * that only ever passed `label` keep a value in the tooltip rather than a blank one.
+   */
+  valueLabel?: string;
 }
 
 export interface StatTileTrend {
@@ -160,7 +169,16 @@ export function StatTile({
   }
 
   return (
-    <Card padding="compact" className={className}>
+    <Card
+      padding="compact"
+      className={className}
+      // flex-col + h-full lets the sparkline strip below grow to fill any extra
+      // height StatTile's caller gives the tile (Starling 2026-07-06: "increase
+      // the height of the stat tile row... the bar chart within the tile will
+      // get taller accordingly"), instead of the strip staying pinned to a
+      // fixed 1.75rem regardless of the tile's actual rendered height.
+      contentClassName={weeklyBuckets?.length ? "flex h-full flex-col" : undefined}
+    >
       <p className="text-label-s font-medium uppercase tracking-wide text-fg-muted">{label}</p>
       <p className={cn("mt-1 text-heading-xl font-semibold tabular-nums", TONE_ACCENT[tone])}>{value}</p>
       {trend ? (
@@ -177,8 +195,9 @@ export function StatTile({
         // consumer), cancel just the bottom + side inset for this strip with a matching
         // negative margin, sized to the exact `p-3` token (0.75rem), so the sparkline runs
         // flush to Card's rounded bottom edge while every other consumer of Card is
-        // untouched.
-        <div className="-mx-3 -mb-3 mt-2.5">
+        // untouched. `flex-1 min-h-0` lets it claim the remaining height in the
+        // flex-col content div above.
+        <div className="-mx-3 -mb-3 mt-2.5 min-h-0 flex-1">
           <StatTileSparkline buckets={weeklyBuckets} favorable={tone_ === "favorable"} unfavorable={tone_ === "unfavorable"} />
         </div>
       ) : null}
@@ -204,32 +223,61 @@ interface StatTileSparklineProps {
  * that cancels Card's `padding="compact"` inset on this strip) so it reads as integrated
  * with the tile above rather than boxed in by padding on all sides — StatTile's own
  * composition choice, not a change to Card's shared padding API.
+ *
+ * Per-bar hover (Starling 2026-07-06): hovering any bar shows its value in the shared
+ * `Tooltip` primitive (already portals to `document.body`, so no overflow/stacking work
+ * needed here) and darkens that bar via `brightness` — a filter, not a token/color swap,
+ * because the resting fill differs per bar (muted vs. the last bar's favorable/unfavorable
+ * emphasis color) and `brightness` darkens whichever fill is present uniformly without
+ * needing a second color token per state.
  */
 function StatTileSparkline({ buckets, favorable, unfavorable }: StatTileSparklineProps) {
   const lastIndex = buckets.length - 1;
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   return (
     <div
-      className="flex h-7 items-end gap-1 overflow-hidden rounded-b-lg px-2"
+      className="flex h-full min-h-7 items-end gap-1 overflow-hidden rounded-b-lg px-2"
       role="img"
       aria-label={`Trend over the last ${buckets.length} periods`}
     >
       {buckets.map((bucket, index) => {
         const isLast = index === lastIndex;
-        return (
+        const displayValue = bucket.valueLabel ?? bucket.label;
+        const bar = (
           <div
-            key={bucket.label ?? index}
             className={cn(
-              "min-w-0 flex-1 rounded-t-sm bg-fg-muted opacity-35 motion-safe:transition-[height] motion-safe:duration-200 motion-safe:ease-out",
+              "h-full w-full rounded-t-sm bg-fg-muted opacity-35 motion-safe:transition-[height,filter] motion-safe:duration-200 motion-safe:ease-out",
               isLast && favorable && "bg-success-emphasis opacity-100",
               isLast && unfavorable && "bg-severity-emphasis opacity-100",
+              hoveredIndex === index && "cursor-default brightness-75",
             )}
             style={{
               height: `${Math.max(0, Math.min(100, bucket.heightPercent))}%`,
               transitionDelay: `${index * 24}ms`,
             }}
-            title={bucket.label}
           />
+        );
+
+        // Hover state lives on this wrapper, not the bar `Tooltip` directly
+        // wraps: `Tooltip` clones its child with its own onMouseEnter/
+        // onMouseLeave, which would otherwise silently replace (not merge
+        // with) a handler placed on the bar itself.
+        return (
+          <span
+            key={bucket.label ?? index}
+            className="flex h-full min-w-0 flex-1 items-end"
+            onMouseEnter={() => setHoveredIndex(index)}
+            onMouseLeave={() => setHoveredIndex((current) => (current === index ? null : current))}
+          >
+            {displayValue ? (
+              <Tooltip content={displayValue} placement="top">
+                {bar}
+              </Tooltip>
+            ) : (
+              bar
+            )}
+          </span>
         );
       })}
     </div>

@@ -182,7 +182,7 @@ usable as Tailwind utilities (`bg-<token>`, `text-<token>`, `border-<token>`).
 | `--color-selection-surface` | `primary-50`                   | `bg-selection-surface`              | Data Table batch-actions toolbar (distinct from the neutral `option-hover` row hover)                                                                                                                                                            |
 | `--color-ai-surface`        | `ai-50`                        | `bg-ai-surface`                     | Inline AI tint — non-containerized AI regions (e.g. a highlighted row, an inline explanation strip). Lower elevation than glass cards.                                                                                                           |
 | `--color-ai-card`           | near-white `oklch(0.98 0.008 190)` | `bg-ai-card`                    | **Frosted glass card fill** — the base fill for all containerized AI surfaces (recommendation cards, summary cards, reasoning panels). A near-WHITE body with only a whisper of teal (brighter than `ai-50`, which still reads as a visible tint). NOT an alias of a primitive step: the body must read as bright white glass, with teal identity coming from the bloom/border/text, not the fill. |
-| `--color-ai-card-border`    | `ai-300` at `40% opacity`      | `border-ai-card-border`             | **Frosted glass card border** — faint teal outline that traces the card edge without competing with content. Applied as `border: 1px solid oklch(0.79 0.050 190 / 0.40)` in CSS; no Tailwind utility (opacity modifier required).                |
+| `--color-ai-card-border`    | `ai-300` at `55% opacity`      | `border-ai-card-border`             | **Frosted glass card border** — teal outline that traces the card edge without competing with content. Raised from 40% to 55% (2026-07-06, inspector audit F2/F3) after the prior alpha read as near-neutral gray-teal. Applied as `border: 1px solid var(--color-ai-card-border)` in CSS; no Tailwind utility (opacity modifier required).                |
 | `--color-ai-card-inset`     | near-white `oklch(0.995 0.006 190)` | `--color-ai-card-inset`        | **Bloom highlight color** — near-pure-white with a faint teal cast; the bright core of the radial-gradient FACE bloom on `.ai-card` (and the crisp top-highlight line). NOT an alias of a primitive step. Role changed: box-shadow inset only paints the card EDGES and could not render light across the face, so the interior bloom moved to a `radial-gradient` background layer — this token is its highlight color (see §5 AI surface elevation). |
 | `--color-ai-border`         | `ai-500`                       | `border-ai-border`                  | AI panel accent border/top-stripe (non-glass contexts — e.g. a left-edge stripe on an inline AI annotation)                                                                                                                                      |
 | `--color-ai-fg`             | `ai-700`                       | `text-ai-fg`                        | AI-panel accent text/icons                                                                                                                                                                                                                       |
@@ -394,29 +394,33 @@ to `0.98` with minimal chroma.
 **2. Face bloom — radial gradient of near-pure-white light across the card face**
 This is what makes the card read as glass rather than a flat even box. A `box-shadow` inset only
 paints the card **edges**, so it cannot render light across the card **face** — the interior bloom
-is therefore a `radial-gradient` layered over the fill via `background`. A bright near-pure-white
+is therefore a `radial-gradient` layered over the fill via `background`. A stark near-pure-white
 core (`oklch(0.995 0.006 190)`, `--color-ai-card-inset`) originates **upper-left** (`15% 0%`) and
-fades to transparent by ~`55%`, so light visibly blooms across the surface and falls off into the
-near-white body. A single crisp near-white top-highlight line (`box-shadow` inset `0 1px 0`) marks
-the glass top edge. Applied as a layered `background` plus a slimmed `box-shadow`:
+fades to transparent by ~`70%`, so light visibly blooms across more of the surface with a crisper,
+brighter core before falling off into the near-white body. A single crisp near-white top-highlight
+line (`box-shadow` inset `0 1px 0`) marks the glass top edge. Applied as a layered `background`
+plus a slimmed `box-shadow`. **Strengthened 2026-07-06** (inspector audit F2/F3 — the prior pass
+read as a subtle tint rather than glass): bloom radius and fade-out stop widened, core opacity
+raised, and the teal border/glow chroma and alpha raised so the highlight reads stark white and
+the edge/glow read visibly teal at the same time:
 
 ```css
 .ai-card {
   background:
     radial-gradient(
-      120% 120% at 15% 0%,
-      oklch(0.995 0.006 190 / 0.9) 0%,
-      oklch(0.99 0.006 190 / 0) 55%
+      140% 140% at 15% 0%,
+      oklch(0.995 0.006 190 / 0.99) 0%,
+      oklch(0.99 0.006 190 / 0) 70%
     ),
     /* near-white face bloom — upper-left, fades out */ var(--color-ai-card); /* near-white body */
-  border: 1px solid oklch(0.79 0.05 190 / 0.4); /* ai-300 @ 40% opacity */
+  border: 1px solid var(--color-ai-card-border); /* ai-300 @ 55% opacity */
   border-radius: 0.75rem; /* rounded-xl — one step up from standard cards */
   box-shadow:
-    inset 0 1px 0 0 oklch(0.99 0.008 190 / 0.95),
-    /* near-white crisp top highlight line */ 0 4px 24px 0
-      oklch(0.63 0.11 190 / 0.1),
-    /* ai-500 outer glow — subtle halo */ 0 1px 4px 0
-      oklch(0.44 0.104 190 / 0.08); /* ai-700 contact shadow — grounds the card */
+    inset 0 1px 0 0 oklch(0.99 0.008 190 / 0.99),
+    /* near-white crisp top highlight line */ 0 4px 28px 0
+      oklch(0.63 0.14 190 / 0.22),
+    /* ai-500 outer glow — saturated halo */ 0 1px 4px 0
+      oklch(0.44 0.104 190 / 0.1); /* ai-700 contact shadow — grounds the card */
   backdrop-filter: blur(
     8px
   ); /* frosted glass — graceful degradation: no fill change if unsupported */
@@ -424,11 +428,12 @@ the glass top edge. Applied as a layered `background` plus a slimmed `box-shadow
 }
 ```
 
-**3. Border — `ai-300` at 40% opacity**
-A faint teal hairline that traces the card edge. Kept at low opacity so it reads as a material
-boundary, not a colorful accent. Do not substitute `--color-ai-border` (`ai-500`) here — that
-token is for non-glass accent stripes (left-edge annotations, inline callouts) and is too
-saturated for a full card border.
+**3. Border — `ai-300` at 55% opacity**
+A teal hairline that traces the card edge. Kept low enough to read as a material boundary, not a
+colorful accent, but raised from an earlier 40% pass (2026-07-06) after audit review found it read
+as near-neutral gray-teal rather than a visibly teal edge. Do not substitute `--color-ai-border`
+(`ai-500`) here — that token is for non-glass accent stripes (left-edge annotations, inline
+callouts) and is too saturated for a full card border.
 
 **Radius exception:** AI glass cards use `rounded-xl` (`0.75rem`) instead of the standard
 `rounded-lg` (`0.5rem`) for cards. The larger radius softens the material quality and prevents

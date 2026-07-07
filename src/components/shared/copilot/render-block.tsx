@@ -8,7 +8,9 @@ import { RadioGroup } from "@/components/ui/radio-group";
 import { Combobox } from "@/components/ui/combobox";
 import { Tag } from "@/components/ui/tag";
 import { Button } from "@/components/ui/button";
-import type { Block, ChoicesBlock, ChoiceOption } from "./types";
+import { PriorityTierBadge } from "@/components/ui/priority-tier-badge";
+import { Check } from "lucide-react";
+import type { Block, ChoicesBlock, ChoiceOption, ConfirmBlock } from "./types";
 
 /**
  * The frame migrates INWARD: only widgets that need to read as objects wear a
@@ -39,7 +41,7 @@ import type { Block, ChoicesBlock, ChoiceOption } from "./types";
 const INNER_TRANSPARENT = "border-0 bg-transparent p-0 shadow-none";
 
 /** Kase's frameless prose — reserved AI teal (item 2), stepped-down body (item 4). */
-const AI_PROSE = "text-body-s text-ai-fg";
+export const AI_PROSE = "text-body-s text-ai-fg";
 
 export interface RenderBlockContext {
   /** Current selection for a choices block, keyed by block id. */
@@ -110,6 +112,9 @@ export function renderBlock(block: Block, ctx: RenderBlockContext) {
     case "choices":
       return <ChoicesRenderer block={block} ctx={ctx} />;
 
+    case "confirm":
+      return <ConfirmRenderer block={block} ctx={ctx} />;
+
     case "action":
       return (
         <div className="flex flex-col gap-2">
@@ -128,6 +133,83 @@ export function renderBlock(block: Block, ctx: RenderBlockContext) {
     default:
       return null;
   }
+}
+
+interface ConfirmRendererProps {
+  block: ConfirmBlock;
+  ctx: RenderBlockContext;
+}
+
+/**
+ * A structured pre-execution confirmation card (FR-CONV-03) in an `.ai-card`
+ * object-block — the "execute a workflow in chat" affordance. It names the action
+ * (eyebrow + reused `PriorityTierBadge` when tiered), the target, and the
+ * projected consequence, then offers a primary Confirm and a ghost Cancel.
+ *
+ * Confirming runs the existing `commitAction` path; cancelling settles locally
+ * (no follow-up turn, so the card dismisses gracefully). Once settled the button
+ * row is REPLACED by a spent status line so a committed card can never be
+ * re-fired — mirroring how `ChoicesRenderer` locks after confirm.
+ */
+function ConfirmRenderer({ block, ctx }: ConfirmRendererProps) {
+  const [settled, setSettled] = useState<"confirmed" | "cancelled" | null>(null);
+
+  return (
+    <div
+      className="ai-card flex flex-col gap-3 p-3"
+      role="group"
+      aria-label={`Confirm ${block.actionType}`}
+    >
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-label-s font-semibold uppercase tracking-wide text-ai-fg">
+          {block.actionType}
+        </span>
+        {block.tier ? <PriorityTierBadge tier={block.tier} /> : null}
+      </div>
+
+      <p className="text-body-s font-semibold text-fg-primary">
+        {block.targetLabel}
+      </p>
+
+      <p className={AI_PROSE}>{block.consequence}</p>
+
+      {settled === null ? (
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => {
+              setSettled("confirmed");
+              ctx.commitAction(block.commitToTurnId);
+            }}
+          >
+            {block.confirmLabel}
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setSettled("cancelled")}
+          >
+            {block.cancelLabel}
+          </Button>
+        </div>
+      ) : (
+        <p
+          className="inline-flex items-center gap-1.5 text-body-s font-medium text-fg-secondary"
+          role="status"
+        >
+          {settled === "confirmed" ? (
+            <>
+              <Check className="size-3.5 shrink-0" aria-hidden="true" />
+              {block.actionType} confirmed
+            </>
+          ) : (
+            "Cancelled, standing by"
+          )}
+        </p>
+      )}
+    </div>
+  );
 }
 
 function selectionIsEmpty(value: string | string[] | undefined): boolean {

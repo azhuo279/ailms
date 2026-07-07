@@ -247,7 +247,7 @@ export function WorkspaceFilterBar({
             className="w-72"
             trigger={
               <Button
-                variant="secondary"
+                variant="ghost"
                 leadingIcon={<SlidersHorizontal aria-hidden="true" />}
                 trailingIcon={
                   activeFilterCount > 0 ? (

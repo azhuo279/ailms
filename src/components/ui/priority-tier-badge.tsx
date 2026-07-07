@@ -59,7 +59,6 @@ export function PriorityTierBadge({ tier, className }: PriorityTierBadgeProps) {
     >
       <Icon className="size-3.5 shrink-0" aria-hidden="true" />
       {config.label}
-      <span className="sr-only"> ({tier})</span>
     </span>
   );
 }

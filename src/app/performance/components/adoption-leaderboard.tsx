@@ -13,13 +13,18 @@ import { Pagination } from "@/components/ui/pagination";
 import type { LeaderboardEntry } from "../lib/performance-types";
 
 /**
- * Rows per leaderboard page. Sits in the right 2/3 column of the AI Adoption
- * tab. Sized to fill the column's available height (Starling: the table should
- * fill the space and empty rows are allowed), so it is paired with the DataTable
- * `minRows` padding — a partial page pads out with aria-hidden filler rows up to
- * this count, keeping the body height stable and the pagination control fixed.
+ * Rows per leaderboard page. Sits in the right column of the AI Adoption tab,
+ * which now spans the full card height with no card surface of its own
+ * (Starling 2026-07-06: "just the full ZOM leaderboard table... extends
+ * completely down to fill the height of the parent container"). Raised from
+ * 6 to 13 — verified against the shipped layout at the 1440x900 design
+ * viewport (the left column's two stacked Cards set the row's rendered
+ * height); 13 rows fills that height closely without the table
+ * overflowing it. Paired with the DataTable `minRows` padding — a partial
+ * page pads out with aria-hidden filler rows up to this count, keeping the
+ * body height stable and the pagination control fixed.
  */
-const ROWS_PER_PAGE = 10;
+const ROWS_PER_PAGE = 13;
 
 export interface AdoptionLeaderboardProps {
   entries: LeaderboardEntry[];

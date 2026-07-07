@@ -172,14 +172,19 @@
    *                    paints the card EDGES, so it can't render a bloom across
    *                    the face — that job moved to a radial-gradient background
    *                    layer; this token is its highlight color. Not a fill token.
-   *   - ai-card-border faint teal hairline: ai-300 at 40% opacity. Carries an
-   *                    opacity modifier baked in (no plain Tailwind border-*
-   *                    utility), so it's a literal oklch(.79 .05 190 / .4)
-   *                    rather than an alias of --color-ai-300.
+   *   - ai-card-border teal hairline: ai-300 at 55% opacity (raised from 40% —
+   *                    inspector audit F2/F3, 2026-07-06 — the prior alpha read
+   *                    as near-neutral gray-teal rather than a visibly teal
+   *                    edge). Carries an opacity modifier baked in (no plain
+   *                    Tailwind border-* utility), so it's a literal
+   *                    oklch(.79 .05 190 / .55) rather than an alias of
+   *                    --color-ai-300. The `.ai-card` rule's border now
+   *                    references this token directly instead of duplicating
+   *                    the literal, so the two can no longer drift apart.
    */
   --color-ai-card: oklch(0.98 0.008 190);
   --color-ai-card-inset: oklch(0.995 0.006 190);
-  --color-ai-card-border: oklch(0.79 0.05 190 / 0.4);
+  --color-ai-card-border: oklch(0.79 0.05 190 / 0.55);
 
   /* Severity surfaces (reserved) */
   --color-severity-surface: var(--color-severity-50);
@@ -230,6 +235,21 @@
   --color-status-delivered-surface: var(--color-success-100);
   --color-status-delayed-surface: var(--color-severity-100);
   --color-status-pending-surface: var(--color-neutral-200);
+
+  /*
+   * AI-outcome palette (Accepted / Modified / Rejected) — mirrors the
+   * logistics status ramp above: these are status-typed series, not
+   * decorative categorical ones, so they alias the stoplight ramp (the same
+   * vocabulary Badge/Tag and the exception feed use for outcome states)
+   * instead of the chart-N categorical sequence. Aliased to the -400 step
+   * (not -500) per Starling feedback 2026-07-06: as small badge/text accents
+   * -500 reads fine, but as a large FILLED stacked-bar area the same value
+   * read heavy/saturated ("dark and gross"). -400 keeps the same stoplight
+   * hue and ordering while sitting lighter as a fill.
+   */
+  --color-outcome-accepted: var(--color-success-400);
+  --color-outcome-modified: var(--color-warning-400);
+  --color-outcome-rejected: var(--color-severity-400);
 
   /*
    * Phase 3 addition — categorical data-viz sequence for the Chart component.
@@ -358,25 +378,35 @@
  * below modals). Applied as a utility class rather than @theme tokens because
  * it's a multi-layer box-shadow + backdrop-filter recipe, not a single value.
  *
+ * Re-balanced 2026-07-06 (prompt feedback): today's F2/F3 strengthening
+ * overshot — the wide, saturated outer halo (0 4px 28px @ .22, chroma .14) read
+ * as a neon AURA around the card rather than glass. Glass character comes from
+ * the face sheen + a crisp top edge + subtle depth, NOT a big colored outer
+ * glow, so the halo is pulled way back (tighter blur, lower alpha, calmer
+ * chroma) while the sheen, edge highlight, and backdrop-blur that carry the
+ * "glass" read are kept. Both the AI Summary card and the Kase copilot panel
+ * apply this same shared class, so the fix is here, not per-consumer.
+ *
  *   fill    near-white glass body (var(--color-ai-card), oklch(0.98 0.008 190))
  *           — reads as white, not a teal tint.
- *   bloom   a RADIAL-GRADIENT FACE bloom layered OVER the fill via `background`.
- *           This is the fix for the "flat even box" read: box-shadow inset only
- *           paints the card EDGES, so it can't render light across the card FACE
- *           — a gradient can. A bright near-white core (var(--color-ai-card-
- *           inset)) originates upper-left (15% 0%) and fades to transparent by
- *           ~55%, so light visibly blooms across the face and falls off into the
- *           near-white body (per the reference: bright upper-left bloom → soft
- *           near-white).
- *   border  1px ai-300 @ 40% (via --color-ai-card-border)
+ *   bloom   a RADIAL-GRADIENT FACE sheen layered OVER the fill via `background`.
+ *           box-shadow inset only paints the card EDGES, so it can't render
+ *           light across the card FACE — a gradient can. A near-white core
+ *           (var(--color-ai-card-inset) @ .85, softened from .99 so it reads as
+ *           a gentle sheen, not a hotspot) originates upper-left (15% 0%) and
+ *           fades to transparent by ~62%, blooming softly across the face
+ *           before falling off into the near-white body.
+ *   border  1px ai-300 @ 55% (via var(--color-ai-card-border)) — a clearly teal
+ *           hairline, not just a whisper of one.
  *   radius  rounded-xl (0.75rem) — one step up from standard rounded-lg cards
- *   shadow  three layers — the interior bloom moved to the gradient above, so
+ *   shadow  three layers — the interior sheen moved to the gradient above, so
  *           box-shadow only carries the edge/elevation work now:
- *             1. crisp top highlight line — inset near-white @ .95 (0 1px 0),
+ *             1. crisp top highlight line — inset near-white @ .9 (0 1px 0),
  *                the glass top edge
- *             2. outer ai-500 halo @ .10 (0 4px 24px) — subtle outer glow
- *             3. outer ai-700 contact shadow @ .08 (0 1px 4px) — grounds the card
- *           Highlight/bloom near-white equals var(--color-ai-card-inset); alpha
+ *             2. soft teal depth @ .1 (0 2px 12px), chroma calmed to .08 — a
+ *                subtle glass shadow with a teal cast, not a saturated aura
+ *             3. outer ai-700 contact shadow @ .08 (0 1px 3px) — grounds the card
+ *           Highlight/sheen near-white equals var(--color-ai-card-inset); alpha
  *           layers are literal oklch (§5) since CSS var + per-layer alpha
  *           compositing is awkward.
  *   glass   backdrop-filter: blur(8px) — code-only enhancement, degrades
@@ -385,17 +415,17 @@
 .ai-card {
   background:
     radial-gradient(
-      120% 120% at 15% 0%,
-      oklch(0.995 0.006 190 / 0.9) 0%,
-      oklch(0.99 0.006 190 / 0) 55%
+      130% 130% at 15% 0%,
+      oklch(0.995 0.006 190 / 0.85) 0%,
+      oklch(0.99 0.006 190 / 0) 62%
     ),
     var(--color-ai-card);
   border: 1px solid var(--color-ai-card-border);
   border-radius: 0.75rem;
   box-shadow:
-    inset 0 1px 0 0 oklch(0.99 0.008 190 / 0.95),
-    0 4px 24px 0 oklch(0.63 0.11 190 / 0.1),
-    0 1px 4px 0 oklch(0.44 0.104 190 / 0.08);
+    inset 0 1px 0 0 oklch(0.99 0.008 190 / 0.9),
+    0 2px 12px 0 oklch(0.63 0.08 190 / 0.1),
+    0 1px 3px 0 oklch(0.44 0.104 190 / 0.08);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 }

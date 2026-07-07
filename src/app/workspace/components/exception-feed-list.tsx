@@ -383,7 +383,7 @@ export function ExceptionFeedList({
             ref={listRef}
             className="min-h-0 flex-1 overflow-y-auto"
             role="list"
-            aria-label="Dynamic exception feed, ranked by priority"
+            aria-label={`Dynamic exception feed, sorted by ${SORT_MODE_LABEL[sortMode].toLowerCase()}`}
           >
             {tierGroups.map(({ tier, items }) => (
               // Each tier gets its own LayoutGroup, so Motion's shared-layout

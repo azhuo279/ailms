@@ -545,6 +545,7 @@ export function ExceptionDetailView({
           open
           exception={exception}
           action={selectedAction}
+          isModified={isModified}
           onClose={() => setRoutingModal(null)}
           onConfirm={handleModalConfirm}
         />
@@ -554,6 +555,7 @@ export function ExceptionDetailView({
           open
           exception={exception}
           action={selectedAction}
+          isModified={isModified}
           onClose={() => setRoutingModal(null)}
           onConfirm={handleModalConfirm}
         />

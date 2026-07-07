@@ -126,7 +126,7 @@ export function ZonePerformanceTab({ feed }: ZonePerformanceTabProps) {
   ];
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex h-full min-h-0 flex-col gap-4">
       <ZoneNarrativeBanner
         body={feed.zoneNarrative.body}
         insightCount={insights.length}
@@ -139,8 +139,16 @@ export function ZonePerformanceTab({ feed }: ZonePerformanceTabProps) {
         insights={insights}
       />
 
-      <section aria-label="Zone key indicators">
-        <div className="grid auto-rows-fr grid-cols-2 items-stretch gap-3 sm:grid-cols-3 lg:grid-cols-5">
+      {/* flex-1 lets this row claim the whitespace the fixed-height breakdown
+          table below leaves unused (Starling 2026-07-06); each StatTile's
+          h-full + its internal flex-col content div then stretches the
+          sparkline strip to match, so the bar chart grows in proportion.
+          min-h-32 is a floor, not a fixed size — it's the tile's natural
+          content height (label + value + trend text), so the row still
+          reads correctly on short viewports where there's no whitespace to
+          fill, and only grows past it when flex-1 actually has room to give. */}
+      <section aria-label="Zone key indicators" className="min-h-32 flex-1">
+        <div className="grid h-full auto-rows-fr grid-cols-2 items-stretch gap-3 sm:grid-cols-3 lg:grid-cols-5">
           {kpiTiles.map((kpi) => {
             // Per-metric favorability drives StatTile color, never raw direction.
             const isFavorable =

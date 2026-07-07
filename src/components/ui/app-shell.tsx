@@ -1,11 +1,13 @@
 "use client";
 
-import { createContext, useContext, useLayoutEffect, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
+import { usePathname } from "next/navigation";
 import { Sidebar } from "@/components/shared/sidebar";
 import { cn } from "@/lib/utils";
 import { AiAvatar } from "@/components/shared/ai-avatar";
 import { CopilotPanel } from "@/components/shared/copilot-panel";
+import { getCopilotPage } from "@/components/shared/copilot/copilot-script";
 
 /** Resting avatar footprint, in px — the shell-corner size the canvas renders at. */
 const AVATAR_RESTING_SIZE = 96;
@@ -71,6 +73,21 @@ export function AppShell({
   // it. It is a minimal placeholder flag: there is no message backend yet, so
   // this only records that the send action has fired at least once.
   const [conversationStarted, setConversationStarted] = useState(false);
+
+  // Kase is context-aware: the panel plays the script for the current route, so
+  // its content is tied to the dataset on screen. Deriving the page from the
+  // pathname here keeps a single source of truth that both the panel (script
+  // selection) and this shell (conversation reset) read.
+  const pathname = usePathname();
+  const copilotPage = getCopilotPage(pathname);
+
+  // On navigation, return the conversation to its empty state so the new page's
+  // script starts fresh. The panel's own hook resets its transcript on the same
+  // page change; resetting the shell flag in lockstep keeps the empty state and
+  // the avatar's center anchor consistent with it.
+  useEffect(() => {
+    setConversationStarted(false);
+  }, [copilotPage]);
 
   // Single persistent avatar, absolutely positioned over the shell. Rather than
   // swapping between mounted avatars (which would kill the pose morph and risk
@@ -222,6 +239,7 @@ export function AppShell({
           open width, so opening it shrinks and reflows the content column
           leftward (side-by-side split) rather than covering it. */}
       <CopilotPanel
+        page={copilotPage}
         open={copilotOpen}
         onClose={() => setCopilotOpen(false)}
         conversationStarted={conversationStarted}

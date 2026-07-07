@@ -16,7 +16,7 @@ import {
   getDispatcher,
   isOverCapacity,
 } from "@/app/workspace/lib/exception-handoff";
-import { AiPackage, ContextNote } from "./handoff-shared";
+import { AiPackage, ContextNote, ReasonCategoryField } from "./handoff-shared";
 
 /**
  * Delegate modal (Direction C + adjustments). Routes the SELECTED AI-recommended
@@ -38,6 +38,10 @@ export interface DelegateModalProps {
   open: boolean;
   exception: ExceptionRecord;
   action: RecommendedAction;
+  /** True when the routed action differs from the AI recommendation (custom
+   * mode, an alternative rec, or an edited instruction). Requires a reason
+   * category before the delegation can be sent (PRD FR-24 / AC-07). */
+  isModified: boolean;
   onClose: () => void;
   /** Called on confirm — the container moves the exception to the Delegated tab. */
   onConfirm: () => void;
@@ -47,12 +51,14 @@ export function DelegateModal({
   open,
   exception,
   action,
+  isModified,
   onClose,
   onConfirm,
 }: DelegateModalProps) {
   const [dispatcherId, setDispatcherId] = useState("");
   const [deadlineId, setDeadlineId] = useState("dl-60");
   const [note, setNote] = useState("");
+  const [reasonCategory, setReasonCategory] = useState("");
   const [packageValues, setPackageValues] = useState<Record<string, string>>(
     {},
   );
@@ -93,7 +99,8 @@ export function DelegateModal({
     [exception, action],
   );
 
-  const canSend = Boolean(dispatcherId);
+  const canSend =
+    Boolean(dispatcherId) && (!isModified || Boolean(reasonCategory));
 
   const handleConfirm = () => {
     if (!canSend) return;
@@ -148,6 +155,15 @@ export function DelegateModal({
             {dispatcher.name} is over the {`5`}-task soft threshold. You can still
             send this, it just may wait longer.
           </p>
+        ) : null}
+
+        {/* Zone 2b — reason category, required only when the routed action is
+            modified from the AI recommendation (PRD FR-24 / AC-07). */}
+        {isModified ? (
+          <ReasonCategoryField
+            value={reasonCategory}
+            onChange={setReasonCategory}
+          />
         ) : null}
 
         {/* Zone 3 — AI-assembled handoff package (ai-* ramp), edit/preview. */}

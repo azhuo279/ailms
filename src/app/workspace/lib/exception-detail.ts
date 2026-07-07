@@ -324,7 +324,11 @@ export function buildRecommendedActions(
   // detail view suppresses the recommended-action list entirely. The single
   // returned action carries the record's T4 tier so getRoutingKind resolves to
   // "escalate", and it is the escalation-to-Legal action the modal derives from.
-  // Its copy contains no documentation-gap remedy.
+  // Its copy contains no documentation-gap remedy. isAiPrimary is true because
+  // this IS the AI's sole recommendation (no alternatives exist to choose
+  // instead) — leaving it false made isModified always true for every
+  // legal-hold escalation, forcing a reason category on an untouched routing
+  // (inspector F2).
   if (isLegalHold(exception)) {
     return [
       {
@@ -335,7 +339,7 @@ export function buildRecommendedActions(
         expectedOutcome:
           "Legal reviews the screening match and issues a clearance decision.",
         tier: exception.priorityTier,
-        isAiPrimary: false,
+        isAiPrimary: true,
       },
     ];
   }

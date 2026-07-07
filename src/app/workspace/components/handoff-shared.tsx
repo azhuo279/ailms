@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { ChevronDown, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TextArea } from "@/components/ui/text-area";
+import { Select } from "@/components/ui/select";
 import type { PackageField } from "@/app/workspace/lib/exception-handoff";
 
 /**
@@ -207,7 +208,10 @@ export function AiPackage({
 // ---------------------------------------------------------------------------
 // ZOM context note — a plain optional textarea with a single clean label
 // (Starling feedback: the structured prompt chips are removed and the label no
-// longer interpolates the recipient name). Skippable.
+// longer interpolates the recipient name). Skippable. The Field/TextArea
+// `optional` badge was dropped per Starling feedback 2026-07-06 — the label
+// itself already reads "Additional Context (optional)", so the badge was
+// showing the same information twice.
 // ---------------------------------------------------------------------------
 
 export interface ContextNoteProps {
@@ -227,12 +231,51 @@ export function ContextNote({ label, value, onChange }: ContextNoteProps) {
         label={label}
         containerClassName="[&_label]:sr-only"
         rows={2}
-        optional
         placeholder="Add anything the recipient should know, or skip."
         value={value}
         onChange={(e) => onChange(e.target.value)}
       />
     </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Reason category — required when the routed action is MODIFIED (custom mode,
+// an alternative rec instead of the AI primary, or an edited instruction).
+// Captures WHY the ZOM diverged from the AI recommendation before the handoff
+// can be sent (PRD FR-24 / AC-07). Built on the canonical Select so it opens
+// as a portalled listbox; no default selection, so the ZOM must choose.
+// ---------------------------------------------------------------------------
+
+export const REASON_CATEGORY_OPTIONS = [
+  { value: "prior-carrier-arrangement", label: "Prior carrier arrangement" },
+  { value: "customer-specific-commitment", label: "Customer-specific commitment" },
+  { value: "capacity-timing-constraint", label: "Capacity/timing constraint" },
+  { value: "alternative-better-fit", label: "Alternative better fits situation" },
+  { value: "other-operational-context", label: "Other operational context" },
+];
+
+export interface ReasonCategoryFieldProps {
+  value: string;
+  onChange: (value: string) => void;
+}
+
+/**
+ * Shown only when the routed action is modified from the AI recommendation.
+ * Required, no default selection — the confirm button stays disabled until a
+ * category is chosen (enforced by each modal's own canSend gate).
+ */
+export function ReasonCategoryField({ value, onChange }: ReasonCategoryFieldProps) {
+  return (
+    <Select
+      label="Reason for change"
+      helperText="Required because this route differs from the AI recommendation."
+      placeholder="Select a reason category"
+      options={REASON_CATEGORY_OPTIONS}
+      value={value}
+      onChange={onChange}
+      required
+    />
   );
 }
 

@@ -40,11 +40,15 @@ export type KpiId = z.infer<typeof kpiIdSchema>;
 /**
  * One period bucket for a sparkline / trend. `heightPercent` is 0-100, already
  * normalized by the fetch layer so StatTile renders it directly (StatTile does
- * no normalization of its own).
+ * no normalization of its own). `valueLabel` is the bucket's real reading in
+ * the metric's own unit (e.g. "2.6 h", "71%"), shown in the per-bar hover
+ * tooltip (Starling 2026-07-06) — distinct from `label`, which is the period
+ * name ("Wk 3"), not a value.
  */
 export const trendBucketSchema = z.object({
   heightPercent: z.number().min(0).max(100),
   label: z.string(),
+  valueLabel: z.string().optional(),
 });
 export type TrendBucket = z.infer<typeof trendBucketSchema>;
 

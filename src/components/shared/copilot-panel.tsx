@@ -10,8 +10,15 @@ import { useCopilotChat } from "@/components/shared/copilot/use-copilot-chat";
 import { ChatThread } from "@/components/shared/copilot/chat-thread";
 import { SuggestedPrompts } from "@/components/shared/copilot/suggested-prompts";
 import type { RenderBlockContext } from "@/components/shared/copilot/render-block";
+import type { CopilotPage } from "@/components/shared/copilot/copilot-script";
 
 export interface CopilotPanelProps {
+  /**
+   * The route Kase is docked on. Selects the page-specific conversation so the
+   * panel's content is tied to the dataset on screen (triage on `/workspace`,
+   * history/patterns on `/audit-log`, zone performance on `/performance`).
+   */
+  page: CopilotPage;
   /** Whether the panel is open. Drives the enter/exit and the docked width. */
   open: boolean;
   /** Fires when the header close button is pressed. */
@@ -90,6 +97,7 @@ export interface CopilotPanelProps {
  * not animate.
  */
 export function CopilotPanel({
+  page,
   open,
   onClose,
   conversationStarted,
@@ -114,7 +122,7 @@ export function CopilotPanel({
     send,
     confirmChoice,
     commitAction,
-  } = useCopilotChat({ onConversationStart });
+  } = useCopilotChat({ page, onConversationStart });
 
   // Composer input, so we can return focus here after a choice/action commits
   // (rather than stealing focus mid-typing — see the a11y note in the plan).

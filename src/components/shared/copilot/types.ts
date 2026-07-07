@@ -10,6 +10,7 @@ import type {
   StatTileTrend,
   StatTileComparisonBar,
 } from "@/components/ui/stat-tile";
+import type { PriorityTier } from "@/app/workspace/lib/exception-types";
 
 /**
  * Copilot conversation data model (feature-local — copilot-bound, not shared UI).
@@ -126,12 +127,41 @@ export interface ActionBlock {
   commitToTurnId: string;
 }
 
+/**
+ * A structured pre-execution confirmation card (FR-CONV-03) — the "execute a
+ * workflow in chat" affordance shown BEFORE anything happens. Kase names the
+ * action, the target, and the projected consequence, then offers a Confirm /
+ * Cancel pair. Confirming runs the existing commit path (`commitToTurnId`);
+ * cancelling settles the card in place with a "standing by" line so the card can
+ * never be re-fired. Rendered as an `.ai-card` object-block (an AI surface, so it
+ * wears the reserved AI treatment). This is a Tier B execute-with-confirm (or a
+ * single-exception Tier C route); chat never batch-executes a cluster.
+ */
+export interface ConfirmBlock {
+  kind: "confirm";
+  /** Short verb label for the workflow, e.g. "Delegate", "Export", "Draft". */
+  actionType: string;
+  /** The target entity, e.g. "SHP-48213 · Laredo customs hold". */
+  targetLabel: ReactNode;
+  /** Optional priority tier, rendered via the reused `PriorityTierBadge`. Omit
+   * cleanly for non-tiered actions (audit-log export, performance draft). */
+  tier?: PriorityTier;
+  /** The projected consequence line (bold key phrases). */
+  consequence: ReactNode;
+  confirmLabel: string;
+  cancelLabel: string;
+  /** Key into FOLLOW_UP_TURNS appended when the card is confirmed (reuses the
+   * existing `commitAction` path). */
+  commitToTurnId: string;
+}
+
 export type Block =
   | TextBlock
   | VizBlock
   | ReceiptBlock
   | ChoicesBlock
-  | ActionBlock;
+  | ActionBlock
+  | ConfirmBlock;
 
 /**
  * One conversation turn. Uniform block array for both roles — a user turn is a

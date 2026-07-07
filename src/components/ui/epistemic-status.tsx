@@ -243,17 +243,25 @@ export function ImpactProjectionPanel({
         // Starling: the projection title should wrap to two lines and read a
         // rung smaller than a standard card title, not truncate. `line-clamp-2
         // whitespace-normal` defeats CardHeader's base `truncate` (which is
-        // overflow-hidden + text-ellipsis + whitespace-nowrap); `text-heading-m`
-        // steps the type down one rung in both densities.
-        titleClassName="line-clamp-2 whitespace-normal text-heading-m"
-        media={<Sparkles className="size-4" aria-hidden="true" />}
+        // overflow-hidden + text-ellipsis + whitespace-nowrap). The type steps
+        // down by density: compact reads `text-title` (one rung below the
+        // roomy `text-heading-m`) so it stays calm at chat width.
+        titleClassName={cn(
+          "line-clamp-2 whitespace-normal",
+          compact ? "text-title" : "text-heading-m",
+        )}
+        // `mt-0.5` optically centers the leading AI icon on the FIRST line of
+        // the (often two-line) title instead of letting it sit high against the
+        // block top — same sparkle-to-text alignment idiom used by the conflict
+        // panel's resolution callout below. Applies to both densities.
+        media={<Sparkles className="mt-0.5 size-4" aria-hidden="true" />}
         title="Downstream impact if unresolved"
         // Direction A: when metrics carry the numbers, the caption drops below
         // the metric row (rendered in CardBody), so it is NOT the header
         // description. In the fallback, the headline stays the description.
         description={hasMetrics ? undefined : headline}
       />
-      <CardBody className={compact ? "mt-2" : "mt-3"}>
+      <CardBody className="mt-3">
         {hasMetrics ? (
           <>
             {/* At-a-glance metric row — the load-bearing numbers promoted to the
@@ -292,7 +300,7 @@ export function ImpactProjectionPanel({
             <p
               className={cn(
                 "text-fg-secondary [&_b]:font-semibold [&_b]:text-fg-primary [&_strong]:font-semibold [&_strong]:text-fg-primary",
-                compact ? "mt-2 text-footnote" : "mt-3.5 text-body-s",
+                compact ? "mt-3 text-footnote" : "mt-3.5 text-body-s",
               )}
             >
               {headline}
@@ -303,7 +311,7 @@ export function ImpactProjectionPanel({
         <div
           className={cn(
             "flex flex-wrap items-center gap-1.5",
-            hasMetrics && (compact ? "mt-2" : "mt-3.5"),
+            hasMetrics && (compact ? "mt-3" : "mt-3.5"),
           )}
         >
           <span
@@ -335,7 +343,7 @@ export function ImpactProjectionPanel({
           <hr
             className={cn(
               "h-px border-0 bg-border-subtle",
-              compact ? "my-2" : "my-4",
+              compact ? "my-3" : "my-4",
             )}
           />
         ) : null}
@@ -343,14 +351,14 @@ export function ImpactProjectionPanel({
         {/* Starling: the reasoning is shown inline, always visible, not hidden
             behind an accordion. The title becomes a small inline label above the
             evidence list. */}
-        <div className={hasMetrics ? undefined : compact ? "mt-2" : "mt-3"}>
+        <div className={hasMetrics ? undefined : "mt-3"}>
           <p className="text-label-s font-semibold text-fg-secondary">
             {reasoningTitle}
           </p>
           <ul
             className={cn(
               "mt-1 list-disc pl-4",
-              compact ? "space-y-0.5 text-footnote" : "space-y-1 text-body-s",
+              compact ? "space-y-1 text-footnote" : "space-y-1 text-body-s",
             )}
           >
             {evidence.map((item) => (
@@ -361,10 +369,7 @@ export function ImpactProjectionPanel({
 
         {citations.length > 0 ? (
           <div
-            className={cn(
-              "flex flex-wrap items-center gap-1.5",
-              compact ? "mt-2" : "mt-3",
-            )}
+            className="mt-3 flex flex-wrap items-center gap-1.5"
           >
             {/* Starling: label the source pills inline so the row reads as sourcing. */}
             <span className="text-label-s text-fg-muted">Sources</span>
@@ -379,7 +384,7 @@ export function ImpactProjectionPanel({
       <CardFooter
         className={cn(
           "justify-start",
-          compact ? "mt-2 border-t-0 pt-0" : "mt-4",
+          compact ? "mt-3 border-t-0 pt-0" : "mt-4",
         )}
       >
         <p

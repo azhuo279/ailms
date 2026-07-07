@@ -2,25 +2,38 @@
   "generatedAt": "2026-07-05T14:40:00-05:00",
   "events": [
     {
+      "id": "aud-2054",
+      "exceptionId": "exc-1001",
+      "shipmentId": "SHP-48213",
+      "type": "customs_hold",
+      "actor": { "id": "ai-copilot", "name": "Kase", "role": "AI Co-pilot", "kind": "ai" },
+      "timestamp": "2026-07-05T13:58:44-05:00",
+      "tier": "T1",
+      "content": "Classified the BorderIQ flag as a **Documentation Gap hold** on **HS code 8471.30** at the Laredo World Trade Bridge and attached it to this exception.",
+      "context": {
+        "confidence": 91,
+        "classificationRationale": "BorderIQ returned a **manifest mismatch** code on 2 of 14 line items. Matched the pattern to prior **8471.30 laptop-accessory holds** at Laredo with 94% precision over the last 90 days.",
+        "reasoning": [
+          "Filed manifest lists the items under **8471.30**; BorderIQ expected **8473.30** for the packaged accessory.",
+          "Same importer of record had **2 similar holds** cleared in Q1 via a corrected invoice."
+        ]
+      }
+    },
+    {
       "id": "aud-2051",
       "exceptionId": "exc-1001",
       "shipmentId": "SHP-48213",
       "type": "ai_recommendation",
-      "actor": {
-        "id": "ai-copilot",
-        "name": "Kase",
-        "role": "AI Co-pilot",
-        "kind": "ai"
-      },
+      "actor": { "id": "ai-copilot", "name": "Kase", "role": "AI Co-pilot", "kind": "ai" },
       "timestamp": "2026-07-05T14:32:07-05:00",
       "tier": "T1",
-      "content": "Recommended **expediting a corrected commercial invoice** to BorderIQ to clear the **Laredo customs hold** before the 4-hour breach window.",
+      "content": "Recommended **expediting a corrected commercial invoice** to BorderIQ to clear the **Laredo customs hold** before the breach window.",
       "context": {
         "confidence": 88,
         "reasoning": [
           "BorderIQ flagged an **HS code mismatch** on 2 line items against the filed manifest.",
           "Lane history shows corrected invoices clear Laredo in **under 40 minutes** on average.",
-          "3 Gold-tier orders sit on this load, so the breach cost outweighs the re-file effort."
+          "2 Gold-tier orders sit on this load, so the breach cost outweighs the re-file effort."
         ]
       }
     },
@@ -29,27 +42,14 @@
       "exceptionId": "exc-1001",
       "shipmentId": "SHP-48213",
       "type": "override",
-      "actor": {
-        "id": "usr-msantos",
-        "name": "Maria Santos",
-        "role": "Dispatcher",
-        "kind": "human"
-      },
+      "actor": { "id": "usr-eruiz", "name": "Elena Ruiz", "role": "Zone Operations Manager", "kind": "human" },
       "timestamp": "2026-07-05T14:34:51-05:00",
       "tier": "T1",
-      "content": "Overrode the recommendation to **hold the load for a broker review** instead of self-filing the correction.",
+      "content": "Modified the recommendation to **hold the load for a broker review** instead of self-filing the correction.",
       "context": {
         "changes": [
-          {
-            "label": "Action",
-            "before": "Expedite corrected invoice",
-            "after": "Hold for broker review"
-          },
-          {
-            "label": "Owner",
-            "before": "Dispatcher self-file",
-            "after": "Licensed customs broker"
-          }
+          { "label": "Action", "before": "Expedite corrected invoice", "after": "Hold for broker review" },
+          { "label": "Owner", "before": "Dispatcher self-file", "after": "Licensed customs broker" }
         ],
         "note": "Second line item looks like a classification question, not a typo. Broker should confirm the HS code before we re-file."
       }
@@ -58,694 +58,420 @@
       "id": "aud-2053",
       "exceptionId": "exc-1001",
       "shipmentId": "SHP-48213",
-      "type": "escalation",
-      "actor": {
-        "id": "usr-msantos",
-        "name": "Maria Santos",
-        "role": "Dispatcher",
-        "kind": "human"
-      },
+      "type": "delegation",
+      "actor": { "id": "usr-eruiz", "name": "Elena Ruiz", "role": "Zone Operations Manager", "kind": "human" },
       "timestamp": "2026-07-05T14:36:20-05:00",
       "tier": "T1",
-      "content": "Escalated to the **customs broker on call** for an HS-code ruling, with the AI package attached.",
+      "content": "Delegated to the **customs broker on call** for an HS-code ruling, with the AI package attached.",
       "context": {
         "routedTo": "Devin Okafor · Customs Broker",
         "note": "Breach window closes 18:32 CT. Flagged as time-critical."
       }
     },
     {
-      "id": "aud-2054",
-      "exceptionId": "exc-1001",
-      "shipmentId": "SHP-48213",
+      "id": "aud-2055",
+      "exceptionId": "exc-1002",
+      "shipmentId": "SHP-48219",
       "type": "customs_hold",
-      "actor": {
-        "id": "ai-copilot",
-        "name": "Kase",
-        "role": "AI Co-pilot",
-        "kind": "ai"
-      },
-      "timestamp": "2026-07-05T13:58:44-05:00",
-      "tier": "T1",
-      "content": "Classified the BorderIQ flag as a **customs hold** on **HS code 8471.30** and attached it to this exception.",
+      "actor": { "id": "ai-copilot", "name": "Kase", "role": "AI Co-pilot", "kind": "ai" },
+      "timestamp": "2026-07-05T12:49:10-05:00",
+      "tier": "T4",
+      "content": "Classified a **Legal / Sanctions hold** at the Laredo World Trade Bridge after a consignee name partially matched a watchlist entry. **No action recommendation** issued, per the legal-tier rule.",
       "context": {
-        "confidence": 91,
-        "classificationRationale": "BorderIQ returned a **manifest mismatch** code on 2 of 14 line items. Matched the pattern to prior **8471.30 laptop-accessory holds** at Laredo with 94% precision over the last 90 days.",
+        "confidence": 84,
+        "classificationRationale": "BorderIQ returned a **sanctions screening** partial match on the consignee name. Legal-tier classification is mandatory on any watchlist match, so this routes to the Legal Authority, not the ZOM.",
         "reasoning": [
-          "Filed manifest lists the items under **8471.30**; BorderIQ expected **8473.30** for the packaged accessory.",
-          "Same importer of record had **2 similar holds** cleared in Q1 via corrected invoice."
+          "Consignee name is a **partial match** to a sanctions watchlist entry.",
+          "Filing is otherwise complete, so there is **no documentation gap** to work operationally."
         ]
       }
     },
     {
-      "id": "aud-2010",
+      "id": "aud-2056",
       "exceptionId": "exc-1002",
       "shipmentId": "SHP-48219",
-      "type": "ai_recommendation",
-      "actor": {
-        "id": "ai-copilot",
-        "name": "Kase",
-        "role": "AI Co-pilot",
-        "kind": "ai"
-      },
-      "timestamp": "2026-07-05T13:12:03-05:00",
-      "tier": "T2",
-      "content": "Recommended **re-routing through the Otay Mesa DC** to recover the delayed cold-chain load after SignalTrack dropped GPS.",
+      "type": "escalation",
+      "actor": { "id": "usr-eruiz", "name": "Elena Ruiz", "role": "Zone Operations Manager", "kind": "human" },
+      "timestamp": "2026-07-05T13:05:12-05:00",
+      "tier": "T4",
+      "content": "Escalated to the **Legal / Compliance Authority** with the full context brief for a sanctions disposition.",
       "context": {
-        "confidence": 74,
-        "reasoning": [
-          "SignalTrack lost pings **14 minutes ago**, so current position is inferred from the last known speed.",
-          "Otay Mesa adds **90 minutes** but keeps the reefer within its temperature window.",
-          "Direct lane risks a **cold-chain breach** if the truck is already stopped."
-        ]
+        "routedTo": "Trade Compliance Desk · Legal Authority",
+        "note": "No operational action taken. Load stays held pending legal clearance."
       }
     },
     {
-      "id": "aud-2011",
-      "exceptionId": "exc-1002",
-      "shipmentId": "SHP-48219",
-      "type": "approval",
-      "actor": {
-        "id": "usr-tnguyen",
-        "name": "Tom Nguyen",
-        "role": "Dispatcher",
-        "kind": "human"
-      },
-      "timestamp": "2026-07-05T13:15:39-05:00",
-      "tier": "T2",
-      "content": "Approved the AI re-route **as recommended** and delegated execution to the regional carrier desk.",
-      "context": {
-        "note": "Cold-chain risk is worth the 90-minute add. Approved without changes."
-      }
-    },
-    {
-      "id": "aud-2012",
-      "exceptionId": "exc-1002",
-      "shipmentId": "SHP-48219",
-      "type": "delegation",
-      "actor": {
-        "id": "usr-tnguyen",
-        "name": "Tom Nguyen",
-        "role": "Dispatcher",
-        "kind": "human"
-      },
-      "timestamp": "2026-07-05T13:16:12-05:00",
-      "tier": "T2",
-      "content": "Delegated the **Otay Mesa re-route** to the carrier desk for execution.",
-      "context": {
-        "routedTo": "West Regional Carrier Desk · Execution Owner"
-      }
-    },
-    {
-      "id": "aud-2013",
+      "id": "aud-2057",
       "exceptionId": "exc-1002",
       "shipmentId": "SHP-48219",
       "type": "feedback",
-      "actor": {
-        "id": "usr-tnguyen",
-        "name": "Tom Nguyen",
-        "role": "Dispatcher",
-        "kind": "human"
-      },
-      "timestamp": "2026-07-05T13:48:55-05:00",
-      "tier": "T2",
-      "content": "Marked the recommendation **helpful** after the reefer cleared Otay Mesa within its window.",
+      "actor": { "id": "usr-eruiz", "name": "Elena Ruiz", "role": "Zone Operations Manager", "kind": "human" },
+      "timestamp": "2026-07-05T13:07:40-05:00",
+      "tier": "T4",
+      "content": "Marked the classification **helpful** for routing straight to legal instead of surfacing an operational action.",
       "context": {
-        "note": "Good call on the temperature window. The confidence read a touch low for how clean this was."
+        "note": "Good call holding back a recommendation here. This is exactly the kind of hold I do not want to action myself."
       }
     },
     {
-      "id": "aud-2030",
+      "id": "aud-2058",
       "exceptionId": "exc-1003",
       "shipmentId": "SHP-51002",
       "type": "ai_recommendation",
-      "actor": {
-        "id": "ai-copilot",
-        "name": "Kase",
-        "role": "AI Co-pilot",
-        "kind": "ai"
-      },
-      "timestamp": "2026-07-05T12:04:18-05:00",
-      "tier": "T3",
-      "content": "Recommended **holding the dock appointment** at Council Bluffs and re-slotting to the 15:00 window to ease congestion.",
+      "actor": { "id": "ai-copilot", "name": "Kase", "role": "AI Co-pilot", "kind": "ai" },
+      "timestamp": "2026-07-05T14:05:18-05:00",
+      "tier": "T1",
+      "content": "Recommended **holding the reefer at the Laredo Cross-Dock** to check the cold-chain before the final leg, after SignalTrack dropped GPS.",
+      "context": {
+        "confidence": 74,
+        "reasoning": [
+          "SignalTrack lost pings **46 minutes ago**, so current condition is **inferred** from the last confirmed reading.",
+          "The lane transit model puts the trailer near its temperature ceiling if it is already stopped.",
+          "A short hold to verify avoids a possible **cold-chain breach** on the last leg."
+        ]
+      }
+    },
+    {
+      "id": "aud-2059",
+      "exceptionId": "exc-1003",
+      "shipmentId": "SHP-51002",
+      "type": "override",
+      "actor": { "id": "usr-eruiz", "name": "Elena Ruiz", "role": "Zone Operations Manager", "kind": "human" },
+      "timestamp": "2026-07-05T14:12:33-05:00",
+      "tier": "T1",
+      "content": "Modified the plan to **keep the load on its direct lane** after the driver confirmed by phone that the reefer is running normally.",
+      "context": {
+        "changes": [
+          { "label": "Action", "before": "Hold to verify cold-chain", "after": "Continue on direct lane" }
+        ],
+        "note": "Reached the driver directly. Unit is running, temperature is in band. The silence was the GPS feed, not the reefer."
+      }
+    },
+    {
+      "id": "aud-2060",
+      "exceptionId": "exc-1003",
+      "shipmentId": "SHP-51002",
+      "type": "feedback",
+      "actor": { "id": "usr-eruiz", "name": "Elena Ruiz", "role": "Zone Operations Manager", "kind": "human" },
+      "timestamp": "2026-07-05T14:14:05-05:00",
+      "tier": "T1",
+      "content": "Marked the recommendation **not helpful** because the confidence read too high for a call built on a dropped feed.",
+      "context": {
+        "note": "The inference was reasonable, but 74% felt overstated when the whole thing rests on stale GPS. Lower the confidence when the source is degraded."
+      }
+    },
+    {
+      "id": "aud-2061",
+      "exceptionId": "exc-1004",
+      "shipmentId": "SHP-49876",
+      "type": "ai_recommendation",
+      "actor": { "id": "ai-copilot", "name": "Kase", "role": "AI Co-pilot", "kind": "ai" },
+      "timestamp": "2026-07-05T14:16:30-05:00",
+      "tier": "T2",
+      "content": "Recommended **re-slotting the dock appointment** at the San Antonio Distribution Hub to the 15:00 window to ease the inbound queue.",
       "context": {
         "confidence": 69,
         "reasoning": [
-          "Nexus WMS shows **6 trailers** queued against 2 open doors.",
+          "Nexus WMS shows **7 trailers** queued against 2 open doors.",
           "The 15:00 window historically clears **40% faster** on Fridays."
         ]
       }
     },
     {
-      "id": "aud-2031",
-      "exceptionId": "exc-1003",
-      "shipmentId": "SHP-51002",
-      "type": "tier_routing",
-      "actor": {
-        "id": "ai-copilot",
-        "name": "Kase",
-        "role": "AI Co-pilot",
-        "kind": "ai"
-      },
-      "timestamp": "2026-07-05T12:02:50-05:00",
-      "tier": "T3",
-      "content": "Routed the dock-congestion exception to **Tier 3 (medium priority)** based on queue depth and open-door count.",
-      "context": {
-        "note": "No SLA-bound orders on the queued trailers, so it stayed below the escalation tiers."
-      }
-    },
-    {
-      "id": "aud-2032",
-      "exceptionId": "exc-1003",
-      "shipmentId": "SHP-51002",
-      "type": "override",
-      "actor": {
-        "id": "usr-rpatel",
-        "name": "Rhea Patel",
-        "role": "Director",
-        "kind": "human"
-      },
-      "timestamp": "2026-07-05T12:09:41-05:00",
-      "tier": "T3",
-      "content": "Overrode the re-slot to a **live-unload priority** for the Council Bluffs door team.",
-      "context": {
-        "changes": [
-          {
-            "label": "Action",
-            "before": "Re-slot to 15:00 window",
-            "after": "Live-unload priority now"
-          }
-        ],
-        "note": "One of these trailers is blocking a cross-dock transfer. Clearing it now unblocks two others."
-      }
-    },
-    {
-      "id": "aud-2033",
-      "exceptionId": "exc-1003",
-      "shipmentId": "SHP-51002",
-      "type": "delegation",
-      "actor": {
-        "id": "usr-rpatel",
-        "name": "Rhea Patel",
-        "role": "Director",
-        "kind": "human"
-      },
-      "timestamp": "2026-07-05T12:10:22-05:00",
-      "tier": "T3",
-      "content": "Delegated the **live-unload priority** to the Council Bluffs floor lead.",
-      "context": {
-        "routedTo": "Sam Whitfield · Council Bluffs Floor Lead"
-      }
-    },
-    {
-      "id": "aud-2040",
+      "id": "aud-2062",
       "exceptionId": "exc-1004",
       "shipmentId": "SHP-49876",
+      "type": "delegation",
+      "actor": { "id": "usr-eruiz", "name": "Elena Ruiz", "role": "Zone Operations Manager", "kind": "human" },
+      "timestamp": "2026-07-05T14:20:44-05:00",
+      "tier": "T2",
+      "content": "Delegated a **live-unload priority** for the two produce trailers to the San Antonio Hub floor lead.",
+      "context": {
+        "changes": [
+          { "label": "Action", "before": "Re-slot to 15:00 window", "after": "Live-unload the 2 produce loads now" }
+        ],
+        "routedTo": "Sam Whitfield · San Antonio Hub Floor Lead",
+        "note": "Produce cannot wait for the 15:00 window. Clear those two first, re-slot the rest."
+      }
+    },
+    {
+      "id": "aud-2064",
+      "exceptionId": "exc-1005",
+      "shipmentId": "SHP-50410",
       "type": "ai_recommendation",
-      "actor": {
-        "id": "ai-copilot",
-        "name": "Kase",
-        "role": "AI Co-pilot",
-        "kind": "ai"
-      },
-      "timestamp": "2026-07-05T11:22:31-05:00",
-      "tier": "T4",
-      "content": "Recommended a **cycle count** on the Elkhart SKU to resolve the inventory discrepancy before the next pick wave.",
+      "actor": { "id": "ai-copilot", "name": "Kase", "role": "AI Co-pilot", "kind": "ai" },
+      "timestamp": "2026-07-05T14:26:12-05:00",
+      "tier": "T2",
+      "content": "Recommended a **single dispatcher call** to recover both late I-35 loads, since they share a carrier and a dispatcher.",
+      "context": {
+        "confidence": 76,
+        "reasoning": [
+          "SHP-50410 and SHP-50412 run the **same I-35 lane, carrier, and dispatcher**.",
+          "One call likely recovers both, so they were surfaced as a **cluster**, not two separate items."
+        ]
+      }
+    },
+    {
+      "id": "aud-2065",
+      "exceptionId": "exc-1005",
+      "shipmentId": "SHP-50410",
+      "type": "delegation",
+      "actor": { "id": "usr-eruiz", "name": "Elena Ruiz", "role": "Zone Operations Manager", "kind": "human" },
+      "timestamp": "2026-07-05T14:30:07-05:00",
+      "tier": "T2",
+      "content": "Delegated the **single recovery call** for both I-35 loads to the carrier desk, as recommended.",
+      "context": {
+        "routedTo": "West Regional Carrier Desk · Execution Owner",
+        "note": "Covering SHP-50410 and SHP-50412 in one call to the Redline dispatcher."
+      }
+    },
+    {
+      "id": "aud-2066",
+      "exceptionId": "exc-1006",
+      "shipmentId": "SHP-50412",
+      "type": "ai_recommendation",
+      "actor": { "id": "ai-copilot", "name": "Kase", "role": "AI Co-pilot", "kind": "ai" },
+      "timestamp": "2026-07-05T14:26:14-05:00",
+      "tier": "T2",
+      "content": "Linked this load to **SHP-50410 as a cluster** so a single dispatcher call resolves both, rather than surfacing it as a separate delay.",
+      "context": {
+        "confidence": 73,
+        "reasoning": [
+          "Same lane, carrier, and dispatcher as SHP-50410.",
+          "Projected **1 hour 50 minutes** late, inside the same recovery call window."
+        ]
+      }
+    },
+    {
+      "id": "aud-2067",
+      "exceptionId": "exc-1007",
+      "shipmentId": "SHP-47705",
+      "type": "ai_recommendation",
+      "actor": { "id": "ai-copilot", "name": "Kase", "role": "AI Co-pilot", "kind": "ai" },
+      "timestamp": "2026-07-05T11:30:31-05:00",
+      "tier": "T3",
+      "content": "Recommended a **cycle count** on the McAllen SKU to resolve the ASN short before the next pick wave.",
       "context": {
         "confidence": 63,
         "reasoning": [
-          "OrderPulse and Nexus WMS disagree by **48 units** on this SKU.",
+          "OrderPulse and Nexus WMS disagree by **12 units** on this SKU.",
           "OrderPulse last synced **42 minutes ago**, so its count is likely stale."
         ]
       }
     },
     {
-      "id": "aud-2041",
-      "exceptionId": "exc-1004",
-      "shipmentId": "SHP-49876",
-      "type": "approval",
-      "actor": {
-        "id": "usr-jkim",
-        "name": "Jordan Kim",
-        "role": "Dispatcher",
-        "kind": "human"
-      },
-      "timestamp": "2026-07-05T11:25:09-05:00",
-      "tier": "T4",
-      "content": "Approved the **cycle count** and scheduled it against the current shift.",
-      "context": {
-        "note": "Low urgency, but worth clearing before the discrepancy compounds."
-      }
-    },
-    {
-      "id": "aud-2042",
-      "exceptionId": "exc-1004",
-      "shipmentId": "SHP-49876",
-      "type": "feedback",
-      "actor": {
-        "id": "usr-jkim",
-        "name": "Jordan Kim",
-        "role": "Dispatcher",
-        "kind": "human"
-      },
-      "timestamp": "2026-07-05T11:52:14-05:00",
-      "tier": "T4",
-      "content": "Flagged the recommendation as **partially helpful** since the real gap was a mislabelled bin, not a stale sync.",
-      "context": {
-        "note": "The stale-sync reasoning pointed the wrong way, but the cycle count still found the issue."
-      }
-    },
-    {
-      "id": "aud-2060",
-      "exceptionId": "exc-1005",
-      "shipmentId": "SHP-50410",
-      "type": "customs_hold",
-      "actor": {
-        "id": "ai-copilot",
-        "name": "Kase",
-        "role": "AI Co-pilot",
-        "kind": "ai"
-      },
-      "timestamp": "2026-07-05T10:41:02-05:00",
-      "tier": "T2",
-      "content": "Classified a **Nogales customs hold** on a produce load pending a **USDA phytosanitary check**.",
-      "context": {
-        "confidence": 82,
-        "classificationRationale": "BorderIQ returned an **agriculture inspection** code. Produce loads through Nogales carry a **standing USDA check** requirement, matched with high confidence.",
-        "reasoning": [
-          "Commodity code maps to fresh produce.",
-          "Nogales port requires a phytosanitary certificate on file."
-        ]
-      }
-    },
-    {
-      "id": "aud-2061",
-      "exceptionId": "exc-1005",
-      "shipmentId": "SHP-50410",
-      "type": "escalation",
-      "actor": {
-        "id": "usr-lchen",
-        "name": "Lena Chen",
-        "role": "Dispatcher",
-        "kind": "human"
-      },
-      "timestamp": "2026-07-05T10:47:38-05:00",
-      "tier": "T2",
-      "content": "Escalated to the **compliance desk** to confirm the phytosanitary certificate is on file.",
-      "context": {
-        "routedTo": "Compliance Desk · Reviewer"
-      }
-    },
-    {
-      "id": "aud-2062",
-      "exceptionId": "exc-1005",
-      "shipmentId": "SHP-50410",
-      "type": "tier_routing",
-      "actor": {
-        "id": "usr-lchen",
-        "name": "Lena Chen",
-        "role": "Dispatcher",
-        "kind": "human"
-      },
-      "timestamp": "2026-07-05T10:49:10-05:00",
-      "tier": "T2",
-      "content": "Re-routed the exception from **Tier 3 to Tier 2** after a Gold-tier order was linked to the load.",
+      "id": "aud-2068",
+      "exceptionId": "exc-1007",
+      "shipmentId": "SHP-47705",
+      "type": "override",
+      "actor": { "id": "usr-eruiz", "name": "Elena Ruiz", "role": "Zone Operations Manager", "kind": "human" },
+      "timestamp": "2026-07-05T11:44:19-05:00",
+      "tier": "T3",
+      "content": "Modified the plan to **receive against the PO manually** after confirming the short was a **mislabelled bin**, not a stale sync.",
       "context": {
         "changes": [
-          {
-            "label": "Tier",
-            "before": "T3",
-            "after": "T2"
-          }
+          { "label": "Action", "before": "Cycle count vs stale sync", "after": "Manual PO receipt, re-label bin" }
         ],
-        "note": "Order lookup surfaced a Gold-tier customer, so the priority moved up."
+        "note": "Floor found the missing 12 units in a mislabelled bin. The stale-sync reasoning pointed the wrong way."
+      }
+    },
+    {
+      "id": "aud-2069",
+      "exceptionId": "exc-1007",
+      "shipmentId": "SHP-47705",
+      "type": "feedback",
+      "actor": { "id": "usr-eruiz", "name": "Elena Ruiz", "role": "Zone Operations Manager", "kind": "human" },
+      "timestamp": "2026-07-05T11:52:14-05:00",
+      "tier": "T3",
+      "content": "Flagged the recommendation as **partially helpful** since the real gap was a mislabelled bin, not a stale sync.",
+      "context": {
+        "note": "The cycle count still surfaced the issue, but the reasoning blamed the wrong cause."
       }
     },
     {
       "id": "aud-2070",
-      "exceptionId": "exc-1006",
-      "shipmentId": "SHP-50412",
-      "type": "ai_recommendation",
-      "actor": {
-        "id": "ai-copilot",
-        "name": "Kase",
-        "role": "AI Co-pilot",
-        "kind": "ai"
-      },
-      "timestamp": "2026-07-05T09:33:55-05:00",
-      "tier": "T1",
-      "content": "Recommended **escalating to the carrier account manager** after two missed pickup windows on a Gold-tier load.",
+      "exceptionId": "exc-1008",
+      "shipmentId": "SHP-52011",
+      "type": "tier_routing",
+      "actor": { "id": "ai-copilot", "name": "Kase", "role": "AI Co-pilot", "kind": "ai" },
+      "timestamp": "2026-07-05T14:02:22-05:00",
+      "tier": "T3",
+      "content": "Routed the **manually filed roadside breakdown** near Cotulla to **Tier 3**, with location flagged as approximate.",
       "context": {
-        "confidence": 79,
-        "reasoning": [
-          "Carrier missed the **06:00 and 08:00** windows with no ETA update.",
-          "Load carries a **Gold-tier order** with an SLA breach in under 3 hours."
-        ]
+        "note": "No telematics feed is attached, so position is unconfirmed. Held below the escalation tiers with no SLA-bound orders on the load."
       }
     },
     {
       "id": "aud-2071",
-      "exceptionId": "exc-1006",
-      "shipmentId": "SHP-50412",
-      "type": "escalation",
-      "actor": {
-        "id": "usr-rpatel",
-        "name": "Rhea Patel",
-        "role": "Director",
-        "kind": "human"
-      },
-      "timestamp": "2026-07-05T09:38:47-05:00",
-      "tier": "T1",
-      "content": "Escalated directly to the **carrier account manager** and requested a firm recovery ETA.",
+      "exceptionId": "exc-1009",
+      "shipmentId": "SHP-48901",
+      "type": "customs_hold",
+      "actor": { "id": "ai-copilot", "name": "Kase", "role": "AI Co-pilot", "kind": "ai" },
+      "timestamp": "2026-07-05T13:52:36-05:00",
+      "tier": "T4",
+      "content": "Classified a **potential prohibited-goods match** at the Pharr-Reynosa Border DC and routed it to compliance. **No operational action recommendation** issued.",
       "context": {
-        "routedTo": "Priya Anand · Carrier Account Manager",
-        "note": "Gold-tier SLA. Requested a callback within 30 minutes."
+        "confidence": 79,
+        "classificationRationale": "BorderIQ returned a **prohibited-goods** line-item match. Legal-tier classification is mandatory, so it routes to the compliance desk rather than the ZOM queue.",
+        "reasoning": [
+          "One line item matched a **restricted-commodity code**.",
+          "Load also carries a **Gold-tier commitment due today**, so the breach cost is high while it waits on a ruling."
+        ]
       }
     },
     {
       "id": "aud-2072",
-      "exceptionId": "exc-1006",
-      "shipmentId": "SHP-50412",
-      "type": "override",
-      "actor": {
-        "id": "usr-rpatel",
-        "name": "Rhea Patel",
-        "role": "Director",
-        "kind": "human"
-      },
-      "timestamp": "2026-07-05T09:55:02-05:00",
-      "tier": "T1",
-      "content": "Overrode the recovery plan to **book a spot-market backup carrier** in parallel.",
+      "exceptionId": "exc-1009",
+      "shipmentId": "SHP-48901",
+      "type": "escalation",
+      "actor": { "id": "usr-eruiz", "name": "Elena Ruiz", "role": "Zone Operations Manager", "kind": "human" },
+      "timestamp": "2026-07-05T13:54:48-05:00",
+      "tier": "T4",
+      "content": "Escalated to the **compliance desk** for a prohibited-goods ruling, with the Gold-tier deadline flagged in the brief.",
       "context": {
-        "changes": [
-          {
-            "label": "Plan",
-            "before": "Wait for incumbent carrier recovery",
-            "after": "Book spot-market backup in parallel"
-          }
-        ],
-        "note": "Not risking a Gold-tier breach on a carrier that already missed twice."
+        "routedTo": "Trade Compliance Desk · Reviewer",
+        "note": "Gold-tier order due today. Requested a ruling as soon as possible."
       }
     },
     {
       "id": "aud-2073",
-      "exceptionId": "exc-1007",
-      "shipmentId": "SHP-51330",
+      "exceptionId": "exc-1010",
+      "shipmentId": "SHP-49220",
       "type": "ai_recommendation",
-      "actor": {
-        "id": "ai-copilot",
-        "name": "Kase",
-        "role": "AI Co-pilot",
-        "kind": "ai"
-      },
-      "timestamp": "2026-07-05T11:02:14-05:00",
+      "actor": { "id": "ai-copilot", "name": "Kase", "role": "AI Co-pilot", "kind": "ai" },
+      "timestamp": "2026-07-05T12:15:44-05:00",
       "tier": "T1",
-      "content": "Recommended **re-routing to the Otay Mesa cross-dock** after a **reefer temperature excursion** breached the cold-chain threshold.",
+      "content": "Recommended **re-tendering to the backup carrier** on the Corpus Christi Port outbound after Atlas Transit went silent.",
       "context": {
-        "confidence": 84,
+        "confidence": 76,
         "reasoning": [
-          "Trailer sensor logged **2 readings above 8C** in the last 30 minutes.",
-          "Otay Mesa cross-dock has an **open reefer bay** within the recovery window.",
-          "1 Gold-tier pharma order on this load makes the excursion a spoilage risk."
+          "Atlas Transit missed the **tender confirmation window** with no check-call.",
+          "A backup carrier has capacity for this lane and can recover the outbound today."
         ]
       }
     },
     {
       "id": "aud-2074",
-      "exceptionId": "exc-1007",
-      "shipmentId": "SHP-51330",
-      "type": "approval",
-      "actor": {
-        "id": "usr-tnguyen",
-        "name": "Tom Nguyen",
-        "role": "Dispatcher",
-        "kind": "human"
-      },
-      "timestamp": "2026-07-05T11:14:41-05:00",
+      "exceptionId": "exc-1010",
+      "shipmentId": "SHP-49220",
+      "type": "escalation",
+      "actor": { "id": "usr-msantos", "name": "Maria Santos", "role": "Dispatcher", "kind": "human" },
+      "timestamp": "2026-07-05T12:33:57-05:00",
       "tier": "T1",
-      "content": "Approved the **cross-dock recovery** as recommended and notified the consignee of the revised ETA.",
+      "content": "Escalated to the **carrier account manager** to log the no-response against Atlas Transit's scorecard.",
       "context": {
-        "note": "Spoilage risk outweighs the 2-hour delay. Approved without changes."
+        "routedTo": "Priya Nair · Carrier Account Manager",
+        "note": "Third silent tender this month on this lane."
       }
     },
     {
       "id": "aud-2075",
-      "exceptionId": "exc-1007",
-      "shipmentId": "SHP-51330",
-      "type": "delegation",
-      "actor": {
-        "id": "usr-tnguyen",
-        "name": "Tom Nguyen",
-        "role": "Dispatcher",
-        "kind": "human"
-      },
-      "timestamp": "2026-07-05T11:16:03-05:00",
+      "exceptionId": "exc-1010",
+      "shipmentId": "SHP-49220",
+      "type": "override",
+      "actor": { "id": "usr-rpatel", "name": "Rhea Patel", "role": "Logistics Director", "kind": "human" },
+      "timestamp": "2026-07-05T12:50:02-05:00",
       "tier": "T1",
-      "content": "Delegated the **Otay Mesa cross-dock booking** to the West carrier desk for execution.",
+      "content": "Modified the recovery to **book a spot-market backup in parallel** rather than waiting on the incumbent.",
       "context": {
-        "routedTo": "West Regional Carrier Desk · Execution Owner"
+        "changes": [
+          { "label": "Plan", "before": "Wait for incumbent recovery", "after": "Book spot-market backup in parallel" }
+        ],
+        "note": "Not risking this outbound on a carrier that already went silent. Booking a backup now."
       }
     },
     {
       "id": "aud-2076",
-      "exceptionId": "exc-1008",
-      "shipmentId": "SHP-50988",
-      "type": "customs_hold",
-      "actor": {
-        "id": "ai-copilot",
-        "name": "Kase",
-        "role": "AI Co-pilot",
-        "kind": "ai"
-      },
-      "timestamp": "2026-07-05T10:41:52-05:00",
+      "exceptionId": "exc-1011",
+      "shipmentId": "SHP-50888",
+      "type": "ai_recommendation",
+      "actor": { "id": "ai-copilot", "name": "Kase", "role": "AI Co-pilot", "kind": "ai" },
+      "timestamp": "2026-07-05T09:20:14-05:00",
       "tier": "T2",
-      "content": "Flagged a **missing ASN** against the inbound appointment at **DFW-3** and attached it to this exception.",
+      "content": "Recommended a **physical recount** of the varying SKU at the San Antonio Southeast DC before the next outbound wave.",
       "context": {
-        "confidence": 79,
-        "classificationRationale": "No advance ship notice matched the PO within the appointment window; pattern matched **late-ASN receiving delays** at DFW-3 with 81% precision.",
+        "confidence": 72,
         "reasoning": [
-          "PO on the trailer has **no linked ASN** in the WMS.",
-          "Carrier EDI feed shows the **214 status** but no **856**."
+          "Cycle count shows a **340-unit variance** against the WMS ledger on a fast-moving SKU.",
+          "Recounting before the wave avoids shipping short and compounding the gap."
         ]
       }
     },
     {
       "id": "aud-2077",
-      "exceptionId": "exc-1008",
-      "shipmentId": "SHP-50988",
-      "type": "override",
-      "actor": {
-        "id": "usr-lchen",
-        "name": "Lena Chen",
-        "role": "Dispatcher",
-        "kind": "human"
-      },
-      "timestamp": "2026-07-05T10:58:19-05:00",
+      "exceptionId": "exc-1011",
+      "shipmentId": "SHP-50888",
+      "type": "escalation",
+      "actor": { "id": "usr-eruiz", "name": "Elena Ruiz", "role": "Zone Operations Manager", "kind": "human" },
+      "timestamp": "2026-07-05T09:40:31-05:00",
       "tier": "T2",
-      "content": "Overrode the hold to **receive against the PO manually** after confirming the ASN was sent to the wrong endpoint.",
+      "content": "Escalated to the **site lead** for a physical recount before the outbound wave releases.",
       "context": {
-        "changes": [
-          {
-            "label": "Action",
-            "before": "Hold for ASN",
-            "after": "Manual PO receipt"
-          },
-          {
-            "label": "Owner",
-            "before": "Receiving queue",
-            "after": "Lena Chen"
-          }
-        ],
-        "note": "Carrier confirmed the 856 went to the retired endpoint. Safe to receive manually."
+        "routedTo": "Dana Cole · San Antonio Southeast Site Lead",
+        "note": "Hold the SKU from the wave until the recount clears."
       }
     },
     {
       "id": "aud-2078",
-      "exceptionId": "exc-1009",
-      "shipmentId": "SHP-51044",
-      "type": "tier_routing",
-      "actor": {
-        "id": "ai-copilot",
-        "name": "Kase",
-        "role": "AI Co-pilot",
-        "kind": "ai"
-      },
-      "timestamp": "2026-07-05T09:52:36-05:00",
+      "exceptionId": "exc-1012",
+      "shipmentId": "SHP-51550",
+      "type": "ai_recommendation",
+      "actor": { "id": "ai-copilot", "name": "Kase", "role": "AI Co-pilot", "kind": "ai" },
+      "timestamp": "2026-07-05T12:15:29-05:00",
       "tier": "T3",
-      "content": "Routed the **dock-congestion exception** to **Tier 3 (medium priority)** based on queue depth and open-door count.",
+      "content": "Recommended **pulling temp labor to the outbound docks** at the San Antonio Distribution Hub to recover the second-shift shortfall.",
       "context": {
-        "note": "No SLA-bound orders on the queued trailers, so it stayed below the escalation tiers."
+        "confidence": 66,
+        "reasoning": [
+          "Outbound loading is running **55 minutes behind** on a second-shift labor shortfall.",
+          "A temp crew on the outbound doors recovers the schedule before the evening cutoff."
+        ]
       }
     },
     {
       "id": "aud-2079",
-      "exceptionId": "exc-1009",
-      "shipmentId": "SHP-51044",
-      "type": "feedback",
-      "actor": {
-        "id": "usr-jkim",
-        "name": "Jordan Kim",
-        "role": "Dispatcher",
-        "kind": "human"
-      },
-      "timestamp": "2026-07-05T10:22:08-05:00",
+      "exceptionId": "exc-1012",
+      "shipmentId": "SHP-51550",
+      "type": "delegation",
+      "actor": { "id": "usr-eruiz", "name": "Elena Ruiz", "role": "Zone Operations Manager", "kind": "human" },
+      "timestamp": "2026-07-05T13:05:22-05:00",
       "tier": "T3",
-      "content": "Marked the routing **helpful** after the queue cleared without a manual bump.",
+      "content": "Delegated the **second-shift labor recovery** to the San Antonio Hub site lead.",
       "context": {
-        "note": "Tier read was right. Nothing time-critical was waiting."
+        "routedTo": "Sam Whitfield · San Antonio Hub Floor Lead",
+        "note": "Pull two temps to the outbound doors for the rest of the shift."
       }
     },
     {
       "id": "aud-2080",
-      "exceptionId": "exc-1010",
-      "shipmentId": "SHP-51190",
-      "type": "ai_recommendation",
-      "actor": {
-        "id": "ai-copilot",
-        "name": "Kase",
-        "role": "AI Co-pilot",
-        "kind": "ai"
-      },
-      "timestamp": "2026-07-05T12:18:44-05:00",
+      "exceptionId": "exc-1014",
+      "shipmentId": "SHP-49555",
+      "type": "customs_hold",
+      "actor": { "id": "ai-copilot", "name": "Kase", "role": "AI Co-pilot", "kind": "ai" },
+      "timestamp": "2026-07-05T08:32:11-05:00",
       "tier": "T2",
-      "content": "Recommended **re-tendering to the backup carrier** after the primary logged a **no-show** at the pickup window.",
+      "content": "Classified a **Documentation Gap hold** on an **HS code typo** at the Eagle Pass crossing, with no compliance risk.",
       "context": {
-        "confidence": 76,
+        "confidence": 88,
+        "classificationRationale": "BorderIQ returned a single-character HS code discrepancy. Pattern matched **routine typo corrections** at Eagle Pass with high precision, so it stays a Documentation Gap, not a regulatory hold.",
         "reasoning": [
-          "Primary carrier missed the **2-hour pickup window** with no check-call.",
-          "Backup carrier is **12 minutes out** and has capacity for this lane."
+          "Filed HS code is off by one digit from the commodity on the invoice.",
+          "Prior loads from this shipper cleared after a **routine broker amendment**."
         ]
       }
     },
     {
       "id": "aud-2081",
-      "exceptionId": "exc-1010",
-      "shipmentId": "SHP-51190",
-      "type": "escalation",
-      "actor": {
-        "id": "usr-msantos",
-        "name": "Maria Santos",
-        "role": "Dispatcher",
-        "kind": "human"
-      },
-      "timestamp": "2026-07-05T12:33:57-05:00",
+      "exceptionId": "exc-1014",
+      "shipmentId": "SHP-49555",
+      "type": "delegation",
+      "actor": { "id": "usr-eruiz", "name": "Elena Ruiz", "role": "Zone Operations Manager", "kind": "human" },
+      "timestamp": "2026-07-05T09:00:47-05:00",
       "tier": "T2",
-      "content": "Escalated to the **carrier account manager** to log the no-show against the primary's scorecard.",
+      "content": "Delegated the **routine HS-code amendment** to the customs broker, as recommended.",
       "context": {
-        "routedTo": "Priya Nair · Carrier Account Manager",
-        "note": "Third no-show this month on this lane."
-      }
-    },
-    {
-      "id": "aud-2082",
-      "exceptionId": "exc-1011",
-      "shipmentId": "SHP-49510",
-      "type": "customs_hold",
-      "actor": {
-        "id": "ai-copilot",
-        "name": "Kase",
-        "role": "AI Co-pilot",
-        "kind": "ai"
-      },
-      "timestamp": "2026-07-05T09:41:11-05:00",
-      "tier": "T4",
-      "content": "Flagged a **weight discrepancy** of **1.8%** between the BOL and the scale ticket at **Laredo**.",
-      "context": {
-        "confidence": 72,
-        "classificationRationale": "Discrepancy sits just above the 1.5% tolerance; low-tier because it is within the re-weigh grace band.",
-        "reasoning": [
-          "Scale ticket reads **1.8% over** the filed BOL weight.",
-          "Prior loads from this shipper cleared after a **routine re-weigh**."
-        ]
-      }
-    },
-    {
-      "id": "aud-2083",
-      "exceptionId": "exc-1011",
-      "shipmentId": "SHP-49510",
-      "type": "feedback",
-      "actor": {
-        "id": "usr-jkim",
-        "name": "Jordan Kim",
-        "role": "Dispatcher",
-        "kind": "human"
-      },
-      "timestamp": "2026-07-05T10:05:47-05:00",
-      "tier": "T4",
-      "content": "Marked the flag **not helpful** after the re-weigh confirmed the load was within tolerance.",
-      "context": {
-        "note": "The 1.8% was a tare-weight rounding gap, not a real discrepancy. Confidence should be lower here."
-      }
-    },
-    {
-      "id": "aud-2084",
-      "exceptionId": "exc-1012",
-      "shipmentId": "SHP-51420",
-      "type": "ai_recommendation",
-      "actor": {
-        "id": "ai-copilot",
-        "name": "Kase",
-        "role": "AI Co-pilot",
-        "kind": "ai"
-      },
-      "timestamp": "2026-07-05T13:47:29-05:00",
-      "tier": "T1",
-      "content": "Recommended **pre-clearing detention with the shipper** as the trailer approached the **free-time cutoff** at the port.",
-      "context": {
-        "confidence": 87,
-        "reasoning": [
-          "Trailer has **38 minutes** of free time left at the terminal.",
-          "2 downstream orders depend on this container clearing today.",
-          "Shipper has a **standing detention waiver** for pre-approved holds."
-        ]
-      }
-    },
-    {
-      "id": "aud-2085",
-      "exceptionId": "exc-1012",
-      "shipmentId": "SHP-51420",
-      "type": "override",
-      "actor": {
-        "id": "usr-rpatel",
-        "name": "Rhea Patel",
-        "role": "Director",
-        "kind": "human"
-      },
-      "timestamp": "2026-07-05T13:59:02-05:00",
-      "tier": "T1",
-      "content": "Overrode to **hold for the shipper's own drayage** rather than pre-clearing detention at our cost.",
-      "context": {
-        "changes": [
-          {
-            "label": "Action",
-            "before": "Pre-clear detention",
-            "after": "Hold for shipper drayage"
-          },
-          {
-            "label": "Cost owner",
-            "before": "Our account",
-            "after": "Shipper account"
-          }
-        ],
-        "note": "Shipper's contract puts detention on their side. Confirmed with their ops lead before holding."
-      }
-    },
-    {
-      "id": "aud-2086",
-      "exceptionId": "exc-1012",
-      "shipmentId": "SHP-51420",
-      "type": "escalation",
-      "actor": {
-        "id": "usr-rpatel",
-        "name": "Rhea Patel",
-        "role": "Director",
-        "kind": "human"
-      },
-      "timestamp": "2026-07-05T14:01:38-05:00",
-      "tier": "T1",
-      "content": "Escalated to the **shipper operations lead** to confirm drayage dispatch before free time expires.",
-      "context": {
-        "routedTo": "Marcus Bell · Shipper Operations Lead",
-        "note": "Free time expires 14:25. Confirmed dispatch verbally, awaiting written."
+        "routedTo": "Devin Okafor · Customs Broker",
+        "note": "No rush. Standard correction, clear it on the next filing pass."
       }
     }
   ]

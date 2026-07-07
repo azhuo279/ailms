@@ -5,16 +5,19 @@ import { AlertTriangle, MoveUpRight } from "lucide-react";
 import { Dialog } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tag } from "@/components/ui/tag";
 import type { ExceptionRecord } from "@/app/workspace/lib/exception-types";
 import type { RecommendedAction } from "@/app/workspace/lib/exception-detail";
 import {
   buildEscalateBrief,
   getEscalationTrigger,
   getPolicyApprover,
-  getSimilarEscalation,
 } from "@/app/workspace/lib/exception-handoff";
-import { AiPackage, ContextNote, RecipientRow } from "./handoff-shared";
+import {
+  AiPackage,
+  ContextNote,
+  ReasonCategoryField,
+  RecipientRow,
+} from "./handoff-shared";
 
 /**
  * Escalate modal (Direction C + adjustments). Routes the SELECTED AI-recommended
@@ -23,9 +26,9 @@ import { AiPackage, ContextNote, RecipientRow } from "./handoff-shared";
  *   1. Header — exception/shipment context, an "Escalate" badge, and the
  *      escalation TRIGGER named explicitly on the severity ramp.
  *   2. Approver routing — the recipient is POLICY-DETERMINED (adjustment 1), not
- *      chosen from a free dropdown. Confirm who receives it, their role, whether
- *      they already have a pending escalation from this ZOM, plus a "Similar
- *      escalation" precedent chip.
+ *      chosen from a free dropdown. Confirm who receives it and their role
+ *      (the policy-basis caption and "Similar escalation" precedent chip
+ *      were removed per Starling feedback 2026-07-06).
  *   3. AI-assembled escalation brief — decision-memo structure on the `ai-*`
  *      ramp, edit/preview toggle (adjustment 3), derived from the selected
  *      action (adjustment 2). For a T4 Legal-Sanctions route the AI
@@ -38,6 +41,10 @@ export interface EscalateModalProps {
   open: boolean;
   exception: ExceptionRecord;
   action: RecommendedAction;
+  /** True when the routed action differs from the AI recommendation (custom
+   * mode, an alternative rec, or an edited instruction). Requires a reason
+   * category before the escalation can be submitted (PRD FR-24 / AC-07). */
+  isModified: boolean;
   onClose: () => void;
   /** Called on confirm — the container moves the exception to the Escalated tab. */
   onConfirm: () => void;
@@ -47,10 +54,12 @@ export function EscalateModal({
   open,
   exception,
   action,
+  isModified,
   onClose,
   onConfirm,
 }: EscalateModalProps) {
   const [note, setNote] = useState("");
+  const [reasonCategory, setReasonCategory] = useState("");
   const [briefValues, setBriefValues] = useState<Record<string, string>>({});
 
   const approver = useMemo(() => getPolicyApprover(exception), [exception]);
@@ -58,11 +67,12 @@ export function EscalateModal({
     () => getEscalationTrigger(exception, approver),
     [exception, approver],
   );
-  const similar = useMemo(() => getSimilarEscalation(exception), [exception]);
   const briefFields = useMemo(
     () => buildEscalateBrief(exception, action, approver.stripsAiRecommendation),
     [exception, action, approver],
   );
+
+  const canSend = !isModified || Boolean(reasonCategory);
 
   return (
     <Dialog
@@ -85,6 +95,7 @@ export function EscalateModal({
           <Button
             variant="primary"
             leadingIcon={<MoveUpRight />}
+            disabled={!canSend}
             onClick={onConfirm}
             className="w-full"
           >
@@ -103,32 +114,26 @@ export function EscalateModal({
           <span>{trigger}</span>
         </div>
 
-        {/* Zone 2 — policy-determined approver (confirmation, not selection). */}
+        {/* Zone 2 — policy-determined approver (confirmation, not selection).
+            The policy-basis/open-escalations caption and the "Similar
+            escalation" precedent chip were removed per Starling feedback
+            2026-07-06 — the recipient identity/role alone is enough context
+            at this step. */}
         <div>
           <p className="mb-1.5 text-label-s font-semibold uppercase tracking-wide text-fg-muted">
             Routed to (policy-determined)
           </p>
-          <RecipientRow name={approver.name} role={approver.role}>
-            <span className="mt-1 block text-caption text-fg-muted">
-              {approver.policyBasis}
-              {approver.openFromYou > 0
-                ? ` · ${approver.openFromYou} escalation${
-                    approver.openFromYou === 1 ? "" : "s"
-                  } from you already open`
-                : " · no pending escalations from you"}
-            </span>
-          </RecipientRow>
-          {similar ? (
-            <div className="mt-2">
-              <Tag
-                tone={similar.outcome === "approved" ? "success" : "danger"}
-                leadingIcon={<MoveUpRight />}
-              >
-                Similar: {similar.label}, {similar.outcome}
-              </Tag>
-            </div>
-          ) : null}
+          <RecipientRow name={approver.name} role={approver.role} />
         </div>
+
+        {/* Zone 2b — reason category, required only when the routed action is
+            modified from the AI recommendation (PRD FR-24 / AC-07). */}
+        {isModified ? (
+          <ReasonCategoryField
+            value={reasonCategory}
+            onChange={setReasonCategory}
+          />
+        ) : null}
 
         {/* Zone 3 — AI-assembled escalation brief (decision memo, ai-* ramp). */}
         <AiPackage

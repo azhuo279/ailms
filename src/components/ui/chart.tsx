@@ -71,7 +71,12 @@ export interface ChartProps {
   xKey: string;
   isLoading?: boolean;
   emptyMessage?: string;
-  /** Fixed pixel height of the plot area. */
+  /**
+   * Fixed pixel height of the plot area. Omit to have the chart fill its
+   * flex/grid parent instead (parent must establish a definite height —
+   * e.g. a flex column with `flex-1 min-h-0` — since a percentage height
+   * needs a sized ancestor to resolve against).
+   */
   height?: number;
   /** Hides the legend — only do this for a single, title-named series. */
   hideLegend?: boolean;
@@ -102,13 +107,14 @@ export function Chart({
   xKey,
   isLoading = false,
   emptyMessage = "No data for this range yet.",
-  height = 280,
+  height,
   hideLegend = false,
   stacked = false,
   className,
 }: ChartProps) {
   const gradientId = useId();
   const isEmpty = !isLoading && data.length === 0;
+  const fixedHeight = height ?? 280;
 
   if (isLoading) {
     return (
@@ -117,7 +123,7 @@ export function Chart({
           "flex items-center justify-center rounded-lg border border-border-subtle bg-surface-raised",
           className,
         )}
-        style={{ height }}
+        style={height === undefined ? undefined : { height: fixedHeight }}
         role="status"
         aria-label="Loading chart"
       >
@@ -136,7 +142,7 @@ export function Chart({
           "rounded-lg border border-border-subtle bg-surface-raised",
           className,
         )}
-        style={{ height }}
+        style={height === undefined ? undefined : { height: fixedHeight }}
       >
         <EmptyState
           title="No data"
@@ -148,8 +154,17 @@ export function Chart({
   }
 
   return (
-    <div className={cn(" bg-surface-raised p-4", className)}>
-      <ResponsiveContainer width="100%" height={height}>
+    <div
+      className={cn(
+        " bg-surface-raised p-4",
+        height === undefined && "min-h-0 flex-1",
+        className,
+      )}
+    >
+      <ResponsiveContainer
+        width="100%"
+        height={height === undefined ? "100%" : fixedHeight}
+      >
         {type === "bar" ? (
           <BarChart
             data={data}

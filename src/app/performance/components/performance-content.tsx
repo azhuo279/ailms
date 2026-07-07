@@ -78,18 +78,27 @@ export function PerformanceContent() {
     ) : null;
 
   return (
-    <div className="flex flex-col gap-4">
+    // h-full + min-h-0 lets both tabs' "fill available height" layouts
+    // (Starling 2026-07-06: AI Adoption's two-column restructure, Zone
+    // Performance's taller KPI tile row) resolve against a real height —
+    // Tabs/TabPanel forward className straight through, so this is the only
+    // plumbing needed; neither component's internals were touched.
+    <div className="flex h-full min-h-0 flex-col gap-4">
       <Tabs
         items={tabItems}
         value={activeTab}
         onChange={setTab}
         actions={exportMenu}
+        className="flex min-h-0 flex-1 flex-col"
       >
-        <TabPanel value="zone">
+        <TabPanel value="zone" className="flex min-h-0 flex-1 flex-col">
           <ZonePerformanceTab feed={feed} />
         </TabPanel>
         {isDirector ? (
-          <TabPanel value="adoption">
+          <TabPanel
+            value="adoption"
+            className="flex min-h-0 flex-1 flex-col"
+          >
             <AiAdoptionTab feed={feed} />
           </TabPanel>
         ) : null}

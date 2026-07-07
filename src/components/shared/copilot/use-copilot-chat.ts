@@ -2,16 +2,19 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { ChatTurn } from "./types";
-import {
-  CONVERSATION_STEPS,
-  FOLLOW_UP_TURNS,
-  newId,
-} from "./copilot-script";
+import { getCopilotScript, newId } from "./copilot-script";
+import type { CopilotPage } from "./copilot-script";
 
 /** Delay before a scripted reply appears, so the thinking indicator is legible. */
 const THINKING_MS = 500;
 
 export interface UseCopilotChatOptions {
+  /**
+   * The route Kase is opened on. Selects the page-specific script so what plays
+   * in the panel is tied to the dataset on screen. Changing it (a navigation)
+   * resets the transcript back to that page's empty state.
+   */
+  page: CopilotPage;
   /** Fires the first time a message is sent (so the shell can flip its flag). */
   onConversationStart: () => void;
 }
@@ -49,8 +52,11 @@ export interface UseCopilotChat {
  * first send and never reads the flag back.
  */
 export function useCopilotChat({
+  page,
   onConversationStart,
 }: UseCopilotChatOptions): UseCopilotChat {
+  const { steps, followUps } = getCopilotScript(page);
+
   const [turns, setTurns] = useState<ChatTurn[]>([]);
   const [scriptIndex, setScriptIndex] = useState(0);
   const [isThinking, setIsThinking] = useState(false);
@@ -69,6 +75,26 @@ export function useCopilotChat({
     },
     [],
   );
+
+  // Reset the transcript when the page changes (the panel is mounted once and
+  // persists across routes). Navigating to a new page swaps in that page's
+  // script and returns Kase to its empty state, so the conversation always
+  // matches the dataset on screen. `startedRef` is cleared too so the next send
+  // re-fires `onConversationStart` and the shell re-anchors the avatar. The
+  // shell independently resets its `conversationStarted` flag on the same
+  // navigation, so the empty state renders in lockstep.
+  useEffect(() => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    startedRef.current = false;
+    setTurns([]);
+    setScriptIndex(0);
+    setIsThinking(false);
+    setInput("");
+    setSelections({});
+  }, [page]);
 
   /** Show the thinking indicator, then append `turn` after THINKING_MS. */
   const replyWith = useCallback((turn: ChatTurn) => {
@@ -104,7 +130,7 @@ export function useCopilotChat({
       // Each send plays exactly ONE focused reply so the thread reads as a real
       // back-and-forth rather than a single dumped turn.
       setScriptIndex((index) => {
-        const step = CONVERSATION_STEPS[index];
+        const step = steps[index];
         if (step) {
           replyWith({ ...step.reply, id: newId() });
           return index + 1;
@@ -112,7 +138,7 @@ export function useCopilotChat({
         return index;
       });
     },
-    [input, onConversationStart, replyWith],
+    [input, onConversationStart, replyWith, steps],
   );
 
   const setSelection = useCallback(
@@ -124,11 +150,11 @@ export function useCopilotChat({
 
   const appendFollowUp = useCallback(
     (key: string) => {
-      const followUp = FOLLOW_UP_TURNS[key];
+      const followUp = followUps[key];
       if (!followUp) return;
       replyWith({ ...followUp, id: newId() });
     },
-    [replyWith],
+    [replyWith, followUps],
   );
 
   const confirmChoice = useCallback(
@@ -145,7 +171,7 @@ export function useCopilotChat({
   // the pending reply has even landed; they reappear the moment it does. Empty
   // once the scripted exchange is exhausted.
   const suggestions =
-    isThinking ? [] : (CONVERSATION_STEPS[scriptIndex]?.suggestions ?? []);
+    isThinking ? [] : (steps[scriptIndex]?.suggestions ?? []);
 
   return {
     turns,
