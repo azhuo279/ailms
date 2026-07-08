@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
-import { Menu, MenuItem } from "@/components/ui/menu";
+import { Menu, MenuItem, MenuSeparator } from "@/components/ui/menu";
 import { RadioGroup } from "@/components/ui/radio-group";
 import { TextArea } from "@/components/ui/text-area";
 import { PriorityTierBadge } from "@/components/ui/priority-tier-badge";
@@ -51,6 +51,8 @@ export interface EditableTierControlProps {
   tier: PriorityTier;
   /** Commit a confirmed tier change (parent lifts and re-renders the tier). */
   onTierChange: (change: TierChange) => void;
+  /** Confirmed dismiss — hides the exception from the feed. */
+  onDismiss?: (note: string) => void;
   className?: string;
 }
 
@@ -62,6 +64,7 @@ function tierLabel(tier: PriorityTier): string {
 export function EditableTierControl({
   tier,
   onTierChange,
+  onDismiss,
   className,
 }: EditableTierControlProps) {
   // The tier the user picked in the dropdown that differs from the current one,
@@ -69,6 +72,9 @@ export function EditableTierControl({
   const [pendingTier, setPendingTier] = useState<PriorityTier | null>(null);
   const [reasonId, setReasonId] = useState("");
   const [note, setNote] = useState("");
+  // Dismiss modal state — opened when the user picks "Dismiss" from the dropdown.
+  const [dismissModalOpen, setDismissModalOpen] = useState(false);
+  const [dismissNote, setDismissNote] = useState("");
 
   const selectTier = (next: PriorityTier) => {
     // Same tier -> nothing to change, no modal.
@@ -90,6 +96,20 @@ export function EditableTierControl({
     if (!pendingTier || !canConfirm) return;
     onTierChange({ tier: pendingTier, reasonId, note });
     setPendingTier(null);
+  };
+
+  const openDismissModal = () => {
+    setDismissNote("");
+    setDismissModalOpen(true);
+  };
+
+  const closeDismissModal = () => {
+    setDismissModalOpen(false);
+  };
+
+  const handleDismissConfirm = () => {
+    onDismiss?.(dismissNote);
+    setDismissModalOpen(false);
   };
 
   return (
@@ -130,6 +150,13 @@ export function EditableTierControl({
               </span>
             </MenuItem>
           ))}
+          <MenuSeparator />
+          <MenuItem onSelect={openDismissModal}>
+            <span className="flex items-center gap-2 text-fg-secondary">
+              <EyeOff className="size-3.5 shrink-0" aria-hidden="true" />
+              Dismiss
+            </span>
+          </MenuItem>
         </div>
       </Menu>
 
@@ -193,6 +220,38 @@ export function EditableTierControl({
             placeholder="Add any context for this priority change."
             value={note}
             onChange={(e) => setNote(e.target.value)}
+          />
+        </div>
+      </Dialog>
+
+      {/* Dismiss modal — hides this exception from the feed. An optional note
+          is captured for the audit trail. To resurface dismissed exceptions,
+          the dispatcher enables "Show dismissed exceptions" in the filter panel. */}
+      <Dialog
+        open={dismissModalOpen}
+        onClose={closeDismissModal}
+        className="max-w-md"
+        title="Dismiss exception"
+        description="This exception will stay hidden from your feed until you restore it or significant new activity brings it back."
+        actions={
+          <>
+            <Button variant="secondary" onClick={closeDismissModal}>
+              Cancel
+            </Button>
+            <Button variant="primary" onClick={handleDismissConfirm}>
+              Dismiss
+            </Button>
+          </>
+        }
+      >
+        <div className="motion-safe:animate-[empty-state-rise-in_200ms_ease-out_both] pb-2">
+          <TextArea
+            label="Note"
+            optional
+            rows={3}
+            placeholder="Add context for why this exception is being dismissed."
+            value={dismissNote}
+            onChange={(e) => setDismissNote(e.target.value)}
           />
         </div>
       </Dialog>

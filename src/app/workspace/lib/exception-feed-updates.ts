@@ -21,6 +21,13 @@ export interface ExceptionDiff {
   reordered: string[];
   /** Ids whose priorityTier changed — handled as an exit from the old tier + entry into the new one. */
   retiered: string[];
+  /**
+   * Ids whose tier and order are unchanged but whose data was updated in place
+   * (e.g. a score bump that didn't cross a tier boundary, detected via
+   * `lastUpdatedAt`). These surface in the View-updates banner so no
+   * reprioritization silently bypasses the queue.
+   */
+  reprioritized: string[];
 }
 
 export function isDiffEmpty(diff: ExceptionDiff): boolean {
@@ -28,7 +35,8 @@ export function isDiffEmpty(diff: ExceptionDiff): boolean {
     diff.added.length === 0 &&
     diff.removed.length === 0 &&
     diff.reordered.length === 0 &&
-    diff.retiered.length === 0
+    diff.retiered.length === 0 &&
+    diff.reprioritized.length === 0
   );
 }
 
@@ -37,7 +45,8 @@ export function diffCount(diff: ExceptionDiff): number {
     diff.added.length +
     diff.removed.length +
     diff.reordered.length +
-    diff.retiered.length
+    diff.retiered.length +
+    diff.reprioritized.length
   );
 }
 
@@ -59,6 +68,7 @@ export function diffExceptions(
   const removed: string[] = [];
   const reordered: string[] = [];
   const retiered: string[] = [];
+  const reprioritized: string[] = [];
 
   for (const exception of incoming) {
     const prev = committedById.get(exception.id);
@@ -69,6 +79,12 @@ export function diffExceptions(
     if (prev.priorityTier !== exception.priorityTier) {
       retiered.push(exception.id);
       continue;
+    }
+    // Same tier — detect in-place updates via lastUpdatedAt so a score bump
+    // that doesn't cross a tier boundary (e.g. T1 can't escalate further)
+    // still surfaces in the View-updates banner rather than silently landing.
+    if (prev.lastUpdatedAt !== exception.lastUpdatedAt) {
+      reprioritized.push(exception.id);
     }
   }
 
@@ -107,5 +123,6 @@ export function diffExceptions(
     removed: [...new Set(removed)],
     reordered: [...new Set(reordered)],
     retiered: [...new Set(retiered)],
+    reprioritized: [...new Set(reprioritized)],
   };
 }

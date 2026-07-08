@@ -11,6 +11,10 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { cn } from "@/lib/utils";
 import { Spinner } from "@/components/ui/spinner";
 import { ClusterMarker } from "./exception-map-cluster-marker";
+import {
+  ExceptionHoverPopover,
+  type HoverPreviewTarget,
+} from "./exception-hover-popover";
 import { getWarehouse } from "@/app/workspace/lib/exception-format";
 import type {
   ExceptionQueue,
@@ -115,6 +119,12 @@ export interface ExceptionMapPanelProps {
    */
   offMapExceptions?: ExceptionRecord[];
   onShowOffMap?: () => void;
+  /** Called when a single-exception marker is clicked — passes the exception id. */
+  onSelect?: (id: string) => void;
+  /** Called when a cluster marker is clicked — narrows the feed to that warehouse. */
+  onFilterWarehouse?: (warehouseId: string) => void;
+  /** Called when a map marker is hovered — passes the exception id, or null on leave. */
+  onHoverChange?: (id: string | null) => void;
   /** Compact inset mode — the persistent small map beside an open detail view. */
   inset?: boolean;
   nowMs?: number;
@@ -128,9 +138,10 @@ export interface ExceptionMapPanelProps {
  * server render. Each marker is the shared `ClusterMarker`, rendered into the
  * MapLibre marker element via its own React root.
  *
- * View-only: markers are non-interactive display elements. Hovering a feed
- * card lifts + pulses its corresponding pin. The selected pin is visually
- * distinguished by a focus-ring ring. Markers carry no click or hover CTAs.
+ * Markers are interactive: clicking a pin selects its top-priority exception
+ * via `onSelect`; hovering a pin lifts + pulses it and sets `onHoverChange`
+ * so the linked feed card highlights in sync. The selected pin is visually
+ * distinguished by a focus-ring ring.
  *
  * In `inset` mode the map shrinks to a compact persistent context panel (no
  * nav control) that keeps the active pin visible while the detail view owns
@@ -143,6 +154,9 @@ export function ExceptionMapPanel({
   hoveredId = null,
   offMapExceptions = [],
   onShowOffMap,
+  onSelect,
+  onFilterWarehouse,
+  onHoverChange,
   inset = false,
   nowMs,
   className,
@@ -172,10 +186,25 @@ export function ExceptionMapPanel({
 
   const [nowMsLocal] = useState(() => nowMs ?? Date.now());
 
-  // Latest interaction handlers + derived state, read by marker callbacks
-  // without forcing the marker set to rebuild when identities change.
+  // Hover popover — pinned to the marker's screen position. Null = hidden.
+  const [popoverTarget, setPopoverTarget] = useState<HoverPreviewTarget | null>(
+    null,
+  );
+  // Timer to delay dismissal so the pointer can travel from pin to popover.
+  const popoverCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Stable refs for callbacks — event listeners read these so they always see
+  // the latest handler without requiring the marker build effect to re-run.
+  const onSelectRef = useRef(onSelect);
+  const onFilterWarehouseRef = useRef(onFilterWarehouse);
+  const onHoverChangeRef = useRef(onHoverChange);
+  // setPopoverTarget is stable (React guarantee) so no update needed.
+  const setPopoverRef = useRef(setPopoverTarget);
   const insetRef = useRef(inset);
   useEffect(() => {
+    onSelectRef.current = onSelect;
+    onFilterWarehouseRef.current = onFilterWarehouse;
+    onHoverChangeRef.current = onHoverChange;
     insetRef.current = inset;
   });
 
@@ -300,6 +329,46 @@ export function ExceptionMapPanel({
         [];
       for (const cluster of clusters) {
         const el = document.createElement("div");
+        el.style.cursor = "pointer";
+
+        // Stop mousedown propagation so MapLibre's drag handler doesn't
+        // capture the event before the click can fire on the marker.
+        el.addEventListener("mousedown", (e) => e.stopPropagation());
+
+        el.addEventListener("click", () => {
+          if (cluster.exceptions.length === 1) {
+            const id = cluster.exceptions[0].id;
+            onSelectRef.current?.(id);
+          } else {
+            onFilterWarehouseRef.current?.(cluster.warehouseId);
+          }
+        });
+
+        el.addEventListener("mouseenter", () => {
+          // Cancel any pending close so crossing from pin to popover stays open.
+          if (popoverCloseTimer.current !== null) {
+            clearTimeout(popoverCloseTimer.current);
+            popoverCloseTimer.current = null;
+          }
+          const rect = el.getBoundingClientRect();
+          setPopoverRef.current({
+            x: rect.left + rect.width / 2,
+            y: rect.top,
+            exceptions: cluster.exceptions,
+            warehouse: cluster.warehouse,
+          });
+          const firstId = cluster.exceptions[0]?.id;
+          if (firstId) onHoverChangeRef.current?.(firstId);
+        });
+
+        el.addEventListener("mouseleave", () => {
+          popoverCloseTimer.current = setTimeout(() => {
+            setPopoverRef.current(null);
+            popoverCloseTimer.current = null;
+          }, 120);
+          onHoverChangeRef.current?.(null);
+        });
+
         const root = createRoot(el);
         renderMarker(cluster, root);
         const marker = new maplibre.Marker({ element: el })
@@ -331,6 +400,12 @@ export function ExceptionMapPanel({
 
     return () => {
       disposed = true;
+      // Clear any open popover and pending close timer.
+      if (popoverCloseTimer.current !== null) {
+        clearTimeout(popoverCloseTimer.current);
+        popoverCloseTimer.current = null;
+      }
+      setPopoverRef.current(null);
       previous.forEach(({ marker, root }) => {
         marker.remove();
         queueMicrotask(() => root.unmount());
@@ -389,6 +464,27 @@ export function ExceptionMapPanel({
           <div className="absolute inset-0 flex items-center justify-center bg-surface-sunken">
             <Spinner label="Loading map" className="size-6" />
           </div>
+        ) : null}
+
+        {/* Informational hover popover — portalled to document.body. Stays open
+            while the pointer is over either the pin or the popover itself. */}
+        {popoverTarget !== null ? (
+          <ExceptionHoverPopover
+            target={popoverTarget}
+            nowMs={nowMsLocal}
+            onPointerEnter={() => {
+              if (popoverCloseTimer.current !== null) {
+                clearTimeout(popoverCloseTimer.current);
+                popoverCloseTimer.current = null;
+              }
+            }}
+            onPointerLeave={() => {
+              popoverCloseTimer.current = setTimeout(() => {
+                setPopoverTarget(null);
+                popoverCloseTimer.current = null;
+              }, 120);
+            }}
+          />
         ) : null}
 
         {/* No-geodata corner indicator (FR-52). Exceptions whose warehouse has

@@ -132,7 +132,7 @@
       "type": "Carrier Delay",
       "priorityScore": 67,
       "priorityTier": "T2",
-      "headline": "ETA deviation beyond threshold, I-35 lane",
+      "headline": "Second Redline load running late on I-35, linked to SHP-50410",
       "description": "**Same lane, carrier, and dispatcher** as SHP-50410, projected **1 hour 50 minutes** late into New Braunfels. Both loads share a dispatcher, so **a single call likely resolves both**.",
       "sourceSystems": ["SignalTrack"],
       "epistemicTone": "ai",

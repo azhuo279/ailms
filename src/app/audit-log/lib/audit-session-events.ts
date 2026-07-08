@@ -26,6 +26,30 @@ export const SESSION_DISPATCHER: AuditActor = {
   kind: "human",
 };
 
+export interface DismissEventInput {
+  exceptionId: string;
+  shipmentId: string;
+  tier: PriorityTier;
+  note?: string;
+}
+
+export function buildDismissAuditEvent(input: DismissEventInput): AuditEvent {
+  const note = input.note?.trim() ? input.note.trim() : undefined;
+  return {
+    id: `aud-session-dismiss-${input.exceptionId}-${Date.now()}`,
+    exceptionId: input.exceptionId,
+    shipmentId: input.shipmentId,
+    type: "dismiss",
+    actor: SESSION_DISPATCHER,
+    timestamp: new Date().toISOString(),
+    tier: input.tier as AuditTier,
+    content: `Exception dismissed from feed.${note ? ` Note: **${note}**` : ""}`,
+    context: {
+      ...(note ? { note } : {}),
+    },
+  };
+}
+
 export interface TierChangeEventInput {
   exceptionId: string;
   shipmentId: string;
