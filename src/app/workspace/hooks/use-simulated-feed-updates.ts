@@ -76,18 +76,12 @@ export function useSimulatedFeedUpdates(
     const id = window.setInterval(() => {
       setLive((prev) => {
         if (prev.length === 0) return prev;
-        const action = Math.random();
-        if (action < 0.34) {
+        if (Math.random() < 0.5) {
           // New exception arrives.
           const template = prev[Math.floor(Math.random() * prev.length)];
           return [fabricateArrival(template), ...prev];
         }
-        if (action < 0.67 && prev.length > 1) {
-          // An exception resolves and drops out of the queue.
-          const target = prev[Math.floor(Math.random() * prev.length)];
-          return prev.filter((e) => e.id !== target.id);
-        }
-        // Re-prioritize one exception (escalate a tier).
+        // Re-prioritize one exception (escalate a tier). Never removes.
         const idx = Math.floor(Math.random() * prev.length);
         const next = [...prev];
         next[idx] = reprioritize(next[idx]);

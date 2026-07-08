@@ -30,6 +30,7 @@ export const auditEventTypeSchema = z.enum([
   "customs_hold",
   "tier_routing",
   "feedback",
+  "dismiss",
 ]);
 export type AuditEventType = z.infer<typeof auditEventTypeSchema>;
 

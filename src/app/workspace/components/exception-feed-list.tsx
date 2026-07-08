@@ -196,12 +196,21 @@ export function ExceptionFeedList({
     }
   }, [exceptions]);
 
+  // A sort-mode change is a direct user action — snap committed immediately
+  // so the new order renders at once without surfacing a "View updates" banner.
+  // The membership stays identical; only the order changes, which the overlap
+  // heuristic above won't catch (100% overlap → no auto-snap).
+  useEffect(() => {
+    setCommitted(exceptionsRef.current);
+  }, [sortMode]);
+
   const handleApplyUpdates = () => {
     const changedIds = new Set([
       ...diff.added,
       ...diff.removed,
       ...diff.reordered,
       ...diff.retiered,
+      ...diff.reprioritized,
     ]);
     setCommitted(exceptions);
     setJustApplied(changedIds);
@@ -240,12 +249,18 @@ export function ExceptionFeedList({
   // behind the background-update banner. When the parent flags ids in
   // `forceApplyIds`, snap the committed baseline forward immediately, give those
   // cards the one-shot FLIP entrance, and tell the parent it can clear them.
+  //
+  // `exceptions` is read via ref (not in the dep array) so a background
+  // simulated tick that arrives while a user-edit is still pending cannot
+  // piggyback on this effect and silently bypass the View-updates banner.
+  const exceptionsRef = useRef(exceptions);
+  exceptionsRef.current = exceptions;
   const onForceAppliedRef = useRef(onForceApplied);
   onForceAppliedRef.current = onForceApplied;
   useEffect(() => {
     if (!forceApplyIds || forceApplyIds.size === 0) return;
     const ids = [...forceApplyIds];
-    setCommitted(exceptions);
+    setCommitted(exceptionsRef.current);
     setJustApplied((prev) => {
       const next = new Set(prev);
       for (const id of ids) next.add(id);
@@ -253,7 +268,7 @@ export function ExceptionFeedList({
     });
     window.setTimeout(() => setJustApplied(new Set()), 700);
     onForceAppliedRef.current?.(ids);
-  }, [forceApplyIds, exceptions]);
+  }, [forceApplyIds]);
 
   // Scroll the map-highlighted card into view when it is off-screen. Native
   // scrollIntoView; smooth under motion-safe, instant when the OS asks for

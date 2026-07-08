@@ -2,6 +2,7 @@ import { Fragment } from "react";
 import type { ReactNode } from "react";
 import {
   CheckCircle2,
+  EyeOff,
   FileWarning,
   MoveUpRight,
   Send,
@@ -32,6 +33,7 @@ export const EVENT_TYPE_ICON: Record<AuditEventType, typeof Sparkles> = {
   customs_hold: ShieldAlert,
   tier_routing: Waypoints,
   feedback: MessageSquareText,
+  dismiss: EyeOff,
 };
 
 /**

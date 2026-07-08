@@ -41,7 +41,10 @@ import type {
 } from "@/app/workspace/lib/exception-types";
 import type { TierChange } from "./editable-tier-control";
 import { useAuditSessionStore } from "@/hooks/shared/use-audit-session-store";
-import { buildTierChangeAuditEvent } from "@/app/audit-log/lib/audit-session-events";
+import {
+  buildTierChangeAuditEvent,
+  buildDismissAuditEvent,
+} from "@/app/audit-log/lib/audit-session-events";
 import { MODIFICATION_REASONS } from "@/app/workspace/lib/exception-detail";
 
 // Representative priorityScore per tier band. When a tier is overridden from the
@@ -159,6 +162,11 @@ export function WorkspaceContent() {
     () => new Set(),
   );
 
+  // Dismissed exception ids — hidden from the feed unless showDismissed is on.
+  // Session-local; a real build would persist this to the user profile / backend.
+  const [dismissedIds, setDismissedIds] = useState<Set<string>>(() => new Set());
+  const [showDismissed, setShowDismissed] = useState(false);
+
   // Append-only session audit overlay (see useAuditSessionStore) — a confirmed
   // tier change writes a `tier_routing` event here so it surfaces in /audit-log
   // this session.
@@ -248,9 +256,13 @@ export function WorkspaceContent() {
   }, [exceptions]);
 
   const queueExceptions = useMemo(() => {
-    const inQueue = exceptions.filter((e) => e.queue === queue);
+    const inQueue = exceptions.filter((e) => {
+      if (e.queue !== queue) return false;
+      if (dismissedIds.has(e.id) && !showDismissed) return false;
+      return true;
+    });
     return sortExceptions(inQueue, sortMode, warehouseMap);
-  }, [exceptions, queue, sortMode, warehouseMap]);
+  }, [exceptions, queue, sortMode, warehouseMap, dismissedIds, showDismissed]);
 
   // Exception type options for the searchable multi-select combobox (Combobox
   // uses value/label, not id/label).
@@ -339,6 +351,7 @@ export function WorkspaceContent() {
     activePriorityIds.length > 0 ||
     activeWarehouseIds.length > 0 ||
     missingOriginActive ||
+    showDismissed ||
     dateRange.start !== null ||
     dateRange.end !== null;
 
@@ -346,6 +359,11 @@ export function WorkspaceContent() {
     const params = new URLSearchParams(searchParams.toString());
     params.set("exceptionId", id);
     router.push(`/workspace?${params.toString()}`, { scroll: false });
+  };
+
+  // Clicking a cluster marker narrows the feed to that warehouse's exceptions.
+  const handleFilterWarehouse = (warehouseId: string) => {
+    setActiveWarehouseIds([warehouseId]);
   };
 
   // Clears the selection so the right pane returns to the map (mirrors
@@ -409,6 +427,24 @@ export function WorkspaceContent() {
     );
   };
 
+  // A confirmed dismiss from an exception's detail view. Adds the id to the
+  // dismissed set (immediately hidden unless showDismissed is on), clears the
+  // selection, and writes a session audit event.
+  const handleDismiss = (id: string, note: string) => {
+    const exception = exceptions.find((e) => e.id === id);
+    if (!exception) return;
+    setDismissedIds((prev) => new Set(prev).add(id));
+    handleClearSelection();
+    addAuditEvent(
+      buildDismissAuditEvent({
+        exceptionId: id,
+        shipmentId: exception.shipmentId,
+        tier: exception.priorityTier,
+        note: note || undefined,
+      }),
+    );
+  };
+
   // The feed acknowledges it committed a set of user-edited ids, so we drop them
   // from the pending set (they should only trigger the one-shot entrance once).
   const handleForceApplied = (ids: string[]) => {
@@ -426,6 +462,7 @@ export function WorkspaceContent() {
     setActivePriorityIds([]);
     setActiveWarehouseIds([]);
     setMissingOriginActive(false);
+    setShowDismissed(false);
     setDateRange({ start: null, end: null });
   };
 
@@ -509,6 +546,8 @@ export function WorkspaceContent() {
         onWarehouseChange={setActiveWarehouseIds}
         missingOriginActive={missingOriginActive}
         onMissingOriginChange={setMissingOriginActive}
+        showDismissed={showDismissed}
+        onShowDismissedChange={setShowDismissed}
         dateRange={dateRange}
         onDateRangeChange={setDateRange}
         onClearAll={handleClearFilters}
@@ -562,6 +601,7 @@ export function WorkspaceContent() {
             onBack={handleClearSelection}
             onRouted={handleRouted}
             onTierChange={handleTierChange}
+            onDismiss={handleDismiss}
           />
         ) : (
           <ExceptionMapPanel
@@ -571,6 +611,9 @@ export function WorkspaceContent() {
             hoveredId={hoveredId}
             offMapExceptions={offMapExceptions}
             onShowOffMap={handleShowOffMap}
+            onSelect={handleSelect}
+            onFilterWarehouse={handleFilterWarehouse}
+            onHoverChange={setHoveredId}
             nowMs={nowMs}
           />
         )}

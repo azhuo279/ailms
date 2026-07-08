@@ -108,7 +108,9 @@ export function AiPackage({
       </button>
 
       {expanded ? (
-        <div className={cn("border-t border-ai-border/30 px-3.5 pb-3.5", REVEAL)}>
+        <div
+          className={cn("border-t border-ai-border/30 px-3.5 pb-3.5", REVEAL)}
+        >
           {/* Edit / Preview segmented toggle (adjustment 3). */}
           <div className="flex items-center justify-between gap-2 py-3">
             <div
@@ -116,15 +118,13 @@ export function AiPackage({
               aria-label="Package view"
               className="inline-flex gap-0.5 rounded-md bg-surface-sunken p-0.5"
             >
-              {(
-                [
-                  { value: "edit" as const, label: "Edit package" },
-                  {
-                    value: "preview" as const,
-                    label: `Preview as ${recipientName}`,
-                  },
-                ]
-              ).map((option) => {
+              {[
+                { value: "edit" as const, label: "Edit package" },
+                {
+                  value: "preview" as const,
+                  label: `Preview as ${recipientName}`,
+                },
+              ].map((option) => {
                 const isActive = mode === option.value;
                 return (
                   <button
@@ -170,7 +170,9 @@ export function AiPackage({
                         <input
                           type="text"
                           value={valueFor(field)}
-                          onChange={(e) => onFieldChange(field.key, e.target.value)}
+                          onChange={(e) =>
+                            onFieldChange(field.key, e.target.value)
+                          }
                           aria-label={`Edit ${field.key}`}
                           className={cn(
                             "w-full rounded-md border bg-surface-raised px-2 py-1 text-body-s text-fg-secondary outline-none transition-colors focus-visible:border-solid focus-visible:border-focus-ring focus-visible:ring-2 focus-visible:ring-focus-ring",
@@ -257,7 +259,7 @@ export function ContextNote({ label, value, onChange }: ContextNoteProps) {
         label={label}
         containerClassName="[&_label]:sr-only"
         rows={2}
-        placeholder="Add anything the recipient should know, or skip."
+        placeholder="Add anything the recipient should know."
         value={value}
         onChange={(e) => onChange(e.target.value)}
       />
@@ -275,9 +277,15 @@ export function ContextNote({ label, value, onChange }: ContextNoteProps) {
 
 export const REASON_CATEGORY_OPTIONS = [
   { value: "prior-carrier-arrangement", label: "Prior carrier arrangement" },
-  { value: "customer-specific-commitment", label: "Customer-specific commitment" },
+  {
+    value: "customer-specific-commitment",
+    label: "Customer-specific commitment",
+  },
   { value: "capacity-timing-constraint", label: "Capacity/timing constraint" },
-  { value: "alternative-better-fit", label: "Alternative better fits situation" },
+  {
+    value: "alternative-better-fit",
+    label: "Alternative better fits situation",
+  },
   { value: "other-operational-context", label: "Other operational context" },
 ];
 
@@ -291,7 +299,10 @@ export interface ReasonCategoryFieldProps {
  * Required, no default selection — the confirm button stays disabled until a
  * category is chosen (enforced by each modal's own canSend gate).
  */
-export function ReasonCategoryField({ value, onChange }: ReasonCategoryFieldProps) {
+export function ReasonCategoryField({
+  value,
+  onChange,
+}: ReasonCategoryFieldProps) {
   return (
     <Select
       label="Reason for change"

@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Popover } from "@/components/ui/popover";
+import { Switch } from "@/components/ui/switch";
 import { TextField } from "@/components/ui/text-field";
 import type {
   ExceptionType,
@@ -54,6 +55,9 @@ export interface WorkspaceFilterBarProps {
    */
   missingOriginActive: boolean;
   onMissingOriginChange: (active: boolean) => void;
+  /** Show dismissed exceptions — surfaces exceptions the dispatcher has dismissed. */
+  showDismissed: boolean;
+  onShowDismissedChange: (active: boolean) => void;
   /** Date-detected range filter. */
   dateRange: DateRange;
   onDateRangeChange: (range: DateRange) => void;
@@ -101,6 +105,8 @@ export function WorkspaceFilterBar({
   onWarehouseChange,
   missingOriginActive,
   onMissingOriginChange,
+  showDismissed,
+  onShowDismissedChange,
   dateRange,
   onDateRangeChange,
   onClearAll,
@@ -113,6 +119,7 @@ export function WorkspaceFilterBar({
     (activeTypeIds.length > 0 ? 1 : 0) +
     (activeWarehouseIds.length > 0 ? 1 : 0) +
     (missingOriginActive ? 1 : 0) +
+    (showDismissed ? 1 : 0) +
     (dateRange.start !== null || dateRange.end !== null ? 1 : 0);
 
   const hasActiveFilters =
@@ -199,6 +206,18 @@ export function WorkspaceFilterBar({
           value={dateRange}
           onChange={onDateRangeChange}
         />
+      </FilterField>
+
+      <FilterField className="w-full">
+        <div className="flex items-center justify-between gap-3 py-1">
+          <span className={FILTER_LABEL_CLASS}>Show dismissed exceptions</span>
+          <Switch
+            size="sm"
+            checked={showDismissed}
+            onChange={onShowDismissedChange}
+            aria-label="Show dismissed exceptions"
+          />
+        </div>
       </FilterField>
     </>
   );

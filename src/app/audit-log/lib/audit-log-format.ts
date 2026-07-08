@@ -105,6 +105,10 @@ export const EVENT_TYPE_CONFIG: Record<AuditEventType, EventTypeConfig> = {
     label: "Feedback",
     tagClass: "bg-surface-sunken text-fg-secondary",
   },
+  dismiss: {
+    label: "Dismissed",
+    tagClass: "bg-surface-sunken text-fg-muted",
+  },
 };
 
 /** Stable order for the action-type filter checklist. */
@@ -117,6 +121,7 @@ export const EVENT_TYPE_ORDER: AuditEventType[] = [
   "customs_hold",
   "tier_routing",
   "feedback",
+  "dismiss",
 ];
 
 export const TIER_ORDER = ["T1", "T2", "T3", "T4"] as const;

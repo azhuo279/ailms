@@ -1,7 +1,7 @@
 "use client";
 
 import { createPortal } from "react-dom";
-import { ArrowUpRight, Clock, Sparkles } from "lucide-react";
+import { Clock, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tag } from "@/components/ui/tag";
 import { MessageBar, type MessageBarSeverity } from "@/components/ui/message-bar";
@@ -91,10 +91,6 @@ export interface HoverPreviewTarget {
 export interface ExceptionHoverPopoverProps {
   target: HoverPreviewTarget;
   nowMs: number;
-  /** Opens the detail view for a single exception (single-pin "View exception"). */
-  onOpenException: (id: string) => void;
-  /** Filters the feed to this site (cluster "View all N at this site"). */
-  onViewSite: (warehouseId: string) => void;
   /** Keeps the popover open while the pointer is over the surface itself. */
   onPointerEnter: () => void;
   onPointerLeave: () => void;
@@ -103,8 +99,6 @@ export interface ExceptionHoverPopoverProps {
 export function ExceptionHoverPopover({
   target,
   nowMs,
-  onOpenException,
-  onViewSite,
   onPointerEnter,
   onPointerLeave,
 }: ExceptionHoverPopoverProps) {
@@ -139,9 +133,7 @@ export function ExceptionHoverPopover({
         <ClusterPreview
           exceptions={exceptions}
           siteName={siteName}
-          warehouseId={warehouse?.id ?? ""}
           nowMs={nowMs}
-          onViewSite={onViewSite}
         />
       ) : (
         <SinglePreview
@@ -149,7 +141,6 @@ export function ExceptionHoverPopover({
           siteName={siteName}
           siteCode={siteCode}
           nowMs={nowMs}
-          onOpenException={onOpenException}
         />
       )}
     </div>,
@@ -162,13 +153,11 @@ function SinglePreview({
   siteName,
   siteCode,
   nowMs,
-  onOpenException,
 }: {
   exception: ExceptionRecord;
   siteName: string;
   siteCode: string | undefined;
   nowMs: number;
-  onOpenException: (id: string) => void;
 }) {
   const fact = buildPreviewFact(exception);
   const action = getPrimaryActionPhrase(exception);
@@ -225,16 +214,6 @@ function SinglePreview({
           </Tag>
         ))}
       </div>
-
-      {/* View exception affordance. */}
-      <button
-        type="button"
-        onClick={() => onOpenException(exception.id)}
-        className="mt-0.5 inline-flex items-center justify-center gap-1 rounded-md border border-border-subtle px-2.5 py-1.5 text-label-m font-medium text-link transition-colors hover:bg-option-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
-      >
-        View exception
-        <ArrowUpRight className="size-3.5 shrink-0" aria-hidden="true" />
-      </button>
     </div>
   );
 }
@@ -242,19 +221,14 @@ function SinglePreview({
 function ClusterPreview({
   exceptions,
   siteName,
-  warehouseId,
   nowMs,
-  onViewSite,
 }: {
   exceptions: ExceptionRecord[];
   siteName: string;
-  warehouseId: string;
   nowMs: number;
-  onViewSite: (warehouseId: string) => void;
 }) {
   const ranked = [...exceptions].sort(byPriority);
   const top = ranked.slice(0, 3);
-  const overflow = exceptions.length - top.length;
 
   return (
     <div className="flex flex-col gap-2.5">
@@ -290,17 +264,6 @@ function ClusterPreview({
         })}
       </ul>
 
-      {/* View all N at this site → filters the feed to this warehouse. */}
-      <button
-        type="button"
-        onClick={() => onViewSite(warehouseId)}
-        className="mt-0.5 inline-flex items-center justify-center gap-1 rounded-md border border-border-subtle px-2.5 py-1.5 text-label-m font-medium text-link transition-colors hover:bg-option-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
-      >
-        {overflow > 0
-          ? `View all ${exceptions.length} at this site`
-          : "View these in the feed"}
-        <ArrowUpRight className="size-3.5 shrink-0" aria-hidden="true" />
-      </button>
     </div>
   );
 }

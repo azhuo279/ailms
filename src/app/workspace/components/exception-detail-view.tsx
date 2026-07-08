@@ -159,6 +159,11 @@ export interface ExceptionDetailViewProps {
    * so the header badge and the Progress stepper's appended step update at once.
    */
   onTierChange?: (id: string, change: TierChange) => void;
+  /**
+   * Called when the ZOM confirms a dismiss action from the header control.
+   * The container hides the exception from the feed and clears the selection.
+   */
+  onDismiss?: (id: string, note: string) => void;
   className?: string;
 }
 
@@ -169,6 +174,7 @@ export function ExceptionDetailView({
   onBack,
   onRouted,
   onTierChange,
+  onDismiss,
   className,
 }: ExceptionDetailViewProps) {
   const [nowMs] = useState(() => Date.now());
@@ -412,6 +418,7 @@ export function ExceptionDetailView({
           <EditableTierControl
             tier={tier}
             onTierChange={handleHeaderTierChange}
+            onDismiss={(note) => onDismiss?.(exception.id, note)}
           />
           <span className="min-w-0 truncate text-title font-semibold text-fg-primary">
             {exception.headline}
