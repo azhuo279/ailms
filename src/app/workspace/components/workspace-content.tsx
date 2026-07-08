@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Tabs, type TabItem } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { MessageBar } from "@/components/ui/message-bar";
 // data.sourceHealth from useWorkspaceFeed) stays intact so it can return
 // without a re-fetch change. Re-enable by flipping the flag.
 import { SituationBriefBanner } from "./situation-brief-banner";
+import { SituationBriefModal } from "./situation-brief-modal";
 import {
   WorkspaceFilterBar,
   EXCEPTION_TYPE_ORDER,
@@ -70,10 +71,10 @@ const QUEUE_TAB_DEFS: Array<{ value: ExceptionQueue; label: string }> = [
   { value: "delegated", label: "Delegated" },
 ];
 
-// Finding #0 — deferred. The situation brief is the only AI-authored banner on
-// this screen, so hiding it also parks finding #8 (its structure guidance
-// applies when this flips back to true). Kept as a flag, not a delete, so the
-// underlying data plumbing and the banner component both remain wired.
+// Finding #0 — deferred. The situation brief is surfaced as a first-login-of-day
+// modal (SituationBriefModal) rather than this inline banner. The banner flag
+// stays false so the banner stays hidden; the modal handles the brief UX.
+// Re-enable by flipping to true if the banner should return.
 const SHOW_SITUATION_BRIEF = false;
 
 // An exception is "missing origin" when its warehouse FK resolves to no record
@@ -166,6 +167,29 @@ export function WorkspaceContent() {
   // Frozen per-mount so relative "updated Xm ago" labels don't drift on every
   // React re-render, only on data refetch.
   const [nowMs] = useState(() => Date.now());
+
+  // Situation brief modal — opened manually from the notification bell only.
+  const [briefOpen, setBriefOpen] = useState(false);
+
+  // Per-tier and per-queue counts from the raw feed — used by the situation
+  // brief modal (shift-start snapshot, not affected by local overrides).
+  const briefExceptionCounts = useMemo(() => {
+    const counts = { T1: 0, T2: 0, T3: 0, T4: 0 };
+    for (const e of data?.exceptions ?? []) {
+      counts[e.priorityTier] = (counts[e.priorityTier] ?? 0) + 1;
+    }
+    return counts;
+  }, [data]);
+
+  const briefQueueCounts = useMemo(() => {
+    const counts = { pending: 0, escalated: 0, delegated: 0 };
+    for (const e of data?.exceptions ?? []) {
+      counts[e.queue] = (counts[e.queue] ?? 0) + 1;
+    }
+    return counts;
+  }, [data]);
+
+  const handleBriefClose = () => setBriefOpen(false);
 
   // Warehouse registry lookup, built once per feed payload — the single source
   // of geographic + name truth, threaded to the feed list, cards, and map like
@@ -476,7 +500,7 @@ export function WorkspaceContent() {
         />
         <div className="ml-auto flex items-center gap-3">
           <SourceHealthControl sourceHealth={data.sourceHealth} />
-          <NotificationBell />
+          <NotificationBell onBriefOpen={() => setBriefOpen(true)} />
         </div>
       </div>
 
@@ -500,6 +524,20 @@ export function WorkspaceContent() {
         onClearAll={handleClearFilters}
         className="shrink-0"
       />
+
+      {/* Situation brief modal — first-login-of-day carousel. Portals to body
+          via the Dialog primitive. Reopenable from the notification bell. */}
+      {data && (
+        <SituationBriefModal
+          open={briefOpen}
+          onClose={handleBriefClose}
+          brief={data.situationBrief}
+          sourceHealth={data.sourceHealth}
+          exceptionCounts={briefExceptionCounts}
+          queueCounts={briefQueueCounts}
+          exceptions={exceptions}
+        />
+      )}
 
       {/* Row 3 — permanent split view, an 40/60 feed:map split so neither
           pane dominates: the feed and map are one linked triage instrument, not

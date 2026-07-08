@@ -217,13 +217,13 @@ export function AuditFilterRail({
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between gap-2">
           <span className={FILTER_LABEL_CLASS}>Action type</span>
-          <button
+          {/* <button
             type="button"
             onClick={toggleAllTypes}
             className="text-label-m font-medium text-link transition-colors hover:text-link-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-1"
           >
             {allTypesSelected ? "Clear" : "Select all"}
-          </button>
+          </button> */}
         </div>
         <SearchField
           aria-label="Search action types"

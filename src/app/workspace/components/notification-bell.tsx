@@ -48,7 +48,13 @@ function BoldBody({ text }: { text: string }) {
   );
 }
 
-export function NotificationBell({ className }: { className?: string }) {
+export function NotificationBell({
+  className,
+  onBriefOpen,
+}: {
+  className?: string;
+  onBriefOpen?: () => void;
+}) {
   const [items, setItems] = useState<WorkspaceNotification[]>(MOCK_NOTIFICATIONS);
 
   const unreadCount = items.filter((n) => !n.read).length;
@@ -112,7 +118,10 @@ export function NotificationBell({ className }: { className?: string }) {
                   <li key={n.id}>
                     <button
                       type="button"
-                      onClick={() => markRead(n.id)}
+                      onClick={() => {
+                        markRead(n.id);
+                        if (n.kind === "brief") onBriefOpen?.();
+                      }}
                       className={cn(
                         "flex w-full items-start gap-3 px-3.5 py-3 text-left transition-colors",
                         "hover:bg-option-hover focus-visible:outline-none focus-visible:bg-option-hover",

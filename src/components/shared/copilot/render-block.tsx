@@ -58,7 +58,7 @@ export function renderBlock(block: Block, ctx: RenderBlockContext) {
 
     case "viz":
       return (
-        <div className="ai-card p-3">
+        <div className="ai-card-deep p-3">
           <ChartFrame title={block.title} description={block.description}>
             <Chart
               type={block.chartType}

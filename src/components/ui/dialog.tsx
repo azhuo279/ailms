@@ -31,6 +31,8 @@ export interface DialogProps {
   variant?: DialogVariant;
   /** Hide the top-right close control (rare — prefer keeping it for discoverability). */
   hideCloseButton?: boolean;
+  /** Apply the AI glass-card surface (ai-card) instead of the default overlay background. */
+  aiSurface?: boolean;
   className?: string;
 }
 
@@ -51,6 +53,7 @@ export function Dialog({
   actions,
   variant = "default",
   hideCloseButton = false,
+  aiSurface = false,
   className,
 }: DialogProps) {
   const panelRef = useRef<HTMLDivElement>(null);
@@ -114,27 +117,49 @@ export function Dialog({
         aria-describedby={description ? descriptionId : undefined}
         tabIndex={-1}
         className={cn(
-          "relative flex max-h-[85vh] w-full max-w-md flex-col rounded-lg bg-surface-overlay shadow-lg outline-none",
+          "relative flex max-h-[85vh] w-full max-w-md flex-col rounded-lg outline-none",
+          aiSurface ? "ai-card" : "bg-surface-overlay shadow-lg",
           className,
         )}
       >
         <div className="flex items-start justify-between gap-3 p-5 pb-3">
           <div className="min-w-0 flex-1">
-            <h2 id={titleId} className="text-title font-semibold text-fg-primary">
+            <h2
+              id={titleId}
+              className="text-title font-semibold text-fg-primary"
+            >
               {title}
             </h2>
             {description ? (
-              <p id={descriptionId} className="mt-1 text-body-s text-fg-secondary">
+              <p
+                id={descriptionId}
+                className="mt-1 text-body-s text-fg-secondary"
+              >
                 {description}
               </p>
             ) : null}
           </div>
           {!hideCloseButton ? (
-            <Button iconOnly icon={<X />} aria-label="Close" variant="ghost" size="sm" onClick={onClose} />
+            <Button
+              iconOnly
+              icon={<X />}
+              aria-label="Close"
+              variant="ghost"
+              size="sm"
+              onClick={onClose}
+            />
           ) : null}
         </div>
-        {children ? <div className="min-h-0 flex-1 overflow-auto px-5 text-body-m text-fg-secondary">{children}</div> : null}
-        {actions ? <div className="flex items-center justify-end gap-2 p-5 pt-4">{actions}</div> : null}
+        {children ? (
+          <div className="min-h-0 flex-1 overflow-auto px-5 text-body-m text-fg-secondary">
+            {children}
+          </div>
+        ) : null}
+        {actions ? (
+          <div className="flex items-center justify-end gap-2 p-5 pt-4">
+            {actions}
+          </div>
+        ) : null}
       </div>
     </div>,
     document.body,

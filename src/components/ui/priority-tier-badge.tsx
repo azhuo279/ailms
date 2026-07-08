@@ -1,4 +1,4 @@
-import { AlertCircle, ArrowUpCircle, CircleDot, Circle } from "lucide-react";
+import { AlertCircle, ArrowUpCircle, Clock, Route } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { PriorityTier } from "@/app/workspace/lib/exception-types";
 
@@ -30,12 +30,12 @@ const TIER_CONFIG: Record<
   },
   T3: {
     label: "Medium",
-    icon: CircleDot,
+    icon: Clock,
     className: "bg-warning-surface text-warning-fg",
   },
   T4: {
-    label: "Low",
-    icon: Circle,
+    label: "Routed",
+    icon: Route,
     className: "bg-surface-sunken text-fg-secondary",
   },
 };
