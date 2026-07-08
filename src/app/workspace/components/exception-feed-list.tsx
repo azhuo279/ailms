@@ -157,6 +157,11 @@ export function ExceptionFeedList({
   // entrance/highlight treatment instead of every card re-animating.
   const [justApplied, setJustApplied] = useState<Set<string>>(new Set());
 
+  // Ids whose pulsing AI priority dot should be visible. Cleared when the user
+  // clicks the card or after 5 minutes, whichever comes first.
+  const [pingIds, setPingIds] = useState<Set<string>>(new Set());
+  const pingTimeoutRef = useRef<number | null>(null);
+
   const diff = useMemo(
     () => diffExceptions(committed, exceptions),
     [committed, exceptions],
@@ -200,8 +205,36 @@ export function ExceptionFeedList({
     ]);
     setCommitted(exceptions);
     setJustApplied(changedIds);
+    // Entrance animation clears quickly; ping dot persists until click or 5 min.
     window.setTimeout(() => setJustApplied(new Set()), 700);
+    const newIds = [...changedIds];
+    setPingIds((prev) => {
+      const next = new Set(prev);
+      for (const id of newIds) next.add(id);
+      return next;
+    });
+    if (pingTimeoutRef.current !== null) window.clearTimeout(pingTimeoutRef.current);
+    pingTimeoutRef.current = window.setTimeout(() => {
+      setPingIds(new Set());
+      pingTimeoutRef.current = null;
+    }, 5 * 60 * 1000);
   };
+
+  // Remove the ping dot from a card as soon as the user selects it.
+  const handleSelect = (id: string) => {
+    setPingIds((prev) => {
+      if (!prev.has(id)) return prev;
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
+    onSelect(id);
+  };
+
+  // Clear ping timeout on unmount.
+  useEffect(() => () => {
+    if (pingTimeoutRef.current !== null) window.clearTimeout(pingTimeoutRef.current);
+  }, []);
 
   // Direct user edits (e.g. a priority-tier change) must land AT ONCE, not queue
   // behind the background-update banner. When the parent flags ids in
@@ -433,12 +466,12 @@ export function ExceptionFeedList({
                         exception={exception}
                         selected={exception.id === selectedId}
                         highlighted={exception.id === highlightedId}
-                        onSelect={onSelect}
+                        onSelect={handleSelect}
                         onHoverChange={onHoverChange}
                         nowMs={nowMs}
                         sourceStatusMap={sourceStatusMap}
                         warehouseMap={warehouseMap}
-                        showPriorityUpdatePing={justApplied.has(exception.id)}
+                        showPriorityUpdatePing={pingIds.has(exception.id)}
                       />
                     </motion.li>
                   ))}

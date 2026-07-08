@@ -1,0 +1,8 @@
+{
+  "inTransit": 128,
+  "delivered": 542,
+  "delayed": 7,
+  "pending": 34,
+  "onTimeRate": 0.98,
+  "updatedAt": "2026-07-03T12:00:00.000Z"
+}

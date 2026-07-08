@@ -431,6 +431,31 @@
 }
 
 /*
+ * AI glass card — level 2 (deeper teal, stronger white highlight).
+ * Same recipe as .ai-card but with raised chroma on the fill (0.025 vs 0.008),
+ * a brighter/wider face bloom, and a more opaque teal border. Use for
+ * elevated AI widget containers (e.g. the Kase viz block) that need to read
+ * as clearly above the level-1 glass rather than at the same depth.
+ */
+.ai-card-deep {
+  background:
+    radial-gradient(
+      140% 140% at 15% 0%,
+      oklch(1 0 0 / 0.92) 0%,
+      oklch(0.99 0.01 190 / 0) 55%
+    ),
+    oklch(0.97 0.025 190);
+  border: 1px solid oklch(0.79 0.07 190 / 0.7);
+  border-radius: 0.75rem;
+  box-shadow:
+    inset 0 1px 0 0 oklch(1 0 0 / 0.95),
+    0 2px 16px 0 oklch(0.63 0.1 190 / 0.14),
+    0 1px 4px 0 oklch(0.44 0.104 190 / 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/*
  * Phase 4 addition — indeterminate Progress Indicator sweep. Tailwind v4
  * ships no built-in equivalent to `animate-pulse`/`animate-spin` for a
  * sliding bar, so this keyframe is added directly (referenced via the
