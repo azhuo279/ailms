@@ -52,6 +52,7 @@ import {
   MODIFICATION_REASONS,
   type RecommendedAction,
   type RoutingKind,
+  type RoutingSubmission,
   type TimelineStep,
 } from "@/app/workspace/lib/exception-detail";
 import { PRIORITY_TIER_ORDER } from "@/app/workspace/components/workspace-filter-bar";
@@ -148,10 +149,12 @@ export interface ExceptionDetailViewProps {
   onBack: () => void;
   /**
    * Called when the selected action is routed (delegated/escalated) from a
-   * pending exception. The container moves the exception to the matching queue
-   * and clears the selection so the tab shows the routed result.
+   * pending exception. Carries the submission so the status panel can show the
+   * real submitted instructions rather than rebuilding from the AI primary.
    */
-  onRouted?: (id: string, queue: ExceptionQueue) => void;
+  onRouted?: (id: string, queue: ExceptionQueue, submission: RoutingSubmission) => void;
+  /** Submission from a prior routing of this exception, for the status panel. */
+  routingSubmission?: RoutingSubmission;
   /**
    * Called when the ZOM confirms a priority-tier change from the header control.
    * The container lifts the tier into the shared feed (re-sort + FLIP), and
@@ -173,6 +176,7 @@ export function ExceptionDetailView({
   sourceHealth,
   onBack,
   onRouted,
+  routingSubmission,
   onTierChange,
   onDismiss,
   className,
@@ -343,15 +347,19 @@ export function ExceptionDetailView({
     setRoutingModal("escalate");
   };
 
-  // Modal confirm — the mock route. A real build posts the assembled package /
-  // brief to the delegation/escalation service. The exception then moves to the
-  // matching queue and the selection clears so the tab shows the routed result.
-  const handleModalConfirm = () => {
+  // Modal confirm — builds and passes the RoutingSubmission so the status panel
+  // can display the actual submitted instructions rather than the AI primary.
+  const handleModalConfirm = (fieldOverrides: Record<string, string>) => {
     const targetQueue: ExceptionQueue =
       routingModal === "escalate" ? "escalated" : "delegated";
+    const submission: RoutingSubmission = {
+      action: selectedAction,
+      instructionText,
+      fieldOverrides,
+    };
     setRoutingModal(null);
     resetRouting();
-    onRouted?.(exception.id, targetQueue);
+    onRouted?.(exception.id, targetQueue, submission);
   };
 
   // A confirmed priority change from the header control (Starling). Three
@@ -455,9 +463,9 @@ export function ExceptionDetailView({
             actionBlock={
               isRouted ? (
                 isEscalated ? (
-                  <EscalationStatusPanel exception={exception} />
+                  <EscalationStatusPanel exception={exception} routingSubmission={routingSubmission} />
                 ) : (
-                  <DelegationStatusPanel exception={exception} />
+                  <DelegationStatusPanel exception={exception} routingSubmission={routingSubmission} />
                 )
               ) : legalHold ? (
                 // AI action recommendation suppressed for a sanctions / legal

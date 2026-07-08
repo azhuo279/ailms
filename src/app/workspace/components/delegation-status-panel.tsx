@@ -14,7 +14,7 @@ import { Badge, type BadgeTone } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TextArea } from "@/components/ui/text-area";
 import type { ExceptionRecord } from "@/app/workspace/lib/exception-types";
-import { buildRecommendedActions } from "@/app/workspace/lib/exception-detail";
+import { buildRecommendedActions, type RoutingSubmission } from "@/app/workspace/lib/exception-detail";
 import {
   buildDelegatePackage,
   buildDelegationStatus,
@@ -81,23 +81,39 @@ const STATE_META: Record<
 
 export interface DelegationStatusPanelProps {
   exception: ExceptionRecord;
+  routingSubmission?: RoutingSubmission;
   className?: string;
 }
 
 export function DelegationStatusPanel({
   exception,
+  routingSubmission,
   className,
 }: DelegationStatusPanelProps) {
   const status = useMemo(
     () => buildDelegationStatus(exception),
     [exception],
   );
-  // The package that was sent = the AI-primary action's package (read-only here).
+  // Build the package from the action the ZOM actually submitted, with their
+  // instruction text and any field-level edits applied on top. Falls back to the
+  // AI primary when no submission is recorded (e.g. pre-existing mock data).
   const sentPackage = useMemo(() => {
-    const actions = buildRecommendedActions(exception);
-    const primary = actions.find((a) => a.isAiPrimary) ?? actions[0];
-    return buildDelegatePackage(exception, primary);
-  }, [exception]);
+    const action = routingSubmission?.action ?? (() => {
+      const actions = buildRecommendedActions(exception);
+      return actions.find((a) => a.isAiPrimary) ?? actions[0];
+    })();
+    const base = buildDelegatePackage(exception, action);
+    if (!routingSubmission) return base;
+    return base.map((f) => {
+      if (routingSubmission.fieldOverrides[f.key] !== undefined) {
+        return { ...f, value: routingSubmission.fieldOverrides[f.key] };
+      }
+      if (f.key === "Action requested") {
+        return { ...f, value: routingSubmission.instructionText };
+      }
+      return f;
+    });
+  }, [exception, routingSubmission]);
 
   const [sentOpen, setSentOpen] = useState(false);
   const [reply, setReply] = useState("");

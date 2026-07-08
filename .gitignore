@@ -38,7 +38,7 @@ next-env.d.ts
 
 # starling (dev-only annotation tool — auto-generated route + local workspace)
 src/app/api/starling/
-starling/audit-workspace/
+starling/
 
 # skill-generated scratch output (ideation, audits) — regenerated on demand
 /inventor-workspace/

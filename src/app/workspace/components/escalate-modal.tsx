@@ -46,8 +46,8 @@ export interface EscalateModalProps {
    * category before the escalation can be submitted (PRD FR-24 / AC-07). */
   isModified: boolean;
   onClose: () => void;
-  /** Called on confirm — the container moves the exception to the Escalated tab. */
-  onConfirm: () => void;
+  /** Called on confirm — passes back the user's field-level edits to the brief. */
+  onConfirm: (fieldOverrides: Record<string, string>) => void;
 }
 
 export function EscalateModal({
@@ -96,7 +96,7 @@ export function EscalateModal({
             variant="primary"
             leadingIcon={<MoveUpRight />}
             disabled={!canSend}
-            onClick={onConfirm}
+            onClick={() => onConfirm(briefValues)}
             className="w-full"
           >
             Submit escalation
