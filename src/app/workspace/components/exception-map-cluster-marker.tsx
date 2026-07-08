@@ -88,9 +88,6 @@ export interface ClusterMarkerProps {
   hovered?: boolean;
   /** True when the pin/cluster is already being handled (escalated/delegated). */
   handled?: boolean;
-  onClick?: () => void;
-  onPointerEnter?: () => void;
-  onPointerLeave?: () => void;
   label?: string;
 }
 
@@ -100,24 +97,16 @@ export function ClusterMarker({
   selected = false,
   hovered = false,
   handled = false,
-  onClick,
-  onPointerEnter,
-  onPointerLeave,
   label,
 }: ClusterMarkerProps) {
   const isCluster = count > 1;
 
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      onPointerEnter={onPointerEnter}
-      onPointerLeave={onPointerLeave}
+    <div
       aria-label={label}
+      role="img"
       className={cn(
-        "relative flex items-center justify-center rounded-full ring-2 ring-surface-raised transition-transform",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2",
-        "hover:scale-110 motion-reduce:transition-none",
+        "relative flex items-center justify-center rounded-full ring-2 ring-surface-raised",
         isCluster
           ? cn(
               TIER_CLUSTER_SIZE[topTier],
@@ -126,7 +115,7 @@ export function ClusterMarker({
             )
           : cn(TIER_DOT_SIZE[topTier], "shadow-sm", TIER_DOT_FILL[topTier]),
         // Hovered (from a feed-card hover): lift the pin so it wins the eye.
-        hovered && "scale-125",
+        hovered && "scale-125 transition-transform motion-reduce:transition-none",
         // Selected: focus-ring ring + offset — the "you opened this" state.
         selected &&
           "ring-focus-ring ring-offset-1 ring-offset-surface-raised scale-110",
@@ -158,6 +147,6 @@ export function ClusterMarker({
       ) : null}
 
       {isCluster ? count : null}
-    </button>
+    </div>
   );
 }

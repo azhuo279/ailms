@@ -9,11 +9,8 @@ import type { Map as MapLibreMap, Marker as MapLibreMarker } from "maplibre-gl";
 // the effect below to keep it out of the server bundle.
 import "maplibre-gl/dist/maplibre-gl.css";
 import { cn } from "@/lib/utils";
+import { Spinner } from "@/components/ui/spinner";
 import { ClusterMarker } from "./exception-map-cluster-marker";
-import {
-  ExceptionHoverPopover,
-  type HoverPreviewTarget,
-} from "./exception-hover-popover";
 import { getWarehouse } from "@/app/workspace/lib/exception-format";
 import type {
   ExceptionQueue,
@@ -109,16 +106,8 @@ export interface ExceptionMapPanelProps {
   /** Warehouse registry — the source of each pin's coordinates + location. */
   warehouseMap: Map<string, Warehouse>;
   selectedId: string | null;
-  onSelect: (id: string) => void;
-  /**
-   * Symmetric hover link. `hoveredId` is the exception hovered in the feed (its
-   * pin/site lifts + pulses); `onHoverChange` fires when a pin is hovered so the
-   * feed can highlight + scroll to the matching card.
-   */
+  /** Exception hovered in the feed — its map pin lifts + pulses as a visual link. */
   hoveredId?: string | null;
-  onHoverChange?: (id: string | null) => void;
-  /** Cluster click / popover "view all" → filter the feed to this warehouse. */
-  onViewSite?: (warehouseId: string) => void;
   /**
    * Exceptions that could not plot (their warehouse has no coordinates). Never
    * silently dropped: surfaced via a corner indicator that snaps the feed to
@@ -139,24 +128,19 @@ export interface ExceptionMapPanelProps {
  * server render. Each marker is the shared `ClusterMarker`, rendered into the
  * MapLibre marker element via its own React root.
  *
- * Linking: a single-exception pin selects it (opens the detail); a multi-
- * exception cluster filters the feed to that site (`onViewSite`) rather than
- * opening an in-panel list. Hovering a pin highlights + scrolls its feed
- * card(s); hovering a feed card lifts + pulses its pin. Hover also raises a
- * portalled preview popover anchored to the pin.
+ * View-only: markers are non-interactive display elements. Hovering a feed
+ * card lifts + pulses its corresponding pin. The selected pin is visually
+ * distinguished by a focus-ring ring. Markers carry no click or hover CTAs.
  *
  * In `inset` mode the map shrinks to a compact persistent context panel (no
- * hover popover, no nav control) that keeps the active pin visible while the
- * detail view owns the pane.
+ * nav control) that keeps the active pin visible while the detail view owns
+ * the pane.
  */
 export function ExceptionMapPanel({
   exceptions,
   warehouseMap,
   selectedId,
-  onSelect,
   hoveredId = null,
-  onHoverChange,
-  onViewSite,
   offMapExceptions = [],
   onShowOffMap,
   inset = false,
@@ -186,48 +170,14 @@ export function ExceptionMapPanel({
   const [mapReady, setMapReady] = useState(false);
   const [mapError, setMapError] = useState(false);
 
-  // Which cluster's pin the POINTER is over (drives the popover). Distinct from
-  // `hoveredId` (which comes from the feed). Either raises the pin's active
-  // state; only a pointer-hovered pin shows the popover.
-  const [pointerClusterKey, setPointerClusterKey] = useState<string | null>(
-    null,
-  );
-  const [popoverTarget, setPopoverTarget] = useState<HoverPreviewTarget | null>(
-    null,
-  );
   const [nowMsLocal] = useState(() => nowMs ?? Date.now());
 
   // Latest interaction handlers + derived state, read by marker callbacks
   // without forcing the marker set to rebuild when identities change.
-  const onSelectRef = useRef(onSelect);
-  const onViewSiteRef = useRef(onViewSite);
-  const onHoverChangeRef = useRef(onHoverChange);
-  const selectedIdRef = useRef(selectedId);
-  const hoveredIdRef = useRef(hoveredId);
   const insetRef = useRef(inset);
   useEffect(() => {
-    onSelectRef.current = onSelect;
-    onViewSiteRef.current = onViewSite;
-    onHoverChangeRef.current = onHoverChange;
-    selectedIdRef.current = selectedId;
-    hoveredIdRef.current = hoveredId;
     insetRef.current = inset;
   });
-
-  // Compute + store the popover anchor (pin's viewport point) for a cluster.
-  const raisePopover = useCallback((cluster: MapCluster) => {
-    const map = mapRef.current;
-    const canvas = map?.getCanvas();
-    if (!map || !canvas) return;
-    const point = map.project([cluster.lng, cluster.lat]);
-    const rect = canvas.getBoundingClientRect();
-    setPopoverTarget({
-      x: rect.left + point.x,
-      y: rect.top + point.y,
-      exceptions: cluster.exceptions,
-      warehouse: cluster.warehouse,
-    });
-  }, []);
 
   // Renders one marker's ClusterMarker into its root with the current visual
   // state. Reused by both the build effect and the in-place state-update effect
@@ -236,9 +186,7 @@ export function ExceptionMapPanel({
   const renderMarker = useCallback(
     (cluster: MapCluster, root: Root) => {
       const isSelected = cluster.exceptions.some((e) => e.id === selectedId);
-      const isHovered =
-        cluster.exceptions.some((e) => e.id === hoveredId) ||
-        cluster.key === pointerClusterKey;
+      const isHovered = cluster.exceptions.some((e) => e.id === hoveredId);
       root.render(
         <ClusterMarker
           topTier={cluster.topTier}
@@ -248,29 +196,13 @@ export function ExceptionMapPanel({
           handled={cluster.allHandled}
           label={
             cluster.exceptions.length > 1
-              ? `${cluster.exceptions.length} exceptions at ${cluster.location}, view in feed`
-              : `${cluster.exceptions[0].headline}, ${cluster.location}, open exception`
+              ? `${cluster.exceptions.length} exceptions at ${cluster.location}`
+              : `${cluster.exceptions[0].headline}, ${cluster.location}`
           }
-          onClick={() => {
-            if (insetRef.current) return; // inset is context-only
-            if (cluster.exceptions.length > 1)
-              onViewSiteRef.current?.(cluster.warehouseId);
-            else onSelectRef.current(cluster.exceptions[0].id);
-          }}
-          onPointerEnter={() => {
-            if (insetRef.current) return;
-            setPointerClusterKey(cluster.key);
-            raisePopover(cluster);
-            onHoverChangeRef.current?.(cluster.exceptions[0].id);
-          }}
-          onPointerLeave={() => {
-            setPointerClusterKey((k) => (k === cluster.key ? null : k));
-            onHoverChangeRef.current?.(null);
-          }}
         />,
       );
     },
-    [selectedId, hoveredId, pointerClusterKey, raisePopover],
+    [selectedId, hoveredId],
   );
 
   // Create the map once, client-side only.
@@ -325,8 +257,6 @@ export function ExceptionMapPanel({
             setMapReady(true);
           }
         });
-        // Repositioning the popover as the map moves keeps it glued to the pin.
-        map.on("move", () => setPopoverTarget(null));
         map.on("error", (event) => {
           if (!cancelled && !("tile" in (event as object))) setMapError(true);
         });
@@ -421,17 +351,6 @@ export function ExceptionMapPanel({
     }
   }, [mapReady, renderMarker]);
 
-  // Close the popover if its cluster no longer exists after a filter change.
-  useEffect(() => {
-    if (
-      pointerClusterKey &&
-      !clusters.some((c) => c.key === pointerClusterKey)
-    ) {
-      setPointerClusterKey(null);
-      setPopoverTarget(null);
-    }
-  }, [clusters, pointerClusterKey]);
-
   const offMapCount = offMapExceptions.length;
 
   return (
@@ -468,11 +387,7 @@ export function ExceptionMapPanel({
 
         {!mapReady && !mapError ? (
           <div className="absolute inset-0 flex items-center justify-center bg-surface-sunken">
-            <span
-              className="size-6 animate-spin rounded-full border-2 border-border-subtle border-t-primary-700"
-              aria-hidden="true"
-            />
-            <span className="sr-only">Loading map</span>
+            <Spinner label="Loading map" className="size-6" />
           </div>
         ) : null}
 
@@ -498,31 +413,6 @@ export function ExceptionMapPanel({
         ) : null}
       </div>
 
-      {/* Portalled hover preview — only outside inset mode. */}
-      {!inset && popoverTarget && pointerClusterKey ? (
-        <ExceptionHoverPopover
-          target={popoverTarget}
-          nowMs={nowMsLocal}
-          onOpenException={(id) => {
-            setPointerClusterKey(null);
-            setPopoverTarget(null);
-            onSelect(id);
-          }}
-          onViewSite={(warehouseId) => {
-            setPointerClusterKey(null);
-            setPopoverTarget(null);
-            onViewSite?.(warehouseId);
-          }}
-          onPointerEnter={() => {
-            /* keep open while hovering the surface */
-          }}
-          onPointerLeave={() => {
-            setPointerClusterKey(null);
-            setPopoverTarget(null);
-            onHoverChange?.(null);
-          }}
-        />
-      ) : null}
     </div>
   );
 }

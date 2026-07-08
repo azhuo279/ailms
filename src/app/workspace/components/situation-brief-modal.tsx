@@ -262,7 +262,7 @@ function SlideQueueItems({
               key={item.id}
               className="flex items-start gap-8m rounded-lg border border-border-subtle px-3 py-2.5"
             >
-              <div className="w-16 shrink-0">
+              <div className="w-24 shrink-0">
                 <PriorityTierBadge tier={item.priorityTier} />
               </div>
               <div className="min-w-0">

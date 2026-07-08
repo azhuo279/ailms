@@ -429,16 +429,6 @@ export function WorkspaceContent() {
     setDateRange({ start: null, end: null });
   };
 
-  // Clicking a CLUSTER pin (or a popover "view all") filters the feed to that
-  // site — the preferred model over an inline map list, so the feed/detail
-  // split stays consistent and the map (one shared filteredExceptions array)
-  // narrows to the same site in lockstep. Clears any open detail so the feed is
-  // the visible result of the click, never an ambiguous selection.
-  const handleViewSite = (warehouseId: string) => {
-    setActiveWarehouseIds([warehouseId]);
-    handleClearSelection();
-  };
-
   // Exceptions whose warehouse has no coordinates never plot (FR-52). Computed
   // from the SAME filtered working set the map plots via the shared
   // isMissingOrigin predicate, so the "N not on map" count always matches what
@@ -578,10 +568,7 @@ export function WorkspaceContent() {
             exceptions={filteredExceptions}
             warehouseMap={warehouseMap}
             selectedId={selectedId}
-            onSelect={handleSelect}
             hoveredId={hoveredId}
-            onHoverChange={setHoveredId}
-            onViewSite={handleViewSite}
             offMapExceptions={offMapExceptions}
             onShowOffMap={handleShowOffMap}
             nowMs={nowMs}

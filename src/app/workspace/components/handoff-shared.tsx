@@ -2,7 +2,7 @@
 
 import { Fragment, useState } from "react";
 import type { ReactNode } from "react";
-import { ChevronDown, Sparkles } from "lucide-react";
+import { ChevronDown, RefreshCw, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TextArea } from "@/components/ui/text-area";
 import { Select } from "@/components/ui/select";
@@ -153,29 +153,55 @@ export function AiPackage({
 
           {mode === "edit" ? (
             <div className={cn("flex flex-col", REVEAL)}>
-              {fields.map((field) => (
-                <div
-                  key={field.key}
-                  className="grid grid-cols-[7.5rem_minmax(0,1fr)] gap-2.5 border-b border-dashed border-ai-border/30 py-2 last:border-b-0"
-                >
-                  <span className="text-caption font-medium text-fg-muted">
-                    {field.key}
-                  </span>
-                  {field.editable ? (
-                    <input
-                      type="text"
-                      value={valueFor(field)}
-                      onChange={(e) => onFieldChange(field.key, e.target.value)}
-                      aria-label={`Edit ${field.key}`}
-                      className="w-full rounded-md border border-dashed border-border-strong bg-surface-raised px-2 py-1 text-body-s text-fg-secondary outline-none transition-colors focus-visible:border-solid focus-visible:border-focus-ring focus-visible:ring-2 focus-visible:ring-focus-ring"
-                    />
-                  ) : (
-                    <span className="text-body-s text-fg-secondary">
-                      <RichText text={valueFor(field)} />
+              {fields.map((field) => {
+                const isModified =
+                  values[field.key] !== undefined &&
+                  values[field.key] !== field.value;
+                return (
+                  <div
+                    key={field.key}
+                    className="grid grid-cols-[7.5rem_minmax(0,1fr)] gap-2.5 border-b border-dashed border-ai-border/30 py-2 last:border-b-0"
+                  >
+                    <span className="text-caption font-medium text-fg-muted">
+                      {field.key}
                     </span>
-                  )}
-                </div>
-              ))}
+                    {field.editable ? (
+                      <div className="flex flex-col gap-1">
+                        <input
+                          type="text"
+                          value={valueFor(field)}
+                          onChange={(e) => onFieldChange(field.key, e.target.value)}
+                          aria-label={`Edit ${field.key}`}
+                          className={cn(
+                            "w-full rounded-md border bg-surface-raised px-2 py-1 text-body-s text-fg-secondary outline-none transition-colors focus-visible:border-solid focus-visible:border-focus-ring focus-visible:ring-2 focus-visible:ring-focus-ring",
+                            isModified
+                              ? "border-warning-emphasis"
+                              : "border-dashed border-border-strong",
+                          )}
+                        />
+                        {isModified && (
+                          <span
+                            className={cn(
+                              "flex items-center gap-1 text-caption text-warning-fg",
+                              REVEAL,
+                            )}
+                          >
+                            <RefreshCw
+                              className="size-3 shrink-0"
+                              aria-hidden="true"
+                            />
+                            Modified
+                          </span>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-body-s text-fg-secondary">
+                        <RichText text={valueFor(field)} />
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           ) : (
             <div

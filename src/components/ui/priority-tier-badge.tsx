@@ -34,7 +34,7 @@ const TIER_CONFIG: Record<
     className: "bg-warning-surface text-warning-fg",
   },
   T4: {
-    label: "Routed",
+    label: "Low",
     icon: Route,
     className: "bg-surface-sunken text-fg-secondary",
   },

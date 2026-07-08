@@ -1345,9 +1345,6 @@ function ExceptionProgressMap({
             exceptions={[exception]}
             warehouseMap={warehouseMap}
             selectedId={exception.id}
-            onSelect={() => {
-              /* static snapshot — selection is a no-op here */
-            }}
             inset
           />
         </div>
