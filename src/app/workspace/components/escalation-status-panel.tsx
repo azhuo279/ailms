@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 import { Badge, type BadgeTone } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { ExceptionRecord } from "@/app/workspace/lib/exception-types";
-import { buildRecommendedActions } from "@/app/workspace/lib/exception-detail";
+import { buildRecommendedActions, type RoutingSubmission } from "@/app/workspace/lib/exception-detail";
 import {
   buildEscalateBrief,
   buildEscalationStatus,
@@ -86,23 +86,40 @@ const STATE_META: Record<
 
 export interface EscalationStatusPanelProps {
   exception: ExceptionRecord;
+  routingSubmission?: RoutingSubmission;
   className?: string;
 }
 
 export function EscalationStatusPanel({
   exception,
+  routingSubmission,
   className,
 }: EscalationStatusPanelProps) {
   const status = useMemo(
     () => buildEscalationStatus(exception),
     [exception],
   );
+  // Build the brief from the action the ZOM actually submitted, with their
+  // instruction text and any field-level edits applied on top. Falls back to the
+  // AI primary when no submission is recorded (e.g. pre-existing mock data).
   const submittedBrief = useMemo(() => {
-    const actions = buildRecommendedActions(exception);
-    const primary = actions.find((a) => a.isAiPrimary) ?? actions[0];
     const approver = getPolicyApprover(exception);
-    return buildEscalateBrief(exception, primary, approver.stripsAiRecommendation);
-  }, [exception]);
+    const action = routingSubmission?.action ?? (() => {
+      const actions = buildRecommendedActions(exception);
+      return actions.find((a) => a.isAiPrimary) ?? actions[0];
+    })();
+    const base = buildEscalateBrief(exception, action, approver.stripsAiRecommendation);
+    if (!routingSubmission) return base;
+    return base.map((f) => {
+      if (routingSubmission.fieldOverrides[f.key] !== undefined) {
+        return { ...f, value: routingSubmission.fieldOverrides[f.key] };
+      }
+      if (f.key === "Proposed action" && !approver.stripsAiRecommendation) {
+        return { ...f, value: routingSubmission.instructionText };
+      }
+      return f;
+    });
+  }, [exception, routingSubmission]);
 
   const [submittedOpen, setSubmittedOpen] = useState(false);
 

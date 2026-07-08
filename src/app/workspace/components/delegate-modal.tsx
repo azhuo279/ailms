@@ -43,8 +43,8 @@ export interface DelegateModalProps {
    * category before the delegation can be sent (PRD FR-24 / AC-07). */
   isModified: boolean;
   onClose: () => void;
-  /** Called on confirm — the container moves the exception to the Delegated tab. */
-  onConfirm: () => void;
+  /** Called on confirm — passes back the user's field-level edits to the package. */
+  onConfirm: (fieldOverrides: Record<string, string>) => void;
 }
 
 export function DelegateModal({
@@ -104,9 +104,7 @@ export function DelegateModal({
 
   const handleConfirm = () => {
     if (!canSend) return;
-    // Mock route — a real build posts { action, dispatcherId, deadlineId, note,
-    // packageValues } to the delegation service, then moves the exception queue.
-    onConfirm();
+    onConfirm(packageValues);
   };
 
   return (

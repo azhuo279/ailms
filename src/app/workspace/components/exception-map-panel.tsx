@@ -174,6 +174,11 @@ export function ExceptionMapPanel({
 
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
+  // Cached after the one-time async import in the map init effect so the BUILD
+  // markers effect can run fully synchronously. Avoids the async gap where
+  // `previous` is captured as [] before the import resolves, causing orphaned
+  // markers to accumulate (stacked hitboxes → hover loop).
+  const maplibreRef = useRef<typeof import("maplibre-gl") | null>(null);
   // Each marker keeps its cluster + React root so its VISUAL state (selected /
   // hovered / handled) can be re-rendered in place, without tearing down and
   // recreating the MapLibre marker on every hover (that caused pin flicker).
@@ -192,14 +197,24 @@ export function ExceptionMapPanel({
   );
   // Timer to delay dismissal so the pointer can travel from pin to popover.
   const popoverCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // The exception id currently driving the hover LINK (the pin's first
+  // exception). Kept in a ref so the popover's own pointer-enter can RE-ASSERT
+  // the pin's hovered state: scale + halo + popover share ONE lifecycle and one
+  // close timer, and none of the three is ever torn down while another lives.
+  const activeHoverId = useRef<string | null>(null);
+  // Two halves of ONE hover group — the pin and the popover surface. The pointer
+  // moving between them is still "inside" the group. A deferred close only tears
+  // everything down once BOTH are false, so it is immune to native event
+  // ORDERING (the popover's pointerenter can fire before OR after the marker's
+  // mouseleave; either way the guarded close aborts while a surface is hovered).
+  const pinHovered = useRef(false);
+  const popoverHovered = useRef(false);
 
   // Stable refs for callbacks — event listeners read these so they always see
   // the latest handler without requiring the marker build effect to re-run.
   const onSelectRef = useRef(onSelect);
   const onFilterWarehouseRef = useRef(onFilterWarehouse);
   const onHoverChangeRef = useRef(onHoverChange);
-  // setPopoverTarget is stable (React guarantee) so no update needed.
-  const setPopoverRef = useRef(setPopoverTarget);
   const insetRef = useRef(inset);
   useEffect(() => {
     onSelectRef.current = onSelect;
@@ -207,6 +222,83 @@ export function ExceptionMapPanel({
     onHoverChangeRef.current = onHoverChange;
     insetRef.current = inset;
   });
+
+  // ─── Unified hover lifecycle ───────────────────────────────────────────────
+  // Scale/halo (driven by onHoverChange -> hoveredId) and the popover are ONE
+  // interaction with ONE deferred-close timer. They open together, stay alive
+  // together while the pointer is over the pin OR the popover surface, and tear
+  // down together — never on split timelines (the old bug dropped the scale on
+  // the immediate mouseleave while only deferring the popover close). These are
+  // stable (empty/stable deps) so the marker build effect can bind them once.
+
+  const cancelHoverClose = useCallback(() => {
+    if (popoverCloseTimer.current !== null) {
+      clearTimeout(popoverCloseTimer.current);
+      popoverCloseTimer.current = null;
+    }
+  }, []);
+
+  // Tear down ALL THREE (scale, halo, popover) at once — but ONLY if the pointer
+  // is over neither the pin nor the popover. Guarding at fire time (not schedule
+  // time) is what kills the flicker: a marker `mouseleave` that fires just after
+  // the popover's `pointerenter` still schedules a close, but this guard aborts
+  // it because the popover half of the group is now hovered.
+  const runHoverClose = useCallback(() => {
+    popoverCloseTimer.current = null;
+    if (pinHovered.current || popoverHovered.current) return;
+    activeHoverId.current = null;
+    setPopoverTarget(null);
+    onHoverChangeRef.current?.(null);
+  }, []);
+
+  // Defer the whole teardown so the pointer can cross the pin↔popover bridge.
+  const scheduleHoverClose = useCallback(() => {
+    cancelHoverClose();
+    popoverCloseTimer.current = setTimeout(runHoverClose, 120);
+  }, [cancelHoverClose, runHoverClose]);
+
+  // Open (or refresh) the whole hover for a cluster from a single call, so the
+  // scale/halo and popover can never desync. Works from ANY part of the marker
+  // hit area (mouseenter fires for the padded container as a whole).
+  const openHover = useCallback(
+    (cluster: MapCluster, el: HTMLElement) => {
+      pinHovered.current = true;
+      cancelHoverClose();
+      const rect = el.getBoundingClientRect();
+      const firstId = cluster.exceptions[0]?.id ?? null;
+      activeHoverId.current = firstId;
+      setPopoverTarget({
+        x: rect.left + rect.width / 2,
+        y: rect.top,
+        exceptions: cluster.exceptions,
+        warehouse: cluster.warehouse,
+      });
+      if (firstId) onHoverChangeRef.current?.(firstId);
+    },
+    [cancelHoverClose],
+  );
+
+  // Pointer left the pin — mark the pin half not-hovered and defer the guarded
+  // close (which aborts if it lands on the popover). Never drops the scale/halo
+  // outright; the guarded timer owns the single teardown.
+  const leavePin = useCallback(() => {
+    pinHovered.current = false;
+    scheduleHoverClose();
+  }, [scheduleHoverClose]);
+
+  // Pointer over the popover surface (incl. its invisible bridge): keep all
+  // three alive — mark the popover half hovered, cancel the deferred close, and
+  // re-assert the pin's hovered state so the scale/halo never drop.
+  const enterPopover = useCallback(() => {
+    popoverHovered.current = true;
+    cancelHoverClose();
+    if (activeHoverId.current) onHoverChangeRef.current?.(activeHoverId.current);
+  }, [cancelHoverClose]);
+
+  const leavePopover = useCallback(() => {
+    popoverHovered.current = false;
+    scheduleHoverClose();
+  }, [scheduleHoverClose]);
 
   // Renders one marker's ClusterMarker into its root with the current visual
   // state. Reused by both the build effect and the in-place state-update effect
@@ -244,6 +336,7 @@ export function ExceptionMapPanel({
       try {
         const maplibre = await import("maplibre-gl");
         if (cancelled || !containerRef.current) return;
+        maplibreRef.current = maplibre;
 
         // In the compact inset the map is a STATIC locator for the open
         // exception, not an interactive surface: disable every gesture up front
@@ -297,6 +390,12 @@ export function ExceptionMapPanel({
 
     return () => {
       cancelled = true;
+      // Final unmount: clear any pending hover-close timer (the build effect no
+      // longer owns this, so the teardown lives here where it runs exactly once).
+      if (popoverCloseTimer.current !== null) {
+        clearTimeout(popoverCloseTimer.current);
+        popoverCloseTimer.current = null;
+      }
       resizeObserverRef.current?.disconnect();
       resizeObserverRef.current = null;
       markersRef.current.forEach(({ marker, root }) => {
@@ -306,6 +405,7 @@ export function ExceptionMapPanel({
       markersRef.current = [];
       map?.remove();
       mapRef.current = null;
+      maplibreRef.current = null;
     };
   }, []);
 
@@ -313,103 +413,107 @@ export function ExceptionMapPanel({
   // readiness, inset mode). Visual state (selected/hovered/handled) is NOT a
   // dependency here; a separate effect re-renders it in place so a hover never
   // tears down and recreates the MapLibre markers.
+  //
+  // This effect is intentionally synchronous: maplibreRef.current is cached by
+  // the init effect so we never need to await import() here. The previous async
+  // pattern had a race where `previous` was captured as [] before the import
+  // resolved, so cleanup removed nothing and the new run created duplicate
+  // markers at the same position (stacked hitboxes → hover flicker loop).
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !mapReady) return;
+    const maplibre = maplibreRef.current;
+    if (!map || !mapReady || !maplibre) return;
 
-    let disposed = false;
+    // Tear down the previous set synchronously before building the new one —
+    // no async gap means cleanup always has the real markers, never a stale [].
     const previous = markersRef.current;
     markersRef.current = [];
+    previous.forEach(({ marker, root }) => {
+      marker.remove();
+      queueMicrotask(() => root.unmount());
+    });
 
-    (async () => {
-      const maplibre = await import("maplibre-gl");
-      if (disposed) return;
+    const next: { cluster: MapCluster; marker: MapLibreMarker; root: Root }[] =
+      [];
+    for (const cluster of clusters) {
+      const el = document.createElement("div");
+      el.style.cursor = "pointer";
+      // Pad the hit container so the scale-125 hover transform never escapes
+      // el's layout box. CSS transforms expand the visual but not the hit area;
+      // without padding the pointer leaves el the moment the marker scales up,
+      // firing mouseleave → scale collapses → mouseenter → loop.
+      // 10px absorbs scale-125 on the largest pin (40px × 1.25 = 50px;
+      // 40 + 10×2 = 60px ≥ 50px).
+      el.style.padding = "10px";
+      el.style.display = "flex";
+      el.style.alignItems = "center";
+      el.style.justifyContent = "center";
 
-      const next: { cluster: MapCluster; marker: MapLibreMarker; root: Root }[] =
-        [];
-      for (const cluster of clusters) {
-        const el = document.createElement("div");
-        el.style.cursor = "pointer";
+      // Stop mousedown propagation so MapLibre's drag handler doesn't
+      // capture the event before the click can fire on the marker.
+      el.addEventListener("mousedown", (e) => e.stopPropagation());
 
-        // Stop mousedown propagation so MapLibre's drag handler doesn't
-        // capture the event before the click can fire on the marker.
-        el.addEventListener("mousedown", (e) => e.stopPropagation());
+      el.addEventListener("click", () => {
+        if (cluster.exceptions.length === 1) {
+          const id = cluster.exceptions[0].id;
+          onSelectRef.current?.(id);
+        } else {
+          onFilterWarehouseRef.current?.(cluster.warehouseId);
+        }
+      });
 
-        el.addEventListener("click", () => {
-          if (cluster.exceptions.length === 1) {
-            const id = cluster.exceptions[0].id;
-            onSelectRef.current?.(id);
-          } else {
-            onFilterWarehouseRef.current?.(cluster.warehouseId);
-          }
-        });
+      // Scale + halo + popover open together from a SINGLE call, from anywhere
+      // on the padded hit area (mouseenter fires for the container as a whole).
+      el.addEventListener("mouseenter", () => openHover(cluster, el));
+      // Leaving the pin only marks the pin half not-hovered and DEFERS a guarded
+      // close — the scale/halo are not dropped ahead of the popover, so crossing
+      // onto the popover keeps all three alive.
+      el.addEventListener("mouseleave", () => leavePin());
 
-        el.addEventListener("mouseenter", () => {
-          // Cancel any pending close so crossing from pin to popover stays open.
-          if (popoverCloseTimer.current !== null) {
-            clearTimeout(popoverCloseTimer.current);
-            popoverCloseTimer.current = null;
-          }
-          const rect = el.getBoundingClientRect();
-          setPopoverRef.current({
-            x: rect.left + rect.width / 2,
-            y: rect.top,
-            exceptions: cluster.exceptions,
-            warehouse: cluster.warehouse,
-          });
-          const firstId = cluster.exceptions[0]?.id;
-          if (firstId) onHoverChangeRef.current?.(firstId);
-        });
+      const root = createRoot(el);
+      renderMarker(cluster, root);
+      const marker = new maplibre.Marker({ element: el })
+        .setLngLat([cluster.lng, cluster.lat])
+        .addTo(map);
+      next.push({ cluster, marker, root });
+    }
+    markersRef.current = next;
 
-        el.addEventListener("mouseleave", () => {
-          popoverCloseTimer.current = setTimeout(() => {
-            setPopoverRef.current(null);
-            popoverCloseTimer.current = null;
-          }, 120);
-          onHoverChangeRef.current?.(null);
-        });
-
-        const root = createRoot(el);
-        renderMarker(cluster, root);
-        const marker = new maplibre.Marker({ element: el })
-          .setLngLat([cluster.lng, cluster.lat])
-          .addTo(map);
-        next.push({ cluster, marker, root });
-      }
-      markersRef.current = next;
-
-      // Frame the plotted exceptions. In the inset the set is already narrowed
-      // to the selected exception's single site, so this centers + zooms onto
-      // that pin (a tighter zoom than the full map, since it is a locator).
-      if (clusters.length === 1) {
-        map.easeTo({
-          center: [clusters[0].lng, clusters[0].lat],
-          zoom: inset ? 8 : 6,
-          duration: 400,
-        });
-      } else if (clusters.length > 1) {
-        const bounds = new maplibre.LngLatBounds();
-        clusters.forEach((c) => bounds.extend([c.lng, c.lat]));
-        map.fitBounds(bounds, {
-          padding: inset ? 40 : 64,
-          maxZoom: 7,
-          duration: 400,
-        });
-      }
-    })();
+    // Frame the plotted exceptions. In the inset the set is already narrowed
+    // to the selected exception's single site, so this centers + zooms onto
+    // that pin (a tighter zoom than the full map, since it is a locator).
+    if (clusters.length === 1) {
+      map.easeTo({
+        center: [clusters[0].lng, clusters[0].lat],
+        zoom: inset ? 8 : 6,
+        duration: 400,
+      });
+    } else if (clusters.length > 1) {
+      const bounds = new maplibre.LngLatBounds();
+      clusters.forEach((c) => bounds.extend([c.lng, c.lat]));
+      map.fitBounds(bounds, {
+        padding: inset ? 40 : 64,
+        maxZoom: 7,
+        duration: 400,
+      });
+    }
 
     return () => {
-      disposed = true;
-      // Clear any open popover and pending close timer.
-      if (popoverCloseTimer.current !== null) {
-        clearTimeout(popoverCloseTimer.current);
-        popoverCloseTimer.current = null;
-      }
-      setPopoverRef.current(null);
-      previous.forEach(({ marker, root }) => {
+      // Remove ONLY the markers this run created — do NOT tear down the hover
+      // popover here. The plotted set rebuilds on every background feed tick
+      // (~9s), and warehouse-anchored pins keep their positions across it, so
+      // nulling the popover on rebuild would make an open preview vanish under a
+      // stationary pointer every few seconds. The hover GROUP (pin + popover
+      // pointer events + the guarded close) owns the popover's lifecycle
+      // exclusively; the marker DOM is recreated beneath it without disturbing
+      // it. Because the effect is synchronous, markersRef.current always holds
+      // exactly what this run built — no async gap where it could point to
+      // someone else's markers.
+      markersRef.current.forEach(({ marker, root }) => {
         marker.remove();
         queueMicrotask(() => root.unmount());
       });
+      markersRef.current = [];
     };
     // renderMarker is intentionally omitted: it changes on every hover/select,
     // and re-running the build on those would defeat the whole point. The
@@ -472,18 +576,12 @@ export function ExceptionMapPanel({
           <ExceptionHoverPopover
             target={popoverTarget}
             nowMs={nowMsLocal}
-            onPointerEnter={() => {
-              if (popoverCloseTimer.current !== null) {
-                clearTimeout(popoverCloseTimer.current);
-                popoverCloseTimer.current = null;
-              }
-            }}
-            onPointerLeave={() => {
-              popoverCloseTimer.current = setTimeout(() => {
-                setPopoverTarget(null);
-                popoverCloseTimer.current = null;
-              }, 120);
-            }}
+            // Entering the popover (incl. its bridge) keeps ALL THREE alive:
+            // marks the popover half hovered, cancels the deferred close, and
+            // re-asserts the pin's scale/halo.
+            onPointerEnter={enterPopover}
+            // Leaving the popover defers the same guarded, unified teardown.
+            onPointerLeave={leavePopover}
           />
         ) : null}
 

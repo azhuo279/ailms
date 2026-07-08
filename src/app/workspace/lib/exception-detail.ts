@@ -58,6 +58,20 @@ export interface RecommendedAction {
   tradeoff?: { kind: ActionTradeoffKind; note: string };
 }
 
+/**
+ * What the ZOM actually submitted when routing an exception. Captured at
+ * confirm time and stored in WorkspaceContent so status panels show the real
+ * submitted instructions rather than rebuilding from the AI primary.
+ */
+export interface RoutingSubmission {
+  /** The action the ZOM selected (may differ from the AI primary). */
+  action: RecommendedAction;
+  /** The instruction text as submitted, including any edits from the detail view. */
+  instructionText: string;
+  /** Field-level edits the ZOM made inside the modal's AI package/brief. */
+  fieldOverrides: Record<string, string>;
+}
+
 export interface EvidenceEvent {
   id: string;
   /** Absolute-ish clock label, e.g. "13:02 CT". */

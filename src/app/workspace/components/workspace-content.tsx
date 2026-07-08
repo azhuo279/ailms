@@ -40,6 +40,7 @@ import type {
   Warehouse,
 } from "@/app/workspace/lib/exception-types";
 import type { TierChange } from "./editable-tier-control";
+import type { RoutingSubmission } from "@/app/workspace/lib/exception-detail";
 import { useAuditSessionStore } from "@/hooks/shared/use-audit-session-store";
 import {
   buildTierChangeAuditEvent,
@@ -141,6 +142,14 @@ export function WorkspaceContent() {
   // query; this keeps the feature self-contained over the mock feed.
   const [queueOverrides, setQueueOverrides] = useState<
     Record<string, ExceptionQueue>
+  >({});
+
+  // Submitted routing data keyed by exception id — preserves the actual action,
+  // instruction text, and field edits the ZOM committed when routing, so the
+  // status panel shows exactly what was sent rather than rebuilding from the AI
+  // primary on every render.
+  const [routingSubmissions, setRoutingSubmissions] = useState<
+    Record<string, RoutingSubmission>
   >({});
 
   // Local priority-tier overrides applied on top of the fetched feed, mirroring
@@ -385,10 +394,13 @@ export function WorkspaceContent() {
     : null;
 
   // A routed exception (Delegate/Escalate confirmed in the detail view) moves to
-  // the matching queue and the selection clears, so the ZOM lands back on the
-  // feed/map and can switch to the Delegated/Escalated tab to monitor it.
-  const handleRouted = (id: string, targetQueue: ExceptionQueue) => {
+  // the matching queue. The tab auto-switches and the selection clears so the ZOM
+  // lands on the right queue's feed immediately. The submission is stored so the
+  // status panel can show the real submitted instructions when they re-open it.
+  const handleRouted = (id: string, targetQueue: ExceptionQueue, submission: RoutingSubmission) => {
     setQueueOverrides((prev) => ({ ...prev, [id]: targetQueue }));
+    setRoutingSubmissions((prev) => ({ ...prev, [id]: submission }));
+    setQueue(targetQueue);
     handleClearSelection();
   };
 
@@ -600,6 +612,7 @@ export function WorkspaceContent() {
             sourceHealth={data.sourceHealth}
             onBack={handleClearSelection}
             onRouted={handleRouted}
+            routingSubmission={selectedId ? routingSubmissions[selectedId] : undefined}
             onTierChange={handleTierChange}
             onDismiss={handleDismiss}
           />

@@ -35,6 +35,15 @@ import type {
  * to the end state); it unmounts instantly on exit, matching a short-lived hover
  * surface. Positioned as `fixed` at the pin's viewport point, offset upward so
  * the arrow of attention sits above the pin.
+ *
+ * Positioning uses the standalone `translate` CSS property (NOT `transform`)
+ * for the same reason documented on `cbar-pulse`/`marker-hover-pulse` in
+ * globals.css: the `empty-state-rise-in` reveal animates `transform`
+ * (translateY 3px -> 0, fill `both`), which would OVERRIDE an inline
+ * `transform` — clobbering the -50%/-100%-14px offset so the popover renders
+ * mispositioned under the pointer and thrashes enter/leave. Driving the offset
+ * via `translate` lets the reveal's `transform` compose on top, so the popover
+ * stays correctly anchored above the pin throughout the animation.
  */
 
 const REVEAL =
@@ -122,13 +131,21 @@ export function ExceptionHoverPopover({
         left: x,
         top: y,
         // Anchor the popover's bottom just above the pin, horizontally centered.
-        transform: "translate(-50%, calc(-100% - 14px))",
+        // Uses `translate` (not `transform`) so the reveal keyframe's transform
+        // composes on top instead of clobbering this offset (see doc comment).
+        translate: "-50% calc(-100% - 14px)",
       }}
       className={cn(
         "z-50 w-72 rounded-lg border border-border-subtle bg-surface-overlay p-3 text-fg-primary shadow-lg",
         REVEAL,
       )}
     >
+      {/* Invisible hover bridge spanning the 14px (h-3.5) dead gap between the
+          pin and this popover. It is a child of the popover, so the pointer
+          moving pin -> popover stays continuously "inside" this surface and
+          never crosses a region belonging to neither — which was half of the
+          enter/leave flicker loop. Shares the popover's pointer lifecycle. */}
+      <span aria-hidden="true" className="absolute inset-x-0 top-full h-3.5" />
       {isCluster ? (
         <ClusterPreview
           exceptions={exceptions}
